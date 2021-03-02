@@ -30,17 +30,17 @@
                         <a class="nav-link active" href="/">About</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/blog.html">Pricing</a>
+                        <a class="nav-link active" href="/">Pricing</a>
                     </li>
                 {:else}
                     <li class="nav-item">
-                        <a class="nav-link active" href="/blog.html">All</a>
+                        <a class="nav-link active" href="/">All Listings</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/blog.html">Pending</a>
+                        <a class="nav-link active" href="/">Pending Listings</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/blog.html">Add</a>
+                        <a class="nav-link active" href="/">Add Listings</a>
                     </li>
                 {/if}
                 <li class="nav-item d-sm-none">
@@ -97,7 +97,7 @@
     }
 
     a.navbar-brand {
-        font-size: 1.2rem;
+        font-size: 1.5rem;
         padding: 0;
         margin: 1rem 2rem;
 
@@ -121,6 +121,7 @@
         font-size: 1.2rem;
 
         li {
+            font-family: $body-font;
             margin: 0;
             padding: 0.25rem 1rem;
 

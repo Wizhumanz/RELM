@@ -5,7 +5,7 @@ $cream: #fffdd0;
 $blood: #8a0000;
 $blue: #000058;
 
-$title-font: "Rubik Mono One", sans-serif;
+$title-font: "Abril Fatface", cursive;
 $body-font: "Volkhov", serif;
 
 // BS5
@@ -41,6 +41,7 @@ label,
 input,
 form {
   font-family: $body-font;
+  font-size: large;
   line-height: 1.25em;
 }
 
@@ -83,6 +84,7 @@ input,
 button,
 select,
 textarea {
+  font-family: $title-font;
   font-size: inherit;
   -webkit-padding: 0.4em 0;
   padding: 0.6em;
@@ -90,6 +92,34 @@ textarea {
   box-sizing: border-box;
   border: 1px solid #ccc;
   border-radius: 3px;
+}
+
+button {
+  font-size: larger;
+  border: 2px solid $blood;
+  color: $blood;
+  padding: 0.5rem 1rem 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+
+button:hover {
+  color: $ivory;
+  background-color: $blood;
+
+  animation-name: blood-btn-flash;
+  animation-duration: 0.5s;
+  animation-timing-function: ease-out;
+}
+
+@keyframes blood-btn-flash {
+  0% {
+    color: $blood;
+    background-color: $ivory;
+  }
+  100% {
+    color: $ivory;
+    background-color: $blood;
+  }
 }
 
 input {

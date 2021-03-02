@@ -11,6 +11,18 @@
 	};
 
 	$: isLoggedIn = user.id !== "" && user.id !== undefined;
+
+	function signIn(e) {
+		e.preventDefault();
+		if (userLogin.email === "agent@agent.com" && userLogin.password === "agent") {
+			user.id = "AGENT"
+		} else if (
+			userLogin.email === "owner@owner.com" &&
+			userLogin.password === "owner"
+		) {
+			user.id = "OWNER"
+		}
+	}
 </script>
 
 <main>
@@ -22,7 +34,7 @@
 					<h1 class="brand">RELM</h1>
 					<p>
 						<strong>R</strong>eal <strong>E</strong>state
-						<strong>L</strong>isting <strong>M</strong>anagement.
+						<strong>L</strong>isting <strong>M</strong>anager.
 					</p>
 					<p>
 						Designed by <a href="https://myika.co"
@@ -31,8 +43,8 @@
 					</p>
 				</div>
 				<div class="col-sm col-md-4" id="login-col">
-					<h4 class="section-head">Log In</h4>
-					<div class="form">
+					<h4 class="section-head">Sign In</h4>
+					<form class="form" action="#" on:submit={signIn}>
 						<div class="mb-3">
 							<label for="email" class="form-label"> Email</label>
 							<input
@@ -48,14 +60,15 @@
 								Password</label
 							>
 							<input
-								type="password"
+								type="text"
 								class="form-control"
 								id="password"
 								placeholder="password"
 								bind:value={userLogin.password}
 							/>
 						</div>
-					</div>
+						<button type="submit">Sign In</button>
+					</form>
 				</div>
 			</div>
 		{:else}
