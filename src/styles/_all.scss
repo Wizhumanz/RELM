@@ -1,0 +1,107 @@
+//vars
+
+$ivory: #fffff0;
+$cream: #fffdd0;
+$blood: #8a0000;
+$blue: #000058;
+
+$title-font: "Rubik Mono One", sans-serif;
+$body-font: "Volkhov", serif;
+
+// BS5
+$grid-breakpoints: (
+  "xs": 0,
+  "sm": 576px,
+  "md": 768px,
+  "lg": 992px,
+  "xl": 1200px,
+  "xxl": 1400px,
+);
+
+// global styles
+
+body {
+  margin-bottom: 5rem;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: $title-font;
+  font-weight: bold;
+}
+
+h1.brand {
+  color: $blue;
+}
+
+p,
+label,
+input,
+form {
+  font-family: $body-font;
+  line-height: 1.25em;
+}
+
+.btn {
+  font-family: $title-font;
+  padding: 0.5em 1em 0.5em 1em;
+  margin: 0.4em 0.3em auto 0.3em;
+}
+
+.section-head {
+  margin: 2rem 0.55rem 1rem 0.5rem;
+}
+
+p.breaker {
+  text-align: center;
+  margin: 1rem;
+  color: #8a0000;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+  display: inline-block;
+}
+
+a:visited {
+  color: $blue;
+}
+
+a:hover {
+  text-decoration: line-through;
+  color: $blue;
+}
+
+label {
+  display: block;
+}
+
+input,
+button,
+select,
+textarea {
+  font-size: inherit;
+  -webkit-padding: 0.4em 0;
+  padding: 0.6em;
+  margin: 0 0 0.5em 0;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+input {
+  background-color: $ivory;
+  border: $blood 1px dashed;
+}
+
+input:focus-within {
+  background-color: $blood;
+  color: $ivory;
+}
+
+input:disabled {
+  color: #ccc;
+}
