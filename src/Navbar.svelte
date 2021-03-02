@@ -77,7 +77,7 @@
 
     nav {
         font-family: $title-font;
-        background-color: $ivory;
+        background-color: $cream;
 
         margin-bottom: 1rem;
         padding: 0;

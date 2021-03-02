@@ -6,7 +6,7 @@ $blood: #8a0000;
 $blue: #000058;
 
 $title-font: "Abril Fatface", cursive;
-$body-font: "Volkhov", serif;
+$body-font: 'Alata', sans-serif;
 
 // BS5
 $grid-breakpoints: (
@@ -120,18 +120,4 @@ button:hover {
     color: $ivory;
     background-color: $blood;
   }
-}
-
-input {
-  background-color: $ivory;
-  border: $blood 1px dashed;
-}
-
-input:focus-within {
-  background-color: $blood;
-  color: $ivory;
-}
-
-input:disabled {
-  color: #ccc;
 }

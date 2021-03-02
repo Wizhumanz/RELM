@@ -1,9 +1,50 @@
 <script>
 	import Navbar from "./Navbar.svelte";
+	import Listings from "./Listings.svelte";
 
+	let mockListingsAgent = [
+		{
+			name: "Taman Jesselton",
+			address: "49, Taman Jesselton, 10450 Georgetown",
+			propertyType: "Landed",
+			listingType: "Rent",
+			price: "6000",
+			isPublic: true,
+			isCompleted: false,
+		},
+		{
+			name: "The Cove",
+			address: "10-55-A, The Cove, 11200 Tanjung Tokong",
+			propertyType: "Apartment",
+			listingType: "Buy",
+			price: "3000000",
+			isPublic: true,
+			isCompleted: false,
+		},
+		{
+			name: "Skyhome Condo",
+			address: "1-3-7A Skyhome, Jalan Lembah Permai 4, 11200 Tanjung Tokong",
+			propertyType: "Apartment",
+			listingType: "Rental",
+			price: "4500",
+			isPublic: false,
+			isCompleted: false,
+		},
+		{
+			name: "Mansion Five",
+			address: "No. 8 Solok Peirce, 10350 Georgetown",
+			propertyType: "Landed",
+			listingType: "Buy",
+			price: "12000000",
+			isPublic: true,
+			isCompleted: true,
+		},
+	];
+	
 	//set when user logs in
 	let user = {
-		id: "",
+		id: "AGENT", //TEMP
+		listings: mockListingsAgent, //TEMP
 	};
 	let userLogin = {
 		email: "",
@@ -14,13 +55,17 @@
 
 	function signIn(e) {
 		e.preventDefault();
-		if (userLogin.email === "agent@agent.com" && userLogin.password === "agent") {
-			user.id = "AGENT"
+		if (
+			userLogin.email === "agent@agent.com" &&
+			userLogin.password === "agent"
+		) {
+			user.id = "AGENT";
+			user.listings = mockListingsAgent;
 		} else if (
 			userLogin.email === "owner@owner.com" &&
 			userLogin.password === "owner"
 		) {
-			user.id = "OWNER"
+			user.id = "OWNER";
 		}
 	}
 </script>
@@ -72,7 +117,7 @@
 				</div>
 			</div>
 		{:else}
-			<h1>Logged in!</h1>
+			<Listings {...user}/>
 		{/if}
 	</div>
 </main>
@@ -91,5 +136,14 @@
 	#login-col {
 		text-align: left;
 		padding: 4rem auto;
+	}
+
+	input {
+		background-color: $ivory;
+		border: $blood 1px dashed;
+	}
+	input:focus-within {
+		background-color: $blood;
+		color: $ivory;
 	}
 </style>
