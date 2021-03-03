@@ -1,5 +1,6 @@
 <script>
 	import ListingLI from "./ListingLI.svelte";
+	import AddListing from "./AddListing.svelte";
 
     export let listings = [];
     let showPublic = true;
@@ -9,6 +10,9 @@
 </script>
 
 <div class="container">
+    <!-- TEMP -->
+    <AddListing />
+
     <h1>All Listings</h1>
 
     <div id="filters-box">
