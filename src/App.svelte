@@ -23,7 +23,8 @@
 		},
 		{
 			name: "Skyhome Condo",
-			address: "1-3-7A Skyhome, Jalan Lembah Permai 4, 11200 Tanjung Tokong",
+			address:
+				"1-3-7A Skyhome, Jalan Lembah Permai 4, 11200 Tanjung Tokong",
 			propertyType: "Apartment",
 			listingType: "Rental",
 			price: "4500",
@@ -40,11 +41,13 @@
 			isCompleted: true,
 		},
 	];
-	
+
 	//set when user logs in
 	let user = {
-		id: "AGENT", //TEMP
-		listings: mockListingsAgent, //TEMP
+		// id: "AGENT", //TEMP
+		// listings: mockListingsAgent, //TEMP
+		id: "", //TEMP
+		listings: mockListingsAgent.filter(l => l.isPublic), //TEMP
 	};
 	let userLogin = {
 		email: "",
@@ -54,7 +57,6 @@
 	$: isLoggedIn = user.id !== "" && user.id !== undefined;
 
 	function signIn(e) {
-		e.preventDefault();
 		if (
 			userLogin.email === "agent@agent.com" &&
 			userLogin.password === "agent"
@@ -72,11 +74,12 @@
 
 <main>
 	<Navbar {...user} />
-	<div class="container">
-		{#if !isLoggedIn}
+
+	{#if !isLoggedIn}
+		<div class="container">
 			<div class="row">
-				<div class="col-sm col-md-8" id="info-col">
-					<h1 class="brand">RELM</h1>
+				<div class="col-sm col-md-7" id="info-col">
+					<h1 class="brand section-head">RELM</h1>
 					<p>
 						<strong>R</strong>eal <strong>E</strong>state
 						<strong>L</strong>isting <strong>M</strong>anager.
@@ -87,9 +90,9 @@
 						>.
 					</p>
 				</div>
-				<div class="col-sm col-md-4" id="login-col">
+				<div class="col-sm col-md-5" id="login-col">
 					<h4 class="section-head">Sign In</h4>
-					<form class="form" action="#" on:submit={signIn}>
+					<form class="form" on:submit|preventDefault={signIn}>
 						<div class="mb-3">
 							<label for="email" class="form-label"> Email</label>
 							<input
@@ -116,10 +119,11 @@
 					</form>
 				</div>
 			</div>
-		{:else}
-			<Listings {...user}/>
-		{/if}
-	</div>
+		</div>
+		<hr>
+	{/if}
+
+	<Listings {...user} />
 </main>
 
 <style type="text/scss">
@@ -128,7 +132,7 @@
 	#info-col {
 		text-align: center;
 		padding: 3rem;
-		font-size: large;
+		font-size: larger;
 	}
 	strong {
 		color: $blue;
@@ -139,11 +143,16 @@
 	}
 
 	input {
+		font-family: $body-font;
 		background-color: $ivory;
 		border: $blood 1px dashed;
 	}
 	input:focus-within {
 		background-color: $blood;
 		color: $ivory;
+	}
+
+	hr {
+		margin: 3rem auto;
 	}
 </style>
