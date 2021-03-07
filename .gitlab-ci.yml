@@ -1,37 +1,93 @@
-image: node:lts-alpine3.13
-
 stages:
   - build
-  # - test
-  # - push
-  # - deploy
+  - test
+  - push
+  - deploy
+
+variables:
+  FRONTEND_IMAGE: node:lts-alpine3.13
+  API_IMAGE: golang:1.15
+
+# FRONTEND
 
 # only checks if app builds, build product not used for deployment
-build:
+frontend-build:
   stage: build
+  only:
+    - /frontend-.*/
+  image: $FRONTEND_IMAGE
   script:
     - cd frontend
     - npm install
     - npm run-script build
 
-# unit-test:
-#   stage: test
-#   script:
-#     - cd frontend
-#     - npm run test
+frontend-unit-test:
+  stage: test
+  only:
+    - /frontend-.*/
+  image: $FRONTEND_IMAGE
+  script:
+    - cd frontend
+    - npm run test
 
-# push-image:
-#   stage: push
+frontend-push-image:
+  stage: push
+  only:
+    - master
+  image: docker
+  services:
+    - docker:dind
+  script:
+    - cd frontend
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE:latest
+  after_script:
+    - docker logout registry.gitlab.com
+
+# GOLANG API
+
+api-build:
+  stage: build
+  only:
+    - /api-.*/
+  image: $API_IMAGE
+  script:
+    - go build
+
+api-unit-test:
+  stage: test
+  only:
+    - /api-.*/
+  image: $API_IMAGE
+  script:
+    - go test
+
+push-image:
+  stage: push
+  only:
+    - master
+  image: docker
+  services:
+    - docker:dind
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE:latest
+  after_script:
+    - docker logout registry.gitlab.com
+
+# deploy:
+#   stage: deploy
 #   only:
 #     - master
-#   image: docker
-#   services:
-#     - docker:dind
+#   image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
 #   script:
-#     - cd frontend
-#     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-#     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
-#     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-#     - docker push $CI_REGISTRY_IMAGE:latest
-#   after_script:
-#     - docker logout registry.gitlab.com
+#     - gcloud auth activate-service-account --key-file=$GCLOUD_KEY
+#     - gcloud container clusters get-credentials apis --zone asia-southeast1-a --project united-lane-304604
+#     - kubectl apply -f deploy/redis-ss.yaml
+#     - kubectl apply -f deploy/auth-secret.yaml
+#     - kubectl apply -f deploy/api-deployment.yaml
+#     - kubectl set image deployment/myikaco-api myikaco-api=registry.gitlab.com/myikaco/myikaco-api:$CI_COMMIT_SHORT_SHA --record
