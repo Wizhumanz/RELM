@@ -2,3 +2,5 @@
 /public/build/
 
 .DS_Store
+# gcloud deploy key for local gitlab runner testing
+myika-relm-629260423dd4.json
