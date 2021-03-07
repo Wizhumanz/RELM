@@ -2,14 +2,8 @@
     import {} from "node:os";
     import ListingLI from "./ListingLI.svelte";
 
+    export let id;
     export let listing = {};
-    // name: "Taman Jesselton",
-    // 		address: "49, Taman Jesselton, 10450 Georgetown",
-    // 		propertyType: "Landed",
-    // 		listingType: "Rent",
-    // 		price: "6000",
-    // 		isPublic: true,
-    // 		isCompleted: false,
 </script>
 
 <div class="container">
@@ -28,32 +22,36 @@
             </p>
         </div>
         <div class="col-3">
-            <div class="form-check form-check-inline">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    id="inlineCheckbox1"
-                    value="option1"
-                    bind:checked={listing.isPublic}
-                />
-            </div>
-            <div class="form-check form-check-inline">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    id="inlineCheckbox2"
-                    value="option2"
-                    bind:checked={listing.isCompleted}
-                />
-            </div>
-            <div class="form-check form-check-inline">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    id="inlineCheckbox3"
-                    value="option3"
-                />
-            </div>
+            {#if id && id !== ""}
+                <div class="form-check form-check-inline">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="inlineCheckbox1"
+                        value="option1"
+                        bind:checked={listing.isPublic}
+                    />
+                </div>
+                <div class="form-check form-check-inline">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="inlineCheckbox2"
+                        value="option2"
+                        bind:checked={listing.isCompleted}
+                    />
+                </div>
+                <div class="form-check form-check-inline">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="inlineCheckbox3"
+                        value="option3"
+                    />
+                </div>
+            {:else}
+                <button>Learn More</button>
+            {/if}
         </div>
     </div>
     <hr />

@@ -1,7 +1,8 @@
 <script>
-	import ListingLI from "./ListingLI.svelte";
-	import AddListing from "./AddListing.svelte";
+    import ListingLI from "./ListingLI.svelte";
+    import AddListing from "./AddListing.svelte";
 
+    export let id;
     export let listings = [];
     let showPublic = true;
     let showCompleted = false;
@@ -11,9 +12,15 @@
 
 <div class="container">
     <!-- TEMP -->
-    <AddListing />
+    {#if id && id !== ""}
+        <AddListing />
+    {/if}
 
-    <h1>All Listings</h1>
+    {#if id && id !== ""}
+        <h1>All Listings</h1>
+    {:else}
+        <h1>Public Listings</h1>
+    {/if}
 
     <div id="filters-box">
         <a
@@ -24,7 +31,7 @@
             aria-controls="filter-options"
             class="expander"
         >
-            Filter <i class="bi bi-caret-down-fill"></i>
+            Filter <i class="bi bi-caret-down-fill" />
         </a>
         <div id="filter-options" class="collapse">
             <h4>Listing Types</h4>
@@ -77,27 +84,31 @@
                     Landed
                 </label>
             </div>
-            <hr>
+            <hr />
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-2"></div>
-        <div class="col-7"></div>
-        <div class="col-3">
-            <ul id="checkbox-headers">
-                <li>Public</li>
-                <li>Complete</li>
-                <li>Check</li>
-            </ul>
+    {#if id && id !== ""}
+        <div class="row">
+            <div class="col-2" />
+            <div class="col-7" />
+            <div class="col-3">
+                <ul id="checkbox-headers">
+                    <li>Public</li>
+                    <li>Complete</li>
+                    <li>Check</li>
+                </ul>
+            </div>
         </div>
-    </div>
+    {/if}
 
     {#each listings as l}
-        <ListingLI listing={l}/>
+        <ListingLI {id} listing={l} />
     {/each}
 
-    <button>Update Listings</button>
+    {#if id && id !== ""}
+        <button>Update Listings</button>
+    {/if}
 </div>
 
 <style type="text/scss">

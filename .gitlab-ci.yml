@@ -30,21 +30,21 @@ frontend-unit-test:
     - cd frontend
     - npm run test
 
-frontend-push-image:
-  stage: push
-  only:
-    - master
-  image: docker
-  services:
-    - docker:dind
-  script:
-    - cd frontend
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE:latest
-  after_script:
-    - docker logout registry.gitlab.com
+# frontend-push-image:
+#   stage: push
+#   only:
+#     - master
+#   image: docker
+#   services:
+#     - docker:dind
+#   script:
+#     - cd frontend
+#     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+#     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
+#     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+#     - docker push $CI_REGISTRY_IMAGE:latest
+#   after_script:
+#     - docker logout registry.gitlab.com
 
 # GOLANG API
 
@@ -66,21 +66,21 @@ api-unit-test:
     - cd api
     - go test
 
-push-image:
-  stage: push
-  only:
-    - master
-  image: docker
-  services:
-    - docker:dind
-  script:
-    - cd api
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE:latest
-  after_script:
-    - docker logout registry.gitlab.com
+# api-push-image:
+#   stage: push
+#   only:
+#     - master
+#   image: docker
+#   services:
+#     - docker:dind
+#   script:
+#     - cd api
+#     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+#     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
+#     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+#     - docker push $CI_REGISTRY_IMAGE:latest
+#   after_script:
+#     - docker logout registry.gitlab.com
 
 # deploy:
 #   stage: deploy
@@ -89,8 +89,3 @@ push-image:
 #   image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
 #   script:
 #     - gcloud auth activate-service-account --key-file=$GCLOUD_KEY
-#     - gcloud container clusters get-credentials apis --zone asia-southeast1-a --project united-lane-304604
-#     - kubectl apply -f deploy/redis-ss.yaml
-#     - kubectl apply -f deploy/auth-secret.yaml
-#     - kubectl apply -f deploy/api-deployment.yaml
-#     - kubectl set image deployment/myikaco-api myikaco-api=registry.gitlab.com/myikaco/myikaco-api:$CI_COMMIT_SHORT_SHA --record

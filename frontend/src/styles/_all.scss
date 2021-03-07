@@ -107,7 +107,7 @@ button:hover {
   background-color: $blood;
 
   animation-name: blood-btn-flash;
-  animation-duration: 0.5s;
+  animation-duration: 0.3s;
   animation-timing-function: ease-out;
 }
 
@@ -120,4 +120,8 @@ button:hover {
     color: $ivory;
     background-color: $blood;
   }
+}
+
+hr {
+  color: $blue;
 }
