@@ -4,13 +4,10 @@ Website to manage property listings.
 
 ---
 
-<<<<<<< HEAD
 # Frontend (SvelteJS)
 
 **Must** `cd frontend` from root for all commands below.
 
-=======
->>>>>>> pipeline
 ## Local Dev
 
 `npm run dev`
@@ -25,7 +22,6 @@ NOTE: `npm  start` + `npm run dev` scripts in `package.json` modified to use hos
 
 Using LTS Node Alpine image for final stage of build.
 
-<<<<<<< HEAD
 ---
 
 # Backend (Golang REST API)
@@ -37,12 +33,3 @@ Using LTS Node Alpine image for final stage of build.
 `AUTH=password PORT=8000 go run api.go`
 
 `AUTH` and `PORT` env vars must be passed.
-=======
-### CI/CD Gitlab
-
-`brew install gitlab-runner` then 
-\
-`gitlab-runner exec docker <job_name>` to test a job locally
-\
-For `deploy` job, add GCP service account key file locally (name in `.gitignore`). 
->>>>>>> pipeline
