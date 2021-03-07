@@ -54,6 +54,7 @@ api-build:
     - /api-.*/
   image: $API_IMAGE
   script:
+    - cd api
     - go build
 
 api-unit-test:
@@ -62,6 +63,7 @@ api-unit-test:
     - /api-.*/
   image: $API_IMAGE
   script:
+    - cd api
     - go test
 
 push-image:
@@ -72,6 +74,7 @@ push-image:
   services:
     - docker:dind
   script:
+    - cd api
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
