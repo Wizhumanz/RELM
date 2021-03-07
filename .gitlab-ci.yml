@@ -1,44 +1,42 @@
-image: node:lts-alpine3.13
+# image: node:lts-alpine3.13
 
 stages:
-  - build
+  # - build
   # - test
-  - push
+  # - push
   - deploy
 
 # only checks if app builds, build product not used for deployment
-build:
-  stage: build
-  script:
-    - npm install
-    - npm run-script build
+# build:
+#   stage: build
+#   script:
+#     - npm install
+#     - npm run-script build
 
 # unit-test:
 #   stage: test
 #   script:
 #     - npm run test
 
-push-image:
-  stage: push
-  only:
-    - master
-  image: docker
-  services:
-    - docker:dind
-  script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE:latest
-  after_script:
-    - docker logout registry.gitlab.com
+# push-image:
+#   stage: push
+#   only:
+#     - master
+#   image: docker
+#   services:
+#     - docker:dind
+#   script:
+#     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+#     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
+#     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+#     - docker push $CI_REGISTRY_IMAGE:latest
+#   after_script:
+#     - docker logout registry.gitlab.com
 
-bridge:
-  needs:
-    - push-image
+deploy:
   stage: deploy
   only:
-    - master
-  variables:
-    LATEST_IMG_TAG_WEB_CONSOLE: $CI_COMMIT_SHORT_SHA
-  trigger: myikaco/test-streams-deploy
+    - pipeline
+  image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+  script:
+    - gcloud auth activate-service-account --key-file=$GCLOUD_KEY
