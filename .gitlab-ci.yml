@@ -1,12 +1,12 @@
 stages:
   - build
   - test
-  - push
   - deploy
 
 variables:
   FRONTEND_IMAGE: node:lts-alpine3.13
   API_IMAGE: golang:1.15
+  GCLOUD_PROJECT_ID: myika-relm
 
 # FRONTEND
 
@@ -66,21 +66,16 @@ api-unit-test:
     - cd api
     - go test
 
-# api-push-image:
-#   stage: push
-#   only:
-#     - master
-#   image: docker
-#   services:
-#     - docker:dind
-#   script:
-#     - cd api
-#     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-#     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
-#     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-#     - docker push $CI_REGISTRY_IMAGE:latest
-#   after_script:
-#     - docker logout registry.gitlab.com
+api-deploy:
+  stage: deploy
+  only:
+    - master
+  image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+  script:
+    - gcloud auth activate-service-account --key-file=$GCLOUD_KEY
+    - gcloud config set project $GCLOUD_PROJECT_ID
+    - gcloud builds submit --tag gcr.io/$GCLOUD_PROJECT_ID/api
+    # cloud run deploy command/ .sh file
 
 # deploy:
 #   stage: deploy
