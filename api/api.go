@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+
+	"cloud.google.com/go/datastore"
 )
 
 type jsonResponse struct {
@@ -18,19 +21,55 @@ type jsonEmailPostRequest struct {
 	Email string
 }
 
+type User struct {
+	Name  string
+	Email string
+}
+
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	var data jsonResponse
-	if r.Method != "GET" {
-		data = jsonResponse{Msg: "Only GET Allowed", Body: "This endpoint only accepts GET requests."}
-		w.WriteHeader(http.StatusUnauthorized)
-	} else {
-		data = jsonResponse{Msg: "привет сука", Body: "курица - дерьмо"}
-		w.WriteHeader(http.StatusOK)
+	// var data jsonResponse
+	// if r.Method != "GET" {
+	// 	data = jsonResponse{Msg: "Only GET Allowed", Body: "This endpoint only accepts GET requests."}
+	// 	w.WriteHeader(http.StatusUnauthorized)
+	// } else {
+	// 	data = jsonResponse{Msg: "привет сука", Body: "курица - дерьмо"}
+	// 	w.WriteHeader(http.StatusOK)
+	// }
+
+	// w.Header().Set("Content-Type", "application/json")
+	// json.NewEncoder(w).Encode(data)
+	// // w.Write([]byte(`{"msg": "привет сука"}`))
+
+	ctx := context.Background()
+
+	// Set your Google Cloud Platform project ID.
+	projectID := "myika-relm"
+
+	// Creates a client.
+	client, err := datastore.NewClient(ctx, projectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-	// w.Write([]byte(`{"msg": "привет сука"}`))
+	// Sets the kind for the new entity.
+	kind := "User"
+	// Sets the name/ID for the new entity.
+	name := "user0"
+	// Creates a Key instance.
+	newUserKey := datastore.NameKey(kind, name, nil)
+
+	// Creates a Task instance.
+	newUser := User{
+		Name:  "Mika Yeap",
+		Email: "mika@myika.co",
+	}
+
+	// Saves the new entity.
+	if _, err := client.Put(ctx, newUserKey, &newUser); err != nil {
+		log.Fatalf("Failed to save User: %v", err)
+	}
+
+	fmt.Printf("Saved %v: %v\n", newUserKey, newUser.Name+" - "+newUser.Email)
 }
 
 func createNewArticle(w http.ResponseWriter, r *http.Request) {
