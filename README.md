@@ -2,6 +2,12 @@
 
 Website to manage property listings. 
 
+## Branch Naming Conventions
+
+To run Gitlab CI/CD pipelines, branch names must start with `frontend-` or `api-`. 
+
+Pipeline always runs by default on push to `master`.
+
 ---
 
 # Frontend (SvelteJS)
