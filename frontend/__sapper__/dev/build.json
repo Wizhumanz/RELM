@@ -1,0 +1,51 @@
+{
+  "bundler": "rollup",
+  "shimport": "2.0.4",
+  "assets": {
+    "main": "client.5763adf5.js"
+  },
+  "css": {
+    "main": [
+      "client-1890402d.css"
+    ]
+  },
+  "dependencies": {
+    "index.svelte": [
+      "index.6769bac4.js",
+      "Navbar.0e862908.js",
+      "Listings.a2ece295.js",
+      "ListingLI.95fd40fe.js",
+      "AddListing.39d9da04.js",
+      "inject_styles.5607aec6.js",
+      "Navbar-0a9b3dd6.css",
+      "ListingLI-8b130b4e.css",
+      "AddListing-921c5758.css",
+      "Listings-54a1240c.css",
+      "index-7a6cb13a.css"
+    ],
+    "addListing.svelte": [
+      "AddListing.39d9da04.js",
+      "inject_styles.5607aec6.js",
+      "AddListing-921c5758.css"
+    ],
+    "listingLI.svelte": [
+      "ListingLI.95fd40fe.js",
+      "inject_styles.5607aec6.js",
+      "ListingLI-8b130b4e.css"
+    ],
+    "listings.svelte": [
+      "Listings.a2ece295.js",
+      "ListingLI.95fd40fe.js",
+      "AddListing.39d9da04.js",
+      "inject_styles.5607aec6.js",
+      "ListingLI-8b130b4e.css",
+      "AddListing-921c5758.css",
+      "Listings-54a1240c.css"
+    ],
+    "navbar.svelte": [
+      "Navbar.0e862908.js",
+      "inject_styles.5607aec6.js",
+      "Navbar-0a9b3dd6.css"
+    ]
+  }
+}

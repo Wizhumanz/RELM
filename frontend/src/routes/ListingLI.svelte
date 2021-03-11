@@ -1,5 +1,5 @@
 <script>
-    import {} from "node:os";
+    //import {} from "node:os";
     import ListingLI from "./ListingLI.svelte";
 
     export let id;

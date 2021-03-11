@@ -39,6 +39,9 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="/">Pending Listings</a>
                     </li>
+                    <li class="nav-item">
+                      <a class="nav-link active" href="/">Add Listings</a>
+                  </li>
                 {/if}
                 <li class="nav-item d-sm-none">
                     <span>***</span>

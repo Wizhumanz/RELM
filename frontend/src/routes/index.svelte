@@ -125,7 +125,6 @@
 
 	<Listings {...user} />
 </main>
-
 <style type="text/scss">
 	@import "./styles/_all";
 
