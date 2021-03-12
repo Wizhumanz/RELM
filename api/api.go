@@ -108,7 +108,8 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(listingsResp)
 }
 
-func updateListingHandler(w http.ResponseWriter, r *http.Request) {
+// almost identical logic with create and update (event sourcing)
+func addListing(w http.ResponseWriter, r *http.Request) {
 	var newListingReq newListingPostReq
 
 	// decode data
@@ -162,60 +163,14 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(data)
 }
 
+func updateListingHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO: use listingName passed in URL to check if listing exists
+	// TODO: don't allow name modification
+	addListing(w, r)
+}
+
 func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
-	var data jsonResponse
-	var newListingReq newListingPostReq
-
-	// decode data
-	err := json.NewDecoder(r.Body).Decode(&newListingReq)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// TODO: check real auth + change to header, not body param
-	auth := os.Getenv("AUTH")
-	if auth != newListingReq.Auth {
-		data = jsonResponse{Msg: "Authorization Invalid", Body: "Auth field value from body invalid."}
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(data)
-		return
-	}
-
-	// create new listing in DB
-	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, googleProjectID)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
-	kind := "Listing"
-	name := time.Now().Local().String() //id
-	newListingKey := datastore.NameKey(kind, name, nil)
-	price, _ := newListingReq.Price.Int64()
-	lType, _ := newListingReq.ListingType.Int64()
-	newListing := Listing{
-		UserID:      newListingReq.UserID,
-		Name:        newListingReq.Name,
-		Address:     newListingReq.Address,
-		Postcode:    newListingReq.Postcode,
-		Price:       int(price),
-		ListingType: int(lType),
-		ImgURL:      newListingReq.ImgURL,
-	}
-
-	if _, err := client.Put(ctx, newListingKey, &newListing); err != nil {
-		log.Fatalf("Failed to save Listing: %v", err)
-	}
-
-	// return
-	data = jsonResponse{
-		Msg:  "Saved " + newListingKey.String(),
-		Body: newListing.String(),
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(data)
+	addListing(w, r)
 }
 
 func main() {
@@ -223,7 +178,7 @@ func main() {
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
-	router.Methods("PUT").Path("/listing/{id}").HandlerFunc(updateListingHandler)
+	router.Methods("PUT").Path("/listing/{listingName}").HandlerFunc(updateListingHandler)
 
 	auth := os.Getenv("AUTH")
 	fmt.Println("AUTH var = " + auth)
