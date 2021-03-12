@@ -1,0 +1,127 @@
+//vars
+
+$ivory: #fffff0;
+$cream: #fffdd0;
+$blood: #8a0000;
+$blue: #000058;
+
+$title-font: "Abril Fatface", cursive;
+$body-font: 'Alata', sans-serif;
+
+// BS5
+$grid-breakpoints: (
+  "xs": 0,
+  "sm": 576px,
+  "md": 768px,
+  "lg": 992px,
+  "xl": 1200px,
+  "xxl": 1400px,
+);
+
+// global styles
+
+body {
+  margin-bottom: 5rem;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: $title-font;
+  font-weight: bold;
+}
+
+h1.brand {
+  color: $blue;
+}
+
+p,
+label,
+input,
+form {
+  font-family: $body-font;
+  font-size: large;
+  line-height: 1.25em;
+}
+
+.btn {
+  font-family: $title-font;
+  padding: 0.5em 1em 0.5em 1em;
+  margin: 0.4em 0.3em auto 0.3em;
+}
+
+.section-head {
+  margin: 2rem auto 1rem auto;
+}
+
+p.breaker {
+  text-align: center;
+  margin: 1rem;
+  color: #8a0000;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+  display: inline-block;
+}
+
+a:visited {
+  color: $blue;
+}
+
+a:hover {
+  text-decoration: line-through;
+  color: $blue;
+}
+
+label {
+  display: block;
+}
+
+input,
+button,
+select,
+textarea {
+  font-family: $title-font;
+  font-size: inherit;
+  -webkit-padding: 0.4em 0;
+  padding: 0.6em;
+  margin: 0 0 0.5em 0;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+button {
+  font-size: larger;
+  border: 2px solid $blood;
+  color: $blood;
+  padding: 0.5rem 1rem 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+
+button:hover {
+  color: $ivory;
+  background-color: $blood;
+
+  animation-name: blood-btn-flash;
+  animation-duration: 0.3s;
+  animation-timing-function: ease-out;
+}
+
+@keyframes blood-btn-flash {
+  0% {
+    color: $blood;
+    background-color: $ivory;
+  }
+  100% {
+    color: $ivory;
+    background-color: $blood;
+  }
+}
+
+hr {
+  color: $blue;
+}
