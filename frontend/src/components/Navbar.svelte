@@ -1,8 +1,10 @@
 <script>
-  import { get } from 'svelte/store'
-  import { userId } from '../../store.js'
+  import { userId } from "../../store.js";
 
-  var id = get(userId)
+  var id
+  userId.subscribe((newValue) => {
+    id = newValue
+  });
 
   //css
   // TODO: not working hamburger menu anim

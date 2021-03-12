@@ -71,10 +71,10 @@
     }
   }
 
-  //TODO: TEMP mock login
-  user.id = "AGENT";
-  user.listings = mockListingsAgent;
-  userId.set(user.id)
+  //TEMP mock login
+  // user.id = "AGENT";
+  // user.listings = mockListingsAgent;
+  // userId.set(user.id)
 </script>
 
 <main>
