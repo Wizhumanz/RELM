@@ -1,7 +1,7 @@
 <script>
   import Listings from "./listings.svelte";
   import { userId } from '../../store.js'
-
+  
   let mockListingsAgent = [
     {
       name: "Taman Jesselton",
