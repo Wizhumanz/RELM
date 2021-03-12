@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"google.golang.org/api/iterator"
 )
 
 type jsonResponse struct {
@@ -28,6 +29,7 @@ type User struct {
 }
 
 type Listing struct {
+	UserID      string `json:"user"`
 	Name        string `json:"name"` // immutable once created, used for queries
 	Address     string `json:"address"`
 	Postcode    string `json:"postcode"`
@@ -41,6 +43,7 @@ func (l Listing) String() string {
 }
 
 type newListingPostReq struct {
+	UserID      string      `json:"user"`
 	Auth        string      `json:"auth"`
 	Name        string      `json:"name"`
 	Address     string      `json:"address"`
@@ -51,6 +54,7 @@ type newListingPostReq struct {
 }
 
 var googleProjectID = "myika-relm"
+var fakeUserId = "1234567"
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	var data jsonResponse
@@ -64,6 +68,50 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 	// w.Write([]byte(`{"msg": "привет сука"}`))
+}
+
+func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
+	listingsResp := make([]Listing, 0)
+
+	if r.Method != "GET" {
+		data := jsonResponse{Msg: "Only GET Allowed", Body: "This endpoint only accepts GET requests."}
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
+	// TODO: use real auth
+	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
+		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
+	ctx := context.Background()
+	client, err := datastore.NewClient(ctx, googleProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
+	query := datastore.NewQuery("Listing").
+		Filter("UserID =", r.URL.Query()["user"][0])
+	t := client.Run(ctx, query)
+	for {
+		var x Listing
+		_, err := t.Next(&x)
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			// Handle error.
+		}
+		listingsResp = append(listingsResp, x)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(listingsResp)
 }
 
 func createNewListing(w http.ResponseWriter, r *http.Request) {
@@ -106,6 +154,7 @@ func createNewListing(w http.ResponseWriter, r *http.Request) {
 	price, _ := newListingReq.Price.Int64()
 	lType, _ := newListingReq.ListingType.Int64()
 	newListing := Listing{
+		UserID:      newListingReq.UserID,
 		Name:        newListingReq.Name,
 		Address:     newListingReq.Address,
 		Postcode:    newListingReq.Postcode,
@@ -131,6 +180,7 @@ func createNewListing(w http.ResponseWriter, r *http.Request) {
 func main() {
 	muxRouter := http.NewServeMux()
 	muxRouter.HandleFunc("/", indexHandler)
+	muxRouter.HandleFunc("/listings", getAllListingsHandler)
 	muxRouter.HandleFunc("/listing", createNewListing)
 
 	auth := os.Getenv("AUTH")
