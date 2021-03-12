@@ -58,7 +58,7 @@
 </div>
 
 <style type="text/scss">
-    @import "./styles/_all";
+    @import "../../static/styles/_all";
     div.container {
         font-family: $body-font;
         margin: 1.5rem auto;

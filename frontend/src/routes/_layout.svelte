@@ -1,12 +1,12 @@
 <script>
-
+  import Navbar from "../components/Navbar.svelte";
 </script>
 
-<style>
-
-</style>
-
-
 <main>
-	<slot></slot>
+  <Navbar {...user} />
+
+  <slot />
 </main>
+
+<style>
+</style>

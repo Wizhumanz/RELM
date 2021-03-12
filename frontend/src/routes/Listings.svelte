@@ -1,6 +1,6 @@
 <script>
-    import ListingLI from "./ListingLI.svelte";
-    import AddListing from "./AddListing.svelte";
+    import ListingLI from "../components/ListingLI.svelte";
+    import AddListing from "./add.svelte";
 
     export let id;
     export let listings = [];
