@@ -99,7 +99,15 @@
   {/if}
 
   {#each listings as l}
-    {#if showPublic}
+    {#if showPublic && showCompleted}
+      {#if l.isPublic && l.isCompleted}
+        <ListingLI {id} listing={l} />
+      {/if}
+    {:else if showCompleted}
+      {#if l.isCompleted}
+        <ListingLI {id} listing={l} />
+      {/if}
+    {:else if showPublic}
       {#if l.isPublic}
         <ListingLI {id} listing={l} />
       {/if}
