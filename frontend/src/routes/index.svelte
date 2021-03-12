@@ -123,7 +123,7 @@
 </main>
 
 <style type="text/scss">
-  @import "./styles/_all";
+  @import "../../static/styles/_all";
 
   #info-col {
     text-align: center;
