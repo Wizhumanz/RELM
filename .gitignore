@@ -1,7 +1,7 @@
-*/node_modules
-*/public/build
-frontend/__sapper__/
-*/dist
+node_modules/
+public/build/
+__sapper__/
+dist/
 */runtime/app.mjs
 */runtime/server.mjs
 
@@ -29,4 +29,4 @@ frontend/__sapper__/
 api/tmp/
 
 # env vars
-*/.env
+.env
