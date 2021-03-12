@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"github.com/gorilla/mux"
 	"google.golang.org/api/iterator"
 )
 
@@ -73,13 +74,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	listingsResp := make([]Listing, 0)
 
-	if r.Method != "GET" {
-		data := jsonResponse{Msg: "Only GET Allowed", Body: "This endpoint only accepts GET requests."}
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(data)
-		return
-	}
-
 	// TODO: use real auth
 	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
 		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
@@ -114,16 +108,8 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(listingsResp)
 }
 
-func createNewListing(w http.ResponseWriter, r *http.Request) {
-	var data jsonResponse
+func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 	var newListingReq newListingPostReq
-
-	if r.Method != "POST" {
-		data = jsonResponse{Msg: "Only POST Allowed", Body: "This endpoint only accepts POST requests."}
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(data)
-		return
-	}
 
 	// decode data
 	err := json.NewDecoder(r.Body).Decode(&newListingReq)
@@ -132,7 +118,62 @@ func createNewListing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: check real auth
+	// TODO: use real auth
+	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
+		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
+	// create new listing in DB
+	ctx := context.Background()
+	client, err := datastore.NewClient(ctx, googleProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
+	kind := "Listing"
+	name := time.Now().Local().String() //id
+	newListingKey := datastore.NameKey(kind, name, nil)
+	price, _ := newListingReq.Price.Int64()
+	lType, _ := newListingReq.ListingType.Int64()
+	newListing := Listing{
+		UserID:      newListingReq.UserID,
+		Name:        newListingReq.Name,
+		Address:     newListingReq.Address,
+		Postcode:    newListingReq.Postcode,
+		Price:       int(price),
+		ListingType: int(lType),
+		ImgURL:      newListingReq.ImgURL,
+	}
+
+	if _, err := client.Put(ctx, newListingKey, &newListing); err != nil {
+		log.Fatalf("Failed to save Listing: %v", err)
+	}
+
+	// return
+	data := jsonResponse{
+		Msg:  "Updated " + newListingKey.String(),
+		Body: newListing.String(),
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(data)
+}
+
+func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
+	var data jsonResponse
+	var newListingReq newListingPostReq
+
+	// decode data
+	err := json.NewDecoder(r.Body).Decode(&newListingReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// TODO: check real auth + change to header, not body param
 	auth := os.Getenv("AUTH")
 	if auth != newListingReq.Auth {
 		data = jsonResponse{Msg: "Authorization Invalid", Body: "Auth field value from body invalid."}
@@ -178,15 +219,16 @@ func createNewListing(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	muxRouter := http.NewServeMux()
-	muxRouter.HandleFunc("/", indexHandler)
-	muxRouter.HandleFunc("/listings", getAllListingsHandler)
-	muxRouter.HandleFunc("/listing", createNewListing)
+	router := mux.NewRouter().StrictSlash(true)
+	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
+	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
+	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
+	router.Methods("PUT").Path("/listing/{id}").HandlerFunc(updateListingHandler)
 
 	auth := os.Getenv("AUTH")
 	fmt.Println("AUTH var = " + auth)
 
 	port := os.Getenv("PORT")
 	fmt.Println("myikaco-api listening on port " + port)
-	log.Fatal(http.ListenAndServe(":"+port, muxRouter))
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }
