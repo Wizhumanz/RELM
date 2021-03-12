@@ -1,5 +1,6 @@
 <script>
   import Listings from "./listings.svelte";
+  import { userId } from '../../store.js'
 
   let mockListingsAgent = [
     {
@@ -61,6 +62,7 @@
     ) {
       user.id = "AGENT";
       user.listings = mockListingsAgent;
+      userId.set(user.id)
     } else if (
       userLogin.email === "owner@owner.com" &&
       userLogin.password === "owner"
@@ -72,6 +74,7 @@
   //TODO: TEMP mock login
   user.id = "AGENT";
   user.listings = mockListingsAgent;
+  userId.set(user.id)
 </script>
 
 <main>

@@ -1,5 +1,8 @@
 <script>
-  export let id;
+  import { get } from 'svelte/store'
+  import { userId } from '../../store.js'
+
+  var id = get(userId)
 
   //css
   // TODO: not working hamburger menu anim

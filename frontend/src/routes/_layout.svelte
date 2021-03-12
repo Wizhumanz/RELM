@@ -3,7 +3,7 @@
 </script>
 
 <main>
-  <Navbar {...user} />
+  <Navbar />
 
   <slot />
 </main>
