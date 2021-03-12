@@ -39,13 +39,13 @@
           </li>
         {:else}
           <li class="nav-item">
-            <a class="nav-link active" href="/">All</a>
+            <a class="nav-link active" href="/listings">All</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="/">Pending</a>
+            <a class="nav-link active" href="/listings">Pending</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="/">Add</a>
+            <a class="nav-link active" href="/add">Add</a>
           </li>
         {/if}
         <li class="nav-item d-sm-none">
