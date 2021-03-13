@@ -14,7 +14,6 @@
 
   storeUser.subscribe((newValue) => {
     if (newValue) {
-      console.log("listings = " + newValue);
       id = JSON.parse(newValue).id;
       listings = JSON.parse(newValue).listings;
     }

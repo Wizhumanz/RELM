@@ -3,7 +3,6 @@
 
   var id;
   storeUser.subscribe((newValue) => {
-    console.log("NAV = " + newValue);
     if (newValue) {
       id = JSON.parse(newValue).id;
     }
