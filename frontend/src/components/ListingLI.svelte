@@ -1,9 +1,20 @@
 <script>
+  import {resetState } from "../../store.js";
   export let id;
   export let listing = {};
+  let currentStatePublic = listing.isPublic
+  let currentStateComplete = listing.isCompleted
+
+  resetState.subscribe((newValue) => {
+    if (newValue !== false) {
+      currentStatePublic = listing.isPublic
+      currentStateComplete = listing.isCompleted
+      resetState.set(false)
+    }
+  });
 </script>
 
-<div class="container">
+<div class="container" class:active={(currentStatePublic !== listing.isPublic) || (currentStateComplete !== listing.isCompleted)}>
   <div class="row">
     <div class="col-2 d-flex justify-content-center">
       <h1><i class="bi bi-house-door" /></h1>
@@ -69,5 +80,9 @@
 
   input.form-check-input {
     margin: 1rem 0.75rem;
+  }
+
+  .active {
+    background-color: red;
   }
 </style>

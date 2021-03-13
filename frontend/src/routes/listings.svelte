@@ -1,36 +1,33 @@
 <script>
   import ListingLI from "../components/ListingLI.svelte";
   import AddListing from "./add.svelte";
-  import { storeUser } from "../../store.js";
-  
-  export let id;
-  export let listings = [];
+  import { storeUser, resetState } from "../../store.js";
+  import { goto } from "@sapper/app";
+  let user = {};
 
   storeUser.subscribe((newValue) => {
     console.log("NAV = " + newValue);
     if (newValue) {
-      id = JSON.parse(newValue).id;
-      listings = JSON.parse(newValue).listings;
+      user = JSON.parse(newValue);
     }
   });
   let showPublic = true;
   let showCompleted = false;
   let showApartments = true;
   let showLanded = true;
+
+  let handleClick = () => {
+    user.listings.forEach((listing) => {
+      console.log(listing.isPublic);
+    });
+    storeUser.set(JSON.stringify(user));
+    resetState.set(true)
+  };
+
+
 </script>
 
 <div class="container">
-  <!-- TEMP 
-  {#if id && id !== ""}
-    <AddListing />
-  {/if}
-  -->
-  {#if id && id !== ""}
-    <h1>All Listings</h1>
-  {:else}
-    <h1>Public Listings</h1>
-  {/if}
-
   <div id="filters-box">
     <h4>Filter</h4>
     <div id="filter-options">
@@ -84,7 +81,7 @@
     </div>
   </div>
 
-  {#if id && id !== ""}
+  {#if user.id && user.id !== ""}
     <div class="row">
       <div class="col-2" />
       <div class="col-7" />
@@ -98,26 +95,27 @@
     </div>
   {/if}
 
-  {#each listings as l}
-    {#if showPublic && showCompleted}
-      {#if l.isPublic && l.isCompleted}
-        <ListingLI {id} listing={l} />
+  {#if user.listings}
+    {#each user.listings as l}
+      {#if showPublic && showCompleted}
+        {#if l.isPublic && l.isCompleted}
+          <ListingLI id={user.id} bind:listing={l} />
+        {/if}
+      {:else if showCompleted}
+        {#if l.isCompleted}
+          <ListingLI id={user.id} bind:listing={l} />
+        {/if}
+      {:else if showPublic}
+        {#if l.isPublic}
+          <ListingLI id={user.id} bind:listing={l} />
+        {/if}
+      {:else}
+        <ListingLI id={user.id} bind:listing={l} />
       {/if}
-    {:else if showCompleted}
-      {#if l.isCompleted}
-        <ListingLI {id} listing={l} />
-      {/if}
-    {:else if showPublic}
-      {#if l.isPublic}
-        <ListingLI {id} listing={l} />
-      {/if}
-    {:else}
-      <ListingLI {id} listing={l} />
-    {/if}
-  {/each}
-
-  {#if id && id !== ""}
-    <button>Update Listings</button>
+    {/each}
+  {/if}
+  {#if user.id && user.id !== ""}
+    <button on:click={handleClick}>Update Listings</button>
   {/if}
 </div>
 
