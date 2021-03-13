@@ -19,6 +19,7 @@
   let handleClick = () => {
     user.listings.forEach((listing) => {
       console.log(listing.isPublic);
+      console.log(listing.isCompleted)
     });
     storeUser.set(JSON.stringify(user));
     resetState.set(true)
