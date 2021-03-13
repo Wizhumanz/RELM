@@ -1,7 +1,7 @@
 <script>
   import { goto } from "@sapper/app";
   import { storeUser } from "../../store.js";
-  import Listings from "./listings.svelte";
+  import Listings from "./listings/[slug].svelte";
   let mockListingsAgent = [
     {
       name: "Taman Jesselton",

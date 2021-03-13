@@ -1,6 +1,12 @@
+<script context="module">
+	export async function preload({ params }) {
+		console.log(params.slug)
+	}
+</script>
+
 <script>
-  import ListingLI from "../components/ListingLI.svelte";
-  import AddListing from "./add.svelte";
+  import ListingLI from "../../components/ListingLI.svelte";
+  import AddListing from "../add.svelte";
 
   export let id;
   export let listings = [];
@@ -25,7 +31,7 @@
   <div id="filters-box">
     <a
       data-bs-toggle="collapse"
-      href="#filter-options"
+      href="listings#filter-options"
       role="button"
       aria-expanded="false"
       aria-controls="filter-options"
