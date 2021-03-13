@@ -11,6 +11,7 @@
       price: "6000",
       isPublic: true,
       isCompleted: false,
+      isPending: false,
     },
     {
       name: "The Cove",
@@ -20,6 +21,7 @@
       price: "3000000",
       isPublic: true,
       isCompleted: false,
+      isPending: false,
     },
     {
       name: "Skyhome Condo",
@@ -29,6 +31,7 @@
       price: "4500",
       isPublic: false,
       isCompleted: false,
+      isPending: false,
     },
     {
       name: "Mansion Five",
@@ -38,6 +41,7 @@
       price: "12000000",
       isPublic: true,
       isCompleted: true,
+      isPending: false,
     },
   ];
 

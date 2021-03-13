@@ -4,17 +4,19 @@
   export let listing = {};
   let currentStatePublic = listing.isPublic
   let currentStateComplete = listing.isCompleted
+  let currentStatePending = listing.isPending
 
   resetState.subscribe((newValue) => {
     if (newValue !== false) {
       currentStatePublic = listing.isPublic
       currentStateComplete = listing.isCompleted
+      currentStatePending = listing.isPending
       resetState.set(false)
     }
   });
 </script>
 
-<div class="container" class:active={(currentStatePublic !== listing.isPublic) || (currentStateComplete !== listing.isCompleted)}>
+<div class="container" class:active={(currentStatePublic !== listing.isPublic) || (currentStateComplete !== listing.isCompleted) || (currentStatePending !== listing.isPending)}>
   <div class="row">
     <div class="col-2 d-flex justify-content-center">
       <h1><i class="bi bi-house-door" /></h1>
@@ -40,6 +42,7 @@
             bind:checked={listing.isPublic}
           />
         </div>
+        
         <div class="form-check form-check-inline">
           <input
             class="form-check-input"

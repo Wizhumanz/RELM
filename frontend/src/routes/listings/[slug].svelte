@@ -19,6 +19,7 @@
 
   let showPublic = false;
   let showCompleted = false;
+  let showPending = false;
   let showApartments = true;
   let showLanded = true;
 
@@ -70,6 +71,17 @@
         />
         <label class="form-check-label" for="flexCheckChecked"> Completed </label>
       </div>
+      {:else}
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          value=""
+          id="flexCheckChecked"
+          bind:checked={showPending}
+        />
+        <label class="form-check-label" for="flexCheckChecked"> Pending </label>
+      </div>
       {/if}
 
       <h4>Property Types</h4>
@@ -106,8 +118,12 @@
       <div class="col-3">
         <ul id="checkbox-headers">
           <li>Public</li>
+          {#if route !== "pending"}
           <li>Complete</li>
           <li>Check</li>
+          {:else}
+          <li>Pending</li>
+          {/if}
         </ul>
       </div>
     </div>
