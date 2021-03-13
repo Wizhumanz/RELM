@@ -1,6 +1,7 @@
 <script>
   import { goto } from "@sapper/app";
   import { storeUser } from "../../store.js";
+  import Listings from "./listings.svelte";
 
   let mockListingsAgent = [
     {
@@ -119,6 +120,8 @@
     </div>
   </div>
   <hr />
+
+  <Listings {...user} />
 </main>
 
 <style type="text/scss">
