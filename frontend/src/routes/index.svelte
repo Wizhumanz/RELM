@@ -2,12 +2,6 @@
   import { goto } from "@sapper/app";
   import { storeUser } from "../../store.js";
   import Listings from "./listings.svelte";
-<<<<<<< HEAD
-  import { userId } from '../../store.js'
-  
-=======
-
->>>>>>> master
   let mockListingsAgent = [
     {
       name: "Taman Jesselton",
