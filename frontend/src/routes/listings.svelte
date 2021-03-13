@@ -32,17 +32,8 @@
   {/if}
 
   <div id="filters-box">
-    <a
-      data-bs-toggle="collapse"
-      href="#filter-options"
-      role="button"
-      aria-expanded="false"
-      aria-controls="filter-options"
-      class="expander"
-    >
-      Filter <i class="bi bi-caret-down-fill" />
-    </a>
-    <div id="filter-options" class="collapse">
+    <h4>Filter</h4>
+    <div id="filter-options">
       <h4>Listing Types</h4>
       <div class="form-check">
         <input
