@@ -1,12 +1,13 @@
-<script context="module">
-	export async function preload({ params }) {
-		console.log(params.slug)
-	}
-</script>
-
 <script>
+  import { stores } from "@sapper/app";
   import ListingLI from "../../components/ListingLI.svelte";
   import AddListing from "../add.svelte";
+  const { page } = stores();
+  var route;
+
+  page.subscribe(({ path, params, query }) => {
+    route = params.slug;
+  });
 
   export let id;
   export let listings = [];
@@ -22,16 +23,18 @@
     <AddListing />
   {/if}
 
-  {#if id && id !== ""}
-    <h1>All Listings</h1>
-  {:else}
+  {#if id == "" || !id}
     <h1>Public Listings</h1>
+  {:else if route == "all"}
+    <h1>All Listings</h1>
+  {:else if route == "pending"}
+    <h1>Pending Listings</h1>
   {/if}
 
   <div id="filters-box">
     <a
       data-bs-toggle="collapse"
-      href="listings#filter-options"
+      href="filter-options"
       role="button"
       aria-expanded="false"
       aria-controls="filter-options"
@@ -128,7 +131,7 @@
 </div>
 
 <style type="text/scss">
-  @import "../../static/styles/_all";
+  @import "../../../static/styles/_all";
 
   div.container {
     text-align: center;
