@@ -1,6 +1,5 @@
 <script>
   import { goto } from "@sapper/app";
-  import Listings from "./listings.svelte";
   import { userId } from "../../store.js";
 
   let mockListingsAgent = [
@@ -53,8 +52,6 @@
     email: "",
     password: "",
   };
-
-  $: isLoggedIn = user.id !== "" && user.id !== undefined;
 
   function signIn(e) {
     if (
