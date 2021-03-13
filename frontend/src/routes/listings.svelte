@@ -1,9 +1,18 @@
 <script>
   import ListingLI from "../components/ListingLI.svelte";
   import AddListing from "./add.svelte";
-
+  import { storeUser } from "../../store.js";
+  
   export let id;
   export let listings = [];
+
+  storeUser.subscribe((newValue) => {
+    console.log("NAV = " + newValue);
+    if (newValue) {
+      id = JSON.parse(newValue).id;
+      listings = JSON.parse(newValue).listings;
+    }
+  });
   let showPublic = true;
   let showCompleted = false;
   let showApartments = true;
@@ -11,11 +20,11 @@
 </script>
 
 <div class="container">
-  <!-- TEMP -->
+  <!-- TEMP 
   {#if id && id !== ""}
     <AddListing />
   {/if}
-
+  -->
   {#if id && id !== ""}
     <h1>All Listings</h1>
   {:else}
