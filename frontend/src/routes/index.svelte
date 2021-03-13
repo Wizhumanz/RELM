@@ -1,6 +1,7 @@
 <script>
+  import { goto } from "@sapper/app";
   import Listings from "./listings.svelte";
-  import { userId } from '../../store.js'
+  import { userId } from "../../store.js";
 
   let mockListingsAgent = [
     {
@@ -62,7 +63,8 @@
     ) {
       user.id = "AGENT";
       user.listings = mockListingsAgent;
-      userId.set(user.id)
+      userId.set(user.id);
+      goto("/listings");
     } else if (
       userLogin.email === "owner@owner.com" &&
       userLogin.password === "owner"
@@ -74,7 +76,7 @@
   //TEMP mock login
   // user.id = "AGENT";
   // user.listings = mockListingsAgent;
-  // userId.set(user.id)
+  // userId.set(user.id);
 </script>
 
 <main>
