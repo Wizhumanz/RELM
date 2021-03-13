@@ -1,7 +1,8 @@
 <script>
-  import {resetState } from "../../store.js";
+  import {resetState,currentPage } from "../../store.js";
   export let id;
   export let listing = {};
+  let route
   let currentStatePublic = listing.isPublic
   let currentStateComplete = listing.isCompleted
   let currentStatePending = listing.isPending
@@ -12,6 +13,13 @@
       currentStateComplete = listing.isCompleted
       currentStatePending = listing.isPending
       resetState.set(false)
+    }
+  });
+
+  currentPage.subscribe((newValue) => {
+    if (newValue) {
+      route = newValue
+      console.log(route)
     }
   });
 </script>
@@ -42,7 +50,8 @@
             bind:checked={listing.isPublic}
           />
         </div>
-        
+
+        {#if route !== "pending"}
         <div class="form-check form-check-inline">
           <input
             class="form-check-input"
@@ -52,6 +61,7 @@
             bind:checked={listing.isCompleted}
           />
         </div>
+
         <div class="form-check form-check-inline">
           <input
             class="form-check-input"
@@ -60,6 +70,17 @@
             value="option3"
           />
         </div>
+        {:else}
+        <div class="form-check form-check-inline">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="inlineCheckbox2"
+            value="option2"
+            bind:checked={listing.isPending}
+          />
+        </div>
+        {/if}
       {:else}
         <button>Learn More</button>
       {/if}

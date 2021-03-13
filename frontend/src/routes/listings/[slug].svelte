@@ -1,12 +1,13 @@
 <script>
   import { stores } from "@sapper/app";
   import ListingLI from "../../components/ListingLI.svelte";
-  import { storeUser, resetState } from "../../../store.js";
+  import { storeUser, resetState, currentPage } from "../../../store.js";
   const { page } = stores();
   var route;
 
   page.subscribe(({ path, params, query }) => {
     route = params.slug;
+    currentPage.set(route);
   });
 
   let user = {};
@@ -25,14 +26,13 @@
 
   function handleClick() {
     user.listings.forEach((listing) => {
-      console.log("MOCK POST / " + listing.isPublic);
-      console.log("MOCK POST / " + listing.isCompleted)
+      //console.log("MOCK POST / " + listing.isPublic);
+      //console.log("MOCK POST / " + listing.isCompleted)
+      console.log("MOCK POST / " + listing.isPending);
     });
     storeUser.set(JSON.stringify(user));
-    resetState.set(true)
-  };
-
-
+    resetState.set(true);
+  }
 </script>
 
 <div class="container">
@@ -61,27 +61,31 @@
       </div>
 
       {#if route !== "pending"}
-      <div class="form-check">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          value=""
-          id="flexCheckChecked"
-          bind:checked={showCompleted}
-        />
-        <label class="form-check-label" for="flexCheckChecked"> Completed </label>
-      </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            value=""
+            id="flexCheckChecked"
+            bind:checked={showCompleted}
+          />
+          <label class="form-check-label" for="flexCheckChecked">
+            Completed
+          </label>
+        </div>
       {:else}
-      <div class="form-check">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          value=""
-          id="flexCheckChecked"
-          bind:checked={showPending}
-        />
-        <label class="form-check-label" for="flexCheckChecked"> Pending </label>
-      </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            value=""
+            id="flexCheckChecked"
+            bind:checked={showPending}
+          />
+          <label class="form-check-label" for="flexCheckChecked">
+            Pending
+          </label>
+        </div>
       {/if}
 
       <h4>Property Types</h4>
@@ -119,10 +123,10 @@
         <ul id="checkbox-headers">
           <li>Public</li>
           {#if route !== "pending"}
-          <li>Complete</li>
-          <li>Check</li>
+            <li>Complete</li>
+            <li>Check</li>
           {:else}
-          <li>Pending</li>
+            <li>Pending</li>
           {/if}
         </ul>
       </div>
@@ -131,23 +135,42 @@
 
   {#if user.listings}
     {#each user.listings as l}
-      {#if showPublic && showCompleted}
-        {#if l.isPublic && l.isCompleted}
-          <ListingLI id={user.id} bind:listing={l} />
-        {/if}
-      {:else if showCompleted}
-        {#if l.isCompleted}
-          <ListingLI id={user.id} bind:listing={l} />
-        {/if}
-      {:else if showPublic}
-        {#if l.isPublic}
+      {#if route !== "pending"}
+        {#if showPublic && showCompleted}
+          {#if l.isPublic && l.isCompleted}
+            <ListingLI id={user.id} bind:listing={l} />
+          {/if}
+        {:else if showCompleted}
+          {#if l.isCompleted}
+            <ListingLI id={user.id} bind:listing={l} />
+          {/if}
+        {:else if showPublic}
+          {#if l.isPublic}
+            <ListingLI id={user.id} bind:listing={l} />
+          {/if}
+        {:else}
           <ListingLI id={user.id} bind:listing={l} />
         {/if}
       {:else}
-        <ListingLI id={user.id} bind:listing={l} />
+        {#if showPublic && showPending}
+          {#if l.isPublic && l.isPending}
+            <ListingLI id={user.id} bind:listing={l} />
+          {/if}
+        {:else if showPublic}
+          {#if l.isPublic}
+            <ListingLI id={user.id} bind:listing={l} />
+          {/if}
+        {:else if showPending}
+          {#if l.isPending}
+            <ListingLI id={user.id} bind:listing={l} />
+          {/if}
+        {:else}
+          <ListingLI id={user.id} bind:listing={l} />
+        {/if}
       {/if}
     {/each}
   {/if}
+
   {#if user.id && user.id !== ""}
     <button on:click={handleClick}>Update Listings</button>
   {/if}
