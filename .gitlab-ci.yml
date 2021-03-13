@@ -72,6 +72,7 @@ api-deploy:
   #   - production
   image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
   script:
+    - cd api
     - gcloud auth activate-service-account --key-file=$GCLOUD_KEY
     - gcloud config set project $GCLOUD_PROJECT_ID
     - gcloud builds submit --tag gcr.io/$GCLOUD_PROJECT_ID/api-$CI_COMMIT_SHORT_SHA
@@ -87,5 +88,3 @@ api-deploy:
       --cpu 1 \
       --timeout 1000 \
       --concurrency 5
-
-
