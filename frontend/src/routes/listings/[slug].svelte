@@ -17,7 +17,7 @@
     }
   });
 
-  let showPublic = true;
+  let showPublic = false;
   let showCompleted = false;
   let showApartments = true;
   let showLanded = true;
@@ -47,6 +47,7 @@
     <h4>Filter</h4>
     <div id="filter-options">
       <h4>Listing Types</h4>
+
       <div class="form-check">
         <input
           class="form-check-input"
@@ -57,6 +58,8 @@
         />
         <label class="form-check-label" for="flexCheckDefault"> Public </label>
       </div>
+
+      {#if route !== "pending"}
       <div class="form-check">
         <input
           class="form-check-input"
@@ -65,10 +68,10 @@
           id="flexCheckChecked"
           bind:checked={showCompleted}
         />
-        <label class="form-check-label" for="flexCheckChecked">
-          Completed
-        </label>
+        <label class="form-check-label" for="flexCheckChecked"> Completed </label>
       </div>
+      {/if}
+
       <h4>Property Types</h4>
       <div class="form-check">
         <input
