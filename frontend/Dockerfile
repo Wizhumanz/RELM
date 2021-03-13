@@ -3,19 +3,14 @@ FROM node:lts-alpine3.13
 
 WORKDIR /usr/src/app
 
-COPY rollup.config.js ./
-COPY package*.json ./
+COPY / ./
 
 RUN npm install
 
-COPY ./src ./src
-COPY ./public ./public
+RUN npm install --save-dev node-sass
 
-RUN npm run-script build
+RUN npm run build
 
-EXPOSE 62103
+EXPOSE 3000
 
-ENV HOST=0.0.0.0
-ENV PORT=62103
-
-CMD [ "npm", "start" ]
+CMD [ "node", "__sapper__/build" ]
