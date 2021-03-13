@@ -1,7 +1,7 @@
 <script>
   import { stores } from "@sapper/app";
   import ListingLI from "../../components/ListingLI.svelte";
-  import AddListing from "../add.svelte";
+  import { storeUser } from "../../../store.js";
   const { page } = stores();
   var route;
 
@@ -9,8 +9,17 @@
     route = params.slug;
   });
 
-  export let id;
-  export let listings = [];
+  let id;
+  let listings = [];
+
+  storeUser.subscribe((newValue) => {
+    if (newValue) {
+      console.log("listings = " + newValue);
+      id = JSON.parse(newValue).id;
+      listings = JSON.parse(newValue).listings;
+    }
+  });
+
   let showPublic = true;
   let showCompleted = false;
   let showApartments = true;
@@ -18,31 +27,17 @@
 </script>
 
 <div class="container">
-  <!-- TEMP -->
-  {#if id && id !== ""}
-    <AddListing />
-  {/if}
-
-  {#if id == "" || !id}
-    <h1>Public Listings</h1>
-  {:else if route == "all"}
+  {#if route == "all"}
     <h1>All Listings</h1>
   {:else if route == "pending"}
     <h1>Pending Listings</h1>
+  {:else if id && id !== ""}
+    <h1>Public Listings</h1>
   {/if}
 
   <div id="filters-box">
-    <a
-      data-bs-toggle="collapse"
-      href="filter-options"
-      role="button"
-      aria-expanded="false"
-      aria-controls="filter-options"
-      class="expander"
-    >
-      Filter <i class="bi bi-caret-down-fill" />
-    </a>
-    <div id="filter-options" class="collapse">
+    <h4>Filter</h4>
+    <div id="filter-options">
       <h4>Listing Types</h4>
       <div class="form-check">
         <input
