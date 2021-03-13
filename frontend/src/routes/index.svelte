@@ -61,7 +61,6 @@
       user.id = "AGENT";
       user.listings = mockListingsAgent;
       storeUser.set(JSON.stringify(user));
-      console.log("INDEX = " + JSON.stringify(user))
       goto("/listings/all");
     } else if (
       userLogin.email === "owner@owner.com" &&
