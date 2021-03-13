@@ -3,7 +3,6 @@
 
   var id;
   storeUser.subscribe((newValue) => {
-    console.log("NAV = " + newValue);
     if (newValue) {
       id = JSON.parse(newValue).id;
     }
@@ -42,10 +41,10 @@
           </li>
         {:else}
           <li class="nav-item">
-            <a class="nav-link active" href="/listings">All</a>
+            <a class="nav-link active" href="/listings/all">All</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="/listings">Pending</a>
+            <a class="nav-link active" href="/listings/pending">Pending</a>
           </li>
           <li class="nav-item">
             <a class="nav-link active" href="/add">Add</a>

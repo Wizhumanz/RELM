@@ -1,25 +1,31 @@
 <script>
-  import ListingLI from "../components/ListingLI.svelte";
-  import AddListing from "./add.svelte";
-  import { storeUser, resetState } from "../../store.js";
-  import { goto } from "@sapper/app";
+  import { stores } from "@sapper/app";
+  import ListingLI from "../../components/ListingLI.svelte";
+  import { storeUser, resetState } from "../../../store.js";
+  const { page } = stores();
+  var route;
+
+  page.subscribe(({ path, params, query }) => {
+    route = params.slug;
+  });
+
   let user = {};
 
   storeUser.subscribe((newValue) => {
-    console.log("NAV = " + newValue);
     if (newValue) {
       user = JSON.parse(newValue);
     }
   });
+
   let showPublic = true;
   let showCompleted = false;
   let showApartments = true;
   let showLanded = true;
 
-  let handleClick = () => {
+  function handleClick() {
     user.listings.forEach((listing) => {
-      console.log(listing.isPublic);
-      console.log(listing.isCompleted)
+      console.log("MOCK POST / " + listing.isPublic);
+      console.log("MOCK POST / " + listing.isCompleted)
     });
     storeUser.set(JSON.stringify(user));
     resetState.set(true)
@@ -29,6 +35,14 @@
 </script>
 
 <div class="container">
+  {#if route == "all"}
+    <h1>All Listings</h1>
+  {:else if route == "pending"}
+    <h1>Pending Listings</h1>
+  {:else if user.id && user.id !== ""}
+    <h1>Public Listings</h1>
+  {/if}
+
   <div id="filters-box">
     <h4>Filter</h4>
     <div id="filter-options">
@@ -121,7 +135,7 @@
 </div>
 
 <style type="text/scss">
-  @import "../../static/styles/_all";
+  @import "../../../static/styles/_all";
 
   div.container {
     text-align: center;
