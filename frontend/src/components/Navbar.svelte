@@ -1,9 +1,12 @@
 <script>
-  import { userId } from "../../store.js";
+  import { storeUser } from "../../store.js";
 
-  var id
-  userId.subscribe((newValue) => {
-    id = newValue
+  var id;
+  storeUser.subscribe((newValue) => {
+    console.log("NAV = " + newValue);
+    if (newValue) {
+      id = JSON.parse(newValue).id;
+    }
   });
 
   //css

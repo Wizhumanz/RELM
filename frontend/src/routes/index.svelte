@@ -1,6 +1,6 @@
 <script>
   import { goto } from "@sapper/app";
-  import { userId } from "../../store.js";
+  import { storeUser } from "../../store.js";
 
   let mockListingsAgent = [
     {
@@ -60,7 +60,8 @@
     ) {
       user.id = "AGENT";
       user.listings = mockListingsAgent;
-      userId.set(user.id);
+      storeUser.set(JSON.stringify(user));
+      console.log("INDEX = " + JSON.stringify(user))
       goto("/listings");
     } else if (
       userLogin.email === "owner@owner.com" &&
