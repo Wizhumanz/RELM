@@ -54,7 +54,7 @@ api-unit-test:
 deploy:
   stage: deploy
   rules:
-    - if: '$CI_COMMIT_BRANCH == "deploy-pipeline"'
+    - if: '$CI_COMMIT_BRANCH == "production"'
   image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
   script:
     - gcloud auth activate-service-account --key-file=$GCLOUD_KEY
