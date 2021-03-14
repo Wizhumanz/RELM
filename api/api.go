@@ -48,8 +48,20 @@ type newOwnerPostReq struct {
 }
 
 type User struct {
-	Name  string
-	Email string
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	AccountType string `json:"type"`
+}
+
+func (l User) String() string {
+	r := ""
+	v := reflect.ValueOf(l)
+	typeOfL := v.Type()
+
+	for i := 0; i < v.NumField(); i++ {
+		r = r + fmt.Sprintf("%s: %v, ", typeOfL.Field(i).Name, v.Field(i).Interface())
+	}
+	return r
 }
 
 type Listing struct {
@@ -113,6 +125,48 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 	// w.Write([]byte(`{"msg": "привет сука"}`))
+}
+
+func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
+	var newUser User
+	// decode data
+	err := json.NewDecoder(r.Body).Decode(&newUser)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// TODO: use real auth
+	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
+		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
+	// create new listing in DB
+	ctx := context.Background()
+	client, err := datastore.NewClient(ctx, googleProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
+	kind := "User"
+	name := time.Now().Format("2006-01-02_15:04:05_-0700")
+	newUserKey := datastore.NameKey(kind, name, nil)
+
+	if _, err := client.Put(ctx, newUserKey, &newUser); err != nil {
+		log.Fatalf("Failed to save User: %v", err)
+	}
+
+	// return
+	data := jsonResponse{
+		Msg:  "Created " + newUserKey.String(),
+		Body: newUser.String(),
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(data)
 }
 
 func getAllOwnersHandler(w http.ResponseWriter, r *http.Request) {
@@ -316,6 +370,7 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
+	router.Methods("POST").Path("/user").HandlerFunc(createNewUserHandler)
 	router.Methods("GET").Path("/owners").HandlerFunc(getAllOwnersHandler)
 	router.Methods("POST").Path("/owner").HandlerFunc(createNewOwnerHandler)
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
