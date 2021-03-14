@@ -4,8 +4,6 @@
   import Listings from "./listings/[slug].svelte";
   import axios from "axios";
 
-  
-
   let mockListingsAgent = [
     {
       ownerID: "273787193808",
@@ -83,16 +81,19 @@
     }
   }
 
+  const hds = {
+    // "Content-Type": "application/json",
+    auth: "password",
+  };
+
   axios
-    .get("https://relm-api.myika.co/listings?user=2021-03-14_20:57:36_+0800")
-    .then(res => res.JSON)
-    .then(data =>  console.log(data))
-    .catch(error => console.log(error))
+    .get("https://relm-api.myika.co/listings?user=2021-03-14_20:57:36_+0800", {
+      headers: hds
+    })
+    .then((res) => res.JSON)
+    .then((data) => console.log(data))
+    .catch((error) => console.log(error));
 
-  //axios
-  //  .get{"https://relm-api.myika.co/owners?user=2021-03-14_20:57:36_+0800"}
-
-  
   //TEMP mock login
   // user.id = "AGENT";
   // user.listings = mockListingsAgent;
