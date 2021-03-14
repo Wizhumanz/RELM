@@ -32,7 +32,7 @@ frontend-unit-test:
 frontend-deploy:
   stage: deploy
   rules:
-    - if: '$CI_COMMIT_MESSAGE == "DEPLOY FRONTEND" && $CI_COMMIT_BRANCH == "deploy-pipeline"' #temp branchname for testing
+    - if: '$CI_COMMIT_MESSAGE == "DEPLOY FRONTEND" && $CI_COMMIT_BRANCH == "deploy-pipeline"'
   image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
   script:
     - cd frontend
