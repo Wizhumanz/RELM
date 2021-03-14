@@ -160,7 +160,7 @@ func createNewOwnerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	kind := "Owner"
-	name := time.Now().Local().String() //id
+	name := time.Now().Format("2006-01-02_15:04:05_-0700")
 	newOwnerKey := datastore.NameKey(kind, name, nil)
 	newOwner := Owner{
 		UserIDs: newOwnerReq.UserIDs, //TODO: handle past elements in array NOT replace
@@ -247,7 +247,7 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	kind := "Listing"
-	name := time.Now().Local().String() //id
+	name := time.Now().Format("2006-01-02_15:04:05_-0700")
 	newListingKey := datastore.NameKey(kind, name, nil)
 	price, _ := newListingReq.Price.Int64()
 	lType, _ := newListingReq.ListingType.Int64()
