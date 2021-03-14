@@ -10,7 +10,6 @@ variables:
 
 # FRONTEND
 
-# only checks if app builds, build product not used for deployment
 frontend-build:
   stage: build
   only:
@@ -30,21 +29,18 @@ frontend-unit-test:
     - cd frontend
     - npm run test
 
-# frontend-push-image:
-#   stage: push
-#   only:
-#     - master
-#   image: docker
-#   services:
-#     - docker:dind
-#   script:
-#     - cd frontend
-#     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-#     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
-#     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-#     - docker push $CI_REGISTRY_IMAGE:latest
-#   after_script:
-#     - docker logout registry.gitlab.com
+frontend-deploy:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_MESSAGE == "DEPLOY FRONTEND" && $CI_COMMIT_BRANCH == "deploy-pipeline"' #temp branchname for testing
+      when: on_success
+  image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+  script:
+    - cd frontend
+    - gcloud auth activate-service-account --key-file=$GCLOUD_KEY
+    - gcloud config set project $GCLOUD_PROJECT_ID
+    - gcloud builds submit --tag gcr.io/$GCLOUD_PROJECT_ID/frontend-$CI_COMMIT_SHORT_SHA
+    - gcloud beta run deploy relm-app --image gcr.io/$GCLOUD_PROJECT_ID/frontend-$CI_COMMIT_SHORT_SHA --port 3000 --platform managed --min-instances 0 --max-instances 3 --allow-unauthenticated --region asia-southeast1 --memory 128Mi --cpu 1 --concurrency 5 --timeout 3000
 
 # GOLANG API
 
@@ -68,8 +64,9 @@ api-unit-test:
 
 api-deploy:
   stage: deploy
-  # only:
-  #   - production
+  rules:
+    - if: '$CI_COMMIT_MESSAGE == "DEPLOY API" && $CI_COMMIT_BRANCH == "production"'
+      when: on_success
   image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
   script:
     - cd api
