@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -19,9 +20,22 @@ type jsonResponse struct {
 	Body string `json:"body"`
 }
 
-type jsonEmailPostRequest struct {
-	Auth  string
-	Email string
+type Owner struct {
+	UserIDs []string
+	Name    string
+	Phone   string
+	Email   string
+}
+
+func (o Owner) String() string {
+	return o.Name + " / " + o.Phone + " / " + o.Email + " / <PARTIAL IDs>" + o.UserIDs[0]
+}
+
+type newOwnerPostReq struct {
+	Name    string   `json:"name"`
+	Phone   string   `json:"phone"`
+	Email   string   `json:"email"`
+	UserIDs []string `json:"userIDs"`
 }
 
 type User struct {
@@ -30,28 +44,38 @@ type User struct {
 }
 
 type Listing struct {
-	UserID      string `json:"user"`
-	Name        string `json:"name"` // immutable once created, used for queries
-	Address     string `json:"address"`
-	Postcode    string `json:"postcode"`
-	Price       int    `json:"price"`
-	ListingType int    `json:"type"` // 0 = for rent, 1 = for sale
-	ImgURL      string `json:"img"`
+	UserID        string `json:"user"`
+	OwnerID       string `json:"owner"`
+	Name          string `json:"name"` // immutable once created, used for queries
+	Address       string `json:"address"`
+	Postcode      string `json:"postcode"`
+	Price         int    `json:"price"`
+	ListingType   int    `json:"type"` // 0 = for rent, 1 = for sale
+	ImgURL        string `json:"img"`
+	AvailableDate string `json:"availableDate"`
 }
 
 func (l Listing) String() string {
-	return l.Name + " / " + l.Address + " / " + l.Postcode
+	r := ""
+	v := reflect.ValueOf(l)
+	typeOfL := v.Type()
+
+	for i := 0; i < v.NumField(); i++ {
+		r = r + fmt.Sprintf("%s: %v, ", typeOfL.Field(i).Name, v.Field(i).Interface())
+	}
+	return r
 }
 
 type newListingPostReq struct {
-	UserID      string      `json:"user"`
-	Auth        string      `json:"auth"`
-	Name        string      `json:"name"`
-	Address     string      `json:"address"`
-	Postcode    string      `json:"postcode"`
-	Price       json.Number `json:"price"`
-	ListingType json.Number `json:"type"` // 0 = for rent, 1 = for sale
-	ImgURL      string      `json:"img"`
+	UserID        string      `json:"user"`
+	Auth          string      `json:"auth"`
+	Name          string      `json:"name"`
+	Address       string      `json:"address"`
+	Postcode      string      `json:"postcode"`
+	Price         json.Number `json:"price"`
+	ListingType   json.Number `json:"type"` // 0 = for rent, 1 = for sale
+	ImgURL        string      `json:"img"`
+	AvailableDate string      `json:"availableDate"`
 }
 
 var googleProjectID = "myika-relm"
@@ -69,6 +93,94 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 	// w.Write([]byte(`{"msg": "привет сука"}`))
+}
+
+func getAllOwnersHandler(w http.ResponseWriter, r *http.Request) {
+	ownersResp := make([]Owner, 0)
+
+	// TODO: use real auth
+	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
+		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
+	ctx := context.Background()
+	client, err := datastore.NewClient(ctx, googleProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
+	fmt.Println(r.URL.Query()["user"][0])
+
+	query := datastore.NewQuery("Owner").
+		Filter("UserIDs =", r.URL.Query()["user"][0])
+	t := client.Run(ctx, query)
+	for {
+		var x Owner
+		_, err := t.Next(&x)
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			// Handle error.
+		}
+		ownersResp = append(ownersResp, x)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ownersResp)
+}
+
+func createNewOwnerHandler(w http.ResponseWriter, r *http.Request) {
+	var newOwnerReq newOwnerPostReq
+
+	// decode data
+	err := json.NewDecoder(r.Body).Decode(&newOwnerReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// TODO: use real auth
+	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
+		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
+	// create new listing in DB
+	ctx := context.Background()
+	client, err := datastore.NewClient(ctx, googleProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
+	kind := "Owner"
+	name := time.Now().Format("2006-01-02_15:04:05_-0700")
+	newOwnerKey := datastore.NameKey(kind, name, nil)
+	newOwner := Owner{
+		UserIDs: newOwnerReq.UserIDs, //TODO: handle past elements in array NOT replace
+		Name:    newOwnerReq.Name,
+		Phone:   newOwnerReq.Phone,
+		Email:   newOwnerReq.Email,
+	}
+
+	if _, err := client.Put(ctx, newOwnerKey, &newOwner); err != nil {
+		log.Fatalf("Failed to save Owner: %v", err)
+	}
+
+	// return
+	data := jsonResponse{
+		Msg:  "Created " + newOwnerKey.String(),
+		Body: newOwner.String(),
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(data)
 }
 
 func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +247,7 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	kind := "Listing"
-	name := time.Now().Local().String() //id
+	name := time.Now().Format("2006-01-02_15:04:05_-0700")
 	newListingKey := datastore.NameKey(kind, name, nil)
 	price, _ := newListingReq.Price.Int64()
 	lType, _ := newListingReq.ListingType.Int64()
@@ -176,6 +288,8 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
+	router.Methods("GET").Path("/owners").HandlerFunc(getAllOwnersHandler)
+	router.Methods("POST").Path("/owner").HandlerFunc(createNewOwnerHandler)
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
 	router.Methods("PUT").Path("/listing/{listingName}").HandlerFunc(updateListingHandler)
