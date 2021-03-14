@@ -32,12 +32,19 @@
     <div class="col-7">
       <h4>{listing.name}</h4>
       <p>{listing.address}</p>
-      <p>Type: {listing.listingType}</p>
+      <p>{listing.postcode}</p>
+      <p>{listing.area}</p>
       <p>
         Price: RM {listing.price
           .toString()
           .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
       </p>
+      <p>{listing.propertyType}</p>
+      <p>Type: {listing.listingType}</p>
+
+      <p>Owner: {listing.ownerID}</p>
+      <a href={listing.imgURL}>View Images</a>
+      <p>Available on: {listing.availableDate}</p>
     </div>
     <div class="col-3">
       {#if id && id !== ""}
@@ -104,6 +111,10 @@
 
   input.form-check-input {
     margin: 1rem 0.75rem;
+  }
+
+  a {
+    text-decoration: underline;
   }
 
   .active {
