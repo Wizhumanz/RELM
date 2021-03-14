@@ -1,11 +1,10 @@
-import '@testing-library/jest-dom/extend-expect'
 
-import { render } from '@testing-library/svelte'
+describe('localhost', () => {
+  beforeAll(async () => {
+    await page.goto('http://localhost:3000');
+  });
 
-//TODO: ParseError when Sass styles in component
-import Index from '../routes/index.svelte'
-
-test('shows proper heading when rendered', () => {
-  const { getByText } = render(Index)
-  expect(getByText('Hello World!')).toBeInTheDocument()
-})
+  it('should be titled "Listings Manager"', async () => {
+    await expect(page.title()).resolves.toMatch('Listings Manager');
+  });
+});
