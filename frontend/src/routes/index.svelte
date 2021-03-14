@@ -3,6 +3,7 @@
   import { storeUser } from "../../store.js";
   import Listings from "./listings/[slug].svelte";
   import axios from "axios";
+  import { time_ranges_to_array } from "svelte/internal";
 
   let mockListingsAgent = [
     {
@@ -84,15 +85,24 @@
   //auth header
   const hds = {
     // "Content-Type": "application/json",
-    "auth": "password",
-    "Cache-Control": "no-cache", 
+    auth: "password",
+    "Cache-Control": "no-cache",
+    Pragma: "no-cache",
+    Expires: "0",
   };
+  //TODO: response cached, won't fetch fresh data from api
+  //timestamp add onto request to avoid caching
+  let t = new Date().getTime();
+  let basicURL =
+    "https://relm-api.myika.co/listings?user=2021-03-14_20:57:36_+0800" +
+    "&timestamp=" +
+    t;
   //MUST replace all '+' with '%2B'
-  let GETUrl = "https://relm-api.myika.co/listings?user=2021-03-14_20:57:36_+0800".split("+").join("%2B")
-  console.log(GETUrl)
+  let GETUrl = basicURL.split("+").join("%2B");
+  console.log(GETUrl);
   axios
     .get(GETUrl, {
-      headers: hds
+      headers: hds,
     })
     .then((res) => res.JSON)
     .then((data) => console.log(data))
