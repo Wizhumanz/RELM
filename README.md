@@ -49,3 +49,11 @@ OR local testing with emulator:
 1. Install local emulator: `gcloud components install cloud-datastore-emulator`.
 2. [Run local emulator](https://cloud.google.com/datastore/docs/tools/datastore-emulator): `gcloud beta emulators datastore start`.
 3. Set env vars so that local app connects to emulated DB instead of prod: `$(gcloud beta emulators datastore env-init)`.
+
+### Docker
+
+```
+cd api
+docker build -t <img-name> .
+docker run -e AUTH=password -e PORT=8000 --name <container-name> -p 8000:8000 <img-name>
+```

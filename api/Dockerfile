@@ -7,5 +7,6 @@ RUN CGO_ENABLED=0 go build -o /bin/app .
 
 FROM alpine
 COPY --from=0 /bin/app /bin/app
-# EXPOSE 8000
+ARG PORT
+EXPOSE $PORT
 ENTRYPOINT ["/bin/app"]
