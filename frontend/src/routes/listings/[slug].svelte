@@ -79,10 +79,10 @@
             class="form-check-input"
             type="checkbox"
             value=""
-            id="flexCheckChecked"
+            id="flexCheckPending"
             bind:checked={showPending}
           />
-          <label class="form-check-label" for="flexCheckChecked">
+          <label class="form-check-label" for="flexCheckPending">
             Pending
           </label>
         </div>

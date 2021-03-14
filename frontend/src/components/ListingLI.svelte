@@ -75,7 +75,7 @@
           <input
             class="form-check-input"
             type="checkbox"
-            id="inlineCheckbox2"
+            id="inlineCheckbox4"
             value="option2"
             bind:checked={listing.isPending}
           />
