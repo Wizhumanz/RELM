@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -55,7 +56,14 @@ type Listing struct {
 }
 
 func (l Listing) String() string {
-	return l.Name + " / " + l.Address + " / " + l.Postcode
+	r := ""
+	v := reflect.ValueOf(l)
+	typeOfL := v.Type()
+
+	for i := 0; i < v.NumField(); i++ {
+		r = r + fmt.Sprintf("%s: %v, ", typeOfL.Field(i).Name, v.Field(i).Interface())
+	}
+	return r
 }
 
 type newListingPostReq struct {
