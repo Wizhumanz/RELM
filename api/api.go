@@ -20,6 +20,15 @@ type jsonResponse struct {
 	Body string `json:"body"`
 }
 
+//for unmarshalling JSON to bools
+type JSONBool bool
+
+func (bit *JSONBool) UnmarshalJSON(b []byte) error {
+	txt := string(b)
+	*bit = JSONBool(txt == "1" || txt == "true")
+	return nil
+}
+
 type Owner struct {
 	UserIDs []string
 	Name    string
@@ -49,10 +58,15 @@ type Listing struct {
 	Name          string `json:"name"` // immutable once created, used for queries
 	Address       string `json:"address"`
 	Postcode      string `json:"postcode"`
+	Area          string `json:"area"`
 	Price         int    `json:"price"`
-	ListingType   int    `json:"type"` // 0 = for rent, 1 = for sale
+	PropertyType  int    `json:"propertyType"` // 0 = landed, 1 = apartment
+	ListingType   int    `json:"listingType"`  // 0 = for rent, 1 = for sale
 	ImgURL        string `json:"img"`
 	AvailableDate string `json:"availableDate"`
+	IsPublic      bool   `json:"isPublic"`
+	IsCompleted   bool   `json:"isCompleted"`
+	IsPending     bool   `json:"isPending"`
 }
 
 func (l Listing) String() string {
@@ -67,15 +81,21 @@ func (l Listing) String() string {
 }
 
 type newListingPostReq struct {
-	UserID        string      `json:"user"`
 	Auth          string      `json:"auth"`
+	UserID        string      `json:"user"`
+	OwnerID       string      `json:"owner"`
 	Name          string      `json:"name"`
 	Address       string      `json:"address"`
 	Postcode      string      `json:"postcode"`
+	Area          string      `json:"area"`
 	Price         json.Number `json:"price"`
-	ListingType   json.Number `json:"type"` // 0 = for rent, 1 = for sale
+	PropertyType  json.Number `json:"propertyType"` // 0 = landed, 1 = apartment
+	ListingType   json.Number `json:"type"`         // 0 = for rent, 1 = for sale
 	ImgURL        string      `json:"img"`
 	AvailableDate string      `json:"availableDate"`
+	IsPublic      JSONBool    `json:"isPublic"`
+	IsCompleted   JSONBool    `json:"isCompleted"`
+	IsPending     JSONBool    `json:"isPending"`
 }
 
 var googleProjectID = "myika-relm"
@@ -250,15 +270,23 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 	name := time.Now().Format("2006-01-02_15:04:05_-0700")
 	newListingKey := datastore.NameKey(kind, name, nil)
 	price, _ := newListingReq.Price.Int64()
+	pType, _ := newListingReq.PropertyType.Int64()
 	lType, _ := newListingReq.ListingType.Int64()
 	newListing := Listing{
-		UserID:      newListingReq.UserID,
-		Name:        newListingReq.Name,
-		Address:     newListingReq.Address,
-		Postcode:    newListingReq.Postcode,
-		Price:       int(price),
-		ListingType: int(lType),
-		ImgURL:      newListingReq.ImgURL,
+		UserID:        newListingReq.UserID,
+		OwnerID:       newListingReq.OwnerID,
+		Name:          newListingReq.Name,
+		Address:       newListingReq.Address,
+		Postcode:      newListingReq.Postcode,
+		Area:          newListingReq.Area,
+		Price:         int(price),
+		PropertyType:  int(pType),
+		ListingType:   int(lType),
+		ImgURL:        newListingReq.ImgURL,
+		AvailableDate: newListingReq.AvailableDate,
+		IsPublic:      bool(newListingReq.IsPublic),
+		IsCompleted:   bool(newListingReq.IsCompleted),
+		IsPending:     bool(newListingReq.IsPending),
 	}
 
 	if _, err := client.Put(ctx, newListingKey, &newListing); err != nil {
