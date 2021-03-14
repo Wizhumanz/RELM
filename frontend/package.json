@@ -6,7 +6,9 @@
     "dev": "sapper dev",
     "build": "sapper build --legacy",
     "export": "sapper export --legacy",
-    "start": "node __sapper__/build"
+    "start": "node __sapper__/build",
+    "test": "jest src",
+    "test:watch": "npm run test -- --watch"
   },
   "dependencies": {
     "compression": "^1.7.1",
@@ -50,6 +52,9 @@
     "moduleFileExtensions": [
       "js",
       "svelte"
+    ],
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-dom/extend-expect"
     ]
   },
   "setupFilesAfterEnv": [
