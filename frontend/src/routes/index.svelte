@@ -5,60 +5,14 @@
   import axios from "axios";
   import { time_ranges_to_array } from "svelte/internal";
 
-  let mockListingsAgent = [
-    {
-      ownerID: "273787193808",
-      name: "Taman Jesselton",
-      address: "49, Taman Jesselton",
-      postcode: "10450",
-      area: "Tanjung Tokong",
-      price: "6000",
-      propertyType: "Landed",
-      listingType: "Rent",
-      imgURL: "https://pornhub.com/",
-      availableDate: "2021-05-01",
-      isPublic: true,
-      isCompleted: false,
-      isPending: true,
-    },
-    {
-      ownerID: "013784783808",
-      name: "Kelawai Condo",
-      address: "13, Jalan Kelawai",
-      postcode: "10350",
-      area: "Georgetown",
-      price: "4000",
-      propertyType: "Apartment",
-      listingType: "Rent",
-      imgURL: "https://pornhub.com/",
-      availableDate: "",
-      isPublic: true,
-      isCompleted: false,
-      isPending: false,
-    },
-    {
-      ownerID: "213784789998",
-      name: "Bangsar Bay",
-      address: "45, Solok Bell",
-      postcode: "10150",
-      area: "Jelutong",
-      price: "750000",
-      propertyType: "Landed",
-      listingType: "Buy",
-      imgURL: "https://pornhub.com/",
-      availableDate: "",
-      isPublic: true,
-      isCompleted: false,
-      isPending: false,
-    },
-  ];
+  var allListings = [];
 
   //set when user logs in
   let user = {
     // id: "AGENT", //TEMP
-    // listings: mockListingsAgent, //TEMP
+    // listings: allListings, //TEMP
     id: "", //TEMP
-    listings: mockListingsAgent.filter((l) => l.isPublic), //TEMP
+    listings: [] //TEMP
   };
   let userLogin = {
     email: "",
@@ -70,8 +24,10 @@
       userLogin.email === "agent@agent.com" &&
       userLogin.password === "agent"
     ) {
+      //getListings()
       user.id = "AGENT";
-      user.listings = mockListingsAgent;
+      user.listings = allListings;
+      console.log(user)
       storeUser.set(JSON.stringify(user));
       goto("/listings/all");
     } else if (
@@ -82,16 +38,19 @@
     }
   }
 
-  //auth header
-  const hds = {
-    // "Content-Type": "application/json",
-    auth: "password",
-    "Cache-Control": "no-cache",
-    Pragma: "no-cache",
-    Expires: "0",
-  };
-  //TODO: response cached, won't fetch fresh data from api
-  //timestamp add onto request to avoid caching
+  //function getListings() {
+    //auth header
+    const hds = {
+      // "Content-Type": "application/json",
+      auth: "password",
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+    };
+    //TODO: response cached, won't fetch fresh data from api
+    //timestamp add onto request to avoid caching
+
+    /*
   let t = new Date().getTime();
   let basicURL =
     "https://relm-api.myika.co/listings?user=2021-03-14_20:57:36_+0800" +
@@ -100,17 +59,53 @@
   //MUST replace all '+' with '%2B'
   let GETUrl = basicURL.split("+").join("%2B");
   console.log(GETUrl);
-  axios
-    .get(GETUrl, {
-      headers: hds,
-    })
-    .then((res) => res.JSON)
-    .then((data) => console.log(data))
-    .catch((error) => console.log(error));
+  */
+
+    axios
+      .get(
+        "https://relm-api.myika.co/listings?user=2021-03-14_20:57:36_%2B0800",
+        {
+          headers: hds,
+        }
+      )
+      .then((res) => (allListings = res.data))
+      .catch((error) => console.log(error))
+      console.log(allListings)
+  //}
+
+
+  let publicUser = {
+    id: "not logged in",
+    listings: []
+  }
+  getPublicListings()
+
+  function getPublicListings() {
+    //auth header
+    const hds = {
+      // "Content-Type": "application/json",
+      auth: "password",
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+    };
+
+    axios
+      .get(
+        "https://relm-api.myika.co/listings?user=2021-03-14_20:57:36_%2B0800&isPublic=true",
+        {
+          headers: hds,
+        }
+      )
+      .then((res) => (publicUser.listings = res.data))
+      .catch((error) => console.log(error));
+  }
+
+  console.log(publicUser)
 
   //TEMP mock login
   // user.id = "AGENT";
-  // user.listings = mockListingsAgent;
+  // user.listings = allListings;
   // userId.set(user.id);
 </script>
 
@@ -157,7 +152,7 @@
   </div>
   <hr />
 
-  <Listings {...user} />
+  <Listings {...publicUser} />
 </main>
 
 <style type="text/scss">
