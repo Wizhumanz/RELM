@@ -285,9 +285,12 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: use real auth
-	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
-		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
+	authReq := loginReq{
+		Email:    newListingReq.UserID,
+		Password: r.Header.Get("auth"),
+	}
+	if !authenticateUser(authReq) {
+		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
 		return
