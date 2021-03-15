@@ -12,6 +12,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/api/iterator"
 )
 
@@ -51,6 +52,7 @@ type User struct {
 	Name        string `json:"name"`
 	Email       string `json:"email"`
 	AccountType string `json:"type"`
+	Password    string `json:"password"`
 }
 
 func (l User) String() string {
@@ -111,7 +113,20 @@ type newListingPostReq struct {
 }
 
 var googleProjectID = "myika-relm"
-var fakeUserId = "1234567"
+
+// helper funcs
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 2)
+	return string(bytes), err
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+// route handlers
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	var data jsonResponse
@@ -127,6 +142,55 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	// w.Write([]byte(`{"msg": "привет сука"}`))
 }
 
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	type loginReq struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	var newLoginReq loginReq
+	// decode data
+	err := json.NewDecoder(r.Body).Decode(&newLoginReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// get user with email
+	ctx := context.Background()
+	client, err := datastore.NewClient(ctx, googleProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
+	var userWithEmail User
+	query := datastore.NewQuery("User").
+		Filter("Email =", newLoginReq.Email)
+	t := client.Run(ctx, query)
+	_, error := t.Next(&userWithEmail)
+	if error != nil {
+		// Handle error.
+	}
+
+	// check password hash and return response
+	passwordsAreMatch := CheckPasswordHash(newLoginReq.Password, userWithEmail.Password)
+	var data jsonResponse
+	if passwordsAreMatch {
+		data = jsonResponse{
+			Msg:  "Successfully logged in!",
+			Body: userWithEmail.Email,
+		}
+		w.WriteHeader(http.StatusCreated)
+	} else {
+		data = jsonResponse{
+			Msg:  "Authentication failed.",
+			Body: userWithEmail.Email,
+		}
+		w.WriteHeader(http.StatusUnauthorized)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(data)
+}
+
 func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 	var newUser User
 	// decode data
@@ -135,14 +199,8 @@ func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	// TODO: use real auth
-	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
-		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(data)
-		return
-	}
+	// set password hash
+	newUser.Password, _ = HashPassword(newUser.Password)
 
 	// create new listing in DB
 	ctx := context.Background()
@@ -391,6 +449,7 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
+	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)
 	router.Methods("POST").Path("/user").HandlerFunc(createNewUserHandler)
 	router.Methods("GET").Path("/owners").HandlerFunc(getAllOwnersHandler)
 	router.Methods("POST").Path("/owner").HandlerFunc(createNewOwnerHandler)
