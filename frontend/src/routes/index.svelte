@@ -20,7 +20,6 @@
     //auth header
     const hds = {
       // "Content-Type": "application/json",
-      auth: "password",
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
       Expires: "0",
@@ -30,7 +29,7 @@
     // let GETUrl = basicURL.split("+").join("%2B");
     axios
       .get(
-        "https://relm-api.myika.co/listings?user=agent%40agent.com", //get all public listings for this user
+        "https://relm-api.myika.co/listings?user=agent%40agent.com&isPublic=true", //get all public listings for this user
         {
           headers: hds,
         }
