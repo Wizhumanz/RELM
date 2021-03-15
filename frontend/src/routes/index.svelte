@@ -7,6 +7,7 @@
   //state of user across whole app
   let user = {
     id: "",
+    password: "",
     listings: [],
   };
 
@@ -16,20 +17,31 @@
     password: "",
   };
 
-  function getPublicListings() {
+  function getPublicListings(onlyPublic) {
     //auth header
-    const hds = {
-      // "Content-Type": "application/json",
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
-    };
+    const hds = onlyPublic
+      ? {
+          // "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+          Expires: "0",
+        }
+      : {
+          // "Content-Type": "application/json",
+          auth: user.password,
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+          Expires: "0",
+        };
 
     //MUST replace all '+' with '%2B'
     // let GETUrl = basicURL.split("+").join("%2B");
+    let url = onlyPublic
+      ? "https://relm-api.myika.co/listings?user=agent%40agent.com&isPublic=true"
+      : "https://relm-api.myika.co/listings?user=agent%40agent.com";
     axios
       .get(
-        "https://relm-api.myika.co/listings?user=agent%40agent.com&isPublic=true", //get all public listings for this user
+        url,
         {
           headers: hds,
         }
@@ -55,16 +67,16 @@
         password: userLogin.password,
       })
       .then((res) => {
-        console.log(res.data);
         user.id = userLogin.email;
-        //TODO: after successful login, GET all listings to display on /listings/all page
+        user.password = userLogin.password;
+        getPublicListings(false);
         storeUser.set(JSON.stringify(user));
         goto("/listings/all");
       })
       .catch((error) => console.log(error));
   }
 
-  getPublicListings();
+  getPublicListings(true);
 </script>
 
 <main>
