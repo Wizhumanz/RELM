@@ -51,13 +51,11 @@
     axios
       .post("https://relm-api.myika.co/login", {
         headers: hds,
-        body: {
-          email: userLogin.email,
-          password: userLogin.password,
-        },
+        email: userLogin.email,
+        password: userLogin.password,
       })
       .then((res) => {
-        console.log(res.data)
+        console.log(res.data);
       })
       .catch((error) => console.log(error));
   }
