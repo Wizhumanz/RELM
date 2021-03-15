@@ -56,6 +56,10 @@
       })
       .then((res) => {
         console.log(res.data);
+        user.id = userLogin.email;
+        //TODO: after successful login, GET all listings to display on /listings/all page
+        storeUser.set(JSON.stringify(user));
+        goto("/listings/all");
       })
       .catch((error) => console.log(error));
   }
