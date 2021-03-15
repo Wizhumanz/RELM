@@ -274,8 +274,29 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Failed to create client: %v", err)
 	}
 
-	query := datastore.NewQuery("Listing").
-		Filter("UserID =", r.URL.Query()["user"][0])
+	var query *datastore.Query
+	userIDParam := r.URL.Query()["user"][0]
+	var isPublicParam = true //default
+	if len(r.URL.Query()["isPublic"]) > 0 {
+		//extract correct isPublic param
+		isPublicQueryStr := r.URL.Query()["isPublic"][0]
+		if isPublicQueryStr == "true" {
+			isPublicParam = true
+		} else if isPublicQueryStr == "false" {
+			isPublicParam = false
+		}
+
+		query = datastore.NewQuery("Listing").
+			Filter("UserID =", userIDParam).
+			Filter("IsPublic =", isPublicParam)
+	} else {
+		query = datastore.NewQuery("Listing").
+			Filter("UserID =", userIDParam)
+	}
+
+	// query := datastore.NewQuery("Listing").
+	// 	Filter("UserID =", r.URL.Query()["user"][0]).Filter("IsPublic =", true)
+
 	t := client.Run(ctx, query)
 	for {
 		var x Listing
