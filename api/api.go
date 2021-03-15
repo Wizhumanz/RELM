@@ -216,9 +216,12 @@ func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	listingsResp := make([]Listing, 0)
 
-	// TODO: use real auth
-	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
-		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
+	authReq := loginReq{
+		Email:    r.URL.Query()["user"][0],
+		Password: r.Header.Get("auth"),
+	}
+	if !authenticateUser(authReq) {
+		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
 		return
