@@ -11,6 +11,7 @@
     "test:watch": "npm run test -- --watch"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "compression": "^1.7.1",
     "polka": "next",
     "postcss-scss": "^3.0.5",

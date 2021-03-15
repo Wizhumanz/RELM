@@ -12,6 +12,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/api/iterator"
 )
 
@@ -29,28 +30,16 @@ func (bit *JSONBool) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type Owner struct {
-	UserIDs []string
-	Name    string
-	Phone   string
-	Email   string
-}
-
-func (o Owner) String() string {
-	return o.Name + " / " + o.Phone + " / " + o.Email + " / <PARTIAL IDs>" + o.UserIDs[0]
-}
-
-type newOwnerPostReq struct {
-	Name    string   `json:"name"`
-	Phone   string   `json:"phone"`
-	Email   string   `json:"email"`
-	UserIDs []string `json:"userIDs"`
+type loginReq struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type User struct {
 	Name        string `json:"name"`
 	Email       string `json:"email"`
 	AccountType string `json:"type"`
+	Password    string `json:"password"`
 }
 
 func (l User) String() string {
@@ -111,7 +100,41 @@ type newListingPostReq struct {
 }
 
 var googleProjectID = "myika-relm"
-var fakeUserId = "1234567"
+
+// helper funcs
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 2)
+	return string(bytes), err
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+func authenticateUser(req loginReq) bool {
+	// get user with email
+	ctx := context.Background()
+	client, err := datastore.NewClient(ctx, googleProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
+	var userWithEmail User
+	query := datastore.NewQuery("User").
+		Filter("Email =", req.Email)
+	t := client.Run(ctx, query)
+	_, error := t.Next(&userWithEmail)
+	if error != nil {
+		// Handle error.
+	}
+
+	// check password hash and return
+	return CheckPasswordHash(req.Password, userWithEmail.Password)
+}
+
+// route handlers
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	var data jsonResponse
@@ -127,6 +150,33 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	// w.Write([]byte(`{"msg": "привет сука"}`))
 }
 
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	var newLoginReq loginReq
+	// decode data
+	err := json.NewDecoder(r.Body).Decode(&newLoginReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var data jsonResponse
+	if authenticateUser(newLoginReq) {
+		data = jsonResponse{
+			Msg:  "Successfully logged in!",
+			Body: newLoginReq.Email,
+		}
+		w.WriteHeader(http.StatusCreated)
+	} else {
+		data = jsonResponse{
+			Msg:  "Authentication failed.",
+			Body: newLoginReq.Email,
+		}
+		w.WriteHeader(http.StatusUnauthorized)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(data)
+}
+
 func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 	var newUser User
 	// decode data
@@ -135,14 +185,8 @@ func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	// TODO: use real auth
-	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
-		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(data)
-		return
-	}
+	// set password hash
+	newUser.Password, _ = HashPassword(newUser.Password)
 
 	// create new listing in DB
 	ctx := context.Background()
@@ -161,96 +205,8 @@ func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	// return
 	data := jsonResponse{
-		Msg:  "Created " + newUserKey.String(),
+		Msg:  "Set " + newUserKey.String(),
 		Body: newUser.String(),
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(data)
-}
-
-func getAllOwnersHandler(w http.ResponseWriter, r *http.Request) {
-	ownersResp := make([]Owner, 0)
-
-	// TODO: use real auth
-	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
-		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(data)
-		return
-	}
-
-	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, googleProjectID)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
-	fmt.Println(r.URL.Query()["user"][0])
-
-	query := datastore.NewQuery("Owner").
-		Filter("UserIDs =", r.URL.Query()["user"][0])
-	t := client.Run(ctx, query)
-	for {
-		var x Owner
-		_, err := t.Next(&x)
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			// Handle error.
-		}
-		ownersResp = append(ownersResp, x)
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ownersResp)
-}
-
-func createNewOwnerHandler(w http.ResponseWriter, r *http.Request) {
-	var newOwnerReq newOwnerPostReq
-
-	// decode data
-	err := json.NewDecoder(r.Body).Decode(&newOwnerReq)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// TODO: use real auth
-	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
-		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(data)
-		return
-	}
-
-	// create new listing in DB
-	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, googleProjectID)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
-	kind := "Owner"
-	name := time.Now().Format("2006-01-02_15:04:05_-0700")
-	newOwnerKey := datastore.NameKey(kind, name, nil)
-	newOwner := Owner{
-		UserIDs: newOwnerReq.UserIDs, //TODO: handle past elements in array NOT replace
-		Name:    newOwnerReq.Name,
-		Phone:   newOwnerReq.Phone,
-		Email:   newOwnerReq.Email,
-	}
-
-	if _, err := client.Put(ctx, newOwnerKey, &newOwner); err != nil {
-		log.Fatalf("Failed to save Owner: %v", err)
-	}
-
-	// return
-	data := jsonResponse{
-		Msg:  "Created " + newOwnerKey.String(),
-		Body: newOwner.String(),
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -260,9 +216,12 @@ func createNewOwnerHandler(w http.ResponseWriter, r *http.Request) {
 func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	listingsResp := make([]Listing, 0)
 
-	// TODO: use real auth
-	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
-		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
+	authReq := loginReq{
+		Email:    r.URL.Query()["user"][0],
+		Password: r.Header.Get("auth"),
+	}
+	if !authenticateUser(authReq) {
+		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
 		return
@@ -323,9 +282,12 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: use real auth
-	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
-		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
+	authReq := loginReq{
+		Email:    newListingReq.UserID,
+		Password: r.Header.Get("auth"),
+	}
+	if !authenticateUser(authReq) {
+		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
 		return
@@ -388,9 +350,9 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
+	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)
 	router.Methods("POST").Path("/user").HandlerFunc(createNewUserHandler)
-	router.Methods("GET").Path("/owners").HandlerFunc(getAllOwnersHandler)
-	router.Methods("POST").Path("/owner").HandlerFunc(createNewOwnerHandler)
+	router.Methods("POST").Path("/owner").HandlerFunc(createNewUserHandler)
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
 	router.Methods("PUT").Path("/listing/{listingName}").HandlerFunc(updateListingHandler)
@@ -399,6 +361,6 @@ func main() {
 	fmt.Println("AUTH var = " + auth)
 
 	port := os.Getenv("PORT")
-	fmt.Println("myikaco-api listening on port " + port)
+	fmt.Println("relm-api listening on port " + port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }
