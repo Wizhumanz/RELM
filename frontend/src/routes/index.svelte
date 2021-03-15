@@ -82,7 +82,26 @@
   }
 
   function register(e) {
-    console.log(JSON.stringify(userRegister))
+    const hds = {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+    };
+
+    axios
+      .post("https://relm-api.myika.co/user", {
+        headers: hds,
+        name: userRegister.name,
+        email: userRegister.email,
+        type: userRegister.type,
+        password: userRegister.password,
+      })
+      .then((res) => {
+        // storeUser.set(JSON.stringify(user));
+        // goto("/listings/all");
+        console.log(res.status + " -- " + res.data)
+      })
+      .catch((error) => console.log(error));
   }
 
   getPublicListings(true);
