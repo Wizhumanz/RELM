@@ -28,7 +28,7 @@
     user.listings.forEach((listing) => {
       //console.log("MOCK POST / " + listing.isPublic);
       //console.log("MOCK POST / " + listing.isCompleted)
-      console.log("MOCK POST / " + listing.isPending);
+      //console.log("MOCK POST / " + listing.isPending);
     });
     storeUser.set(JSON.stringify(user));
     resetState.set(true);

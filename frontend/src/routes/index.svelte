@@ -2,73 +2,55 @@
   import { goto } from "@sapper/app";
   import { storeUser } from "../../store.js";
   import Listings from "./listings/[slug].svelte";
-  let mockListingsAgent = [
-    {
-      ownerID: "273787193808",
-      name: "Taman Jesselton",
-      address: "49, Taman Jesselton",
-      postcode: "10450",
-      area: "Tanjung Tokong",
-      price: "6000",
-      propertyType: "Landed",
-      listingType: "Rent",
-      imgURL: "https://pornhub.com/",
-      availableDate: "2021-05-01",
-      isPublic: true,
-      isCompleted: false,
-      isPending: true,
-    },
-    {
-      ownerID: "013784783808",
-      name: "Kelawai Condo",
-      address: "13, Jalan Kelawai",
-      postcode: "10350",
-      area: "Georgetown",
-      price: "4000",
-      propertyType: "Apartment",
-      listingType: "Rent",
-      imgURL: "https://pornhub.com/",
-      availableDate: "",
-      isPublic: true,
-      isCompleted: false,
-      isPending: false,
-    },
-    {
-      ownerID: "213784789998",
-      name: "Bangsar Bay",
-      address: "45, Solok Bell",
-      postcode: "10150",
-      area: "Jelutong",
-      price: "750000",
-      propertyType: "Landed",
-      listingType: "Buy",
-      imgURL: "https://pornhub.com/",
-      availableDate: "",
-      isPublic: true,
-      isCompleted: false,
-      isPending: false,
-    },
-  ];
+  import axios from "axios";
 
-  //set when user logs in
+  //state of user across whole app
   let user = {
-    // id: "AGENT", //TEMP
-    // listings: mockListingsAgent, //TEMP
-    id: "", //TEMP
-    listings: mockListingsAgent.filter((l) => l.isPublic), //TEMP
+    id: "",
+    listings: [],
   };
+
+  //only for user login
   let userLogin = {
     email: "",
     password: "",
   };
+
+  function getPublicListings() {
+    //auth header
+    const hds = {
+      // "Content-Type": "application/json",
+      auth: "password",
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+    };
+
+    //MUST replace all '+' with '%2B'
+    // let GETUrl = basicURL.split("+").join("%2B");
+    axios
+      .get(
+        "https://relm-api.myika.co/listings?user=agent%40agent.com", //get all public listings for this user
+        {
+          headers: hds,
+        }
+      )
+      .then((res) => {
+        user.listings = res.data;
+        storeUser.set(JSON.stringify(user));
+      })
+      .catch((error) => console.log(error));
+  }
 
   function signIn(e) {
     if (
       userLogin.email === "agent@agent.com" &&
       userLogin.password === "agent"
     ) {
+      //getListings()
       user.id = "AGENT";
-      user.listings = mockListingsAgent;
+      user.listings = allListings;
+      console.log(user);
       storeUser.set(JSON.stringify(user));
       goto("/listings/all");
     } else if (
@@ -79,10 +61,7 @@
     }
   }
 
-  //TEMP mock login
-  // user.id = "AGENT";
-  // user.listings = mockListingsAgent;
-  // userId.set(user.id);
+  getPublicListings();
 </script>
 
 <main>
@@ -128,7 +107,7 @@
   </div>
   <hr />
 
-  <Listings {...user} />
+  <Listings />
 </main>
 
 <style type="text/scss">
