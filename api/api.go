@@ -220,7 +220,9 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		Email:    r.URL.Query()["user"][0],
 		Password: r.Header.Get("auth"),
 	}
-	if !authenticateUser(authReq) {
+
+	//only need to authenticate if not fetching public listings
+	if len(r.URL.Query()["isPublic"]) == 0 && !authenticateUser(authReq) {
 		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
