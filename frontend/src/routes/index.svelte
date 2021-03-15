@@ -42,22 +42,22 @@
   }
 
   function signIn(e) {
-    if (
-      userLogin.email === "agent@agent.com" &&
-      userLogin.password === "agent"
-    ) {
-      //getListings()
-      user.id = "AGENT";
-      user.listings = allListings;
-      console.log(user);
-      storeUser.set(JSON.stringify(user));
-      goto("/listings/all");
-    } else if (
-      userLogin.email === "owner@owner.com" &&
-      userLogin.password === "owner"
-    ) {
-      user.id = "OWNER";
-    }
+    const hds = {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+    };
+
+    axios
+      .post("https://relm-api.myika.co/login", {
+        headers: hds,
+        email: userLogin.email,
+        password: userLogin.password,
+      })
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((error) => console.log(error));
   }
 
   getPublicListings();
