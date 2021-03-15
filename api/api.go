@@ -30,6 +30,11 @@ func (bit *JSONBool) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type loginReq struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type Owner struct {
 	UserIDs []string
 	Name    string
@@ -126,6 +131,27 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
+func authenticateUser(req loginReq) bool {
+	// get user with email
+	ctx := context.Background()
+	client, err := datastore.NewClient(ctx, googleProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
+	var userWithEmail User
+	query := datastore.NewQuery("User").
+		Filter("Email =", req.Email)
+	t := client.Run(ctx, query)
+	_, error := t.Next(&userWithEmail)
+	if error != nil {
+		// Handle error.
+	}
+
+	// check password hash and return
+	return CheckPasswordHash(req.Password, userWithEmail.Password)
+}
+
 // route handlers
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -143,10 +169,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	type loginReq struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
 	var newLoginReq loginReq
 	// decode data
 	err := json.NewDecoder(r.Body).Decode(&newLoginReq)
@@ -155,35 +177,17 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// get user with email
-	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, googleProjectID)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
-	var userWithEmail User
-	query := datastore.NewQuery("User").
-		Filter("Email =", newLoginReq.Email)
-	t := client.Run(ctx, query)
-	_, error := t.Next(&userWithEmail)
-	if error != nil {
-		// Handle error.
-	}
-
-	// check password hash and return response
-	passwordsAreMatch := CheckPasswordHash(newLoginReq.Password, userWithEmail.Password)
 	var data jsonResponse
-	if passwordsAreMatch {
+	if authenticateUser(newLoginReq) {
 		data = jsonResponse{
 			Msg:  "Successfully logged in!",
-			Body: userWithEmail.Email,
+			Body: newLoginReq.Email,
 		}
 		w.WriteHeader(http.StatusCreated)
 	} else {
 		data = jsonResponse{
 			Msg:  "Authentication failed.",
-			Body: userWithEmail.Email,
+			Body: newLoginReq.Email,
 		}
 		w.WriteHeader(http.StatusUnauthorized)
 	}
@@ -230,9 +234,13 @@ func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 func getAllOwnersHandler(w http.ResponseWriter, r *http.Request) {
 	ownersResp := make([]Owner, 0)
 
-	// TODO: use real auth
-	if a := os.Getenv("AUTH"); a != r.Header.Get("auth") {
-		data := jsonResponse{Msg: "Authorization Invalid", Body: "Auth header invalid."}
+	//auth
+	req := loginReq{
+		Email:    r.URL.Query()["user"][0],
+		Password: r.Header.Get("auth"),
+	}
+	if !authenticateUser(req) {
+		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
 		return
@@ -243,8 +251,6 @@ func getAllOwnersHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-
-	fmt.Println(r.URL.Query()["user"][0])
 
 	query := datastore.NewQuery("Owner").
 		Filter("UserIDs =", r.URL.Query()["user"][0])
