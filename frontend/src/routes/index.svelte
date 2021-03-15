@@ -17,6 +17,14 @@
     password: "",
   };
 
+  //only for user register
+  let userRegister = {
+    email: "",
+    name: "",
+    type: "Owner",
+    password: "",
+  };
+
   function getPublicListings(onlyPublic) {
     //auth header
     const hds = onlyPublic
@@ -40,12 +48,9 @@
       ? "https://relm-api.myika.co/listings?user=agent%40agent.com&isPublic=true"
       : "https://relm-api.myika.co/listings?user=agent%40agent.com";
     axios
-      .get(
-        url,
-        {
-          headers: hds,
-        }
-      )
+      .get(url, {
+        headers: hds,
+      })
       .then((res) => {
         user.listings = res.data;
         storeUser.set(JSON.stringify(user));
@@ -76,6 +81,10 @@
       .catch((error) => console.log(error));
   }
 
+  function register(e) {
+    console.log(JSON.stringify(userRegister))
+  }
+
   getPublicListings(true);
 </script>
 
@@ -93,30 +102,114 @@
         </p>
       </div>
       <div class="col-sm col-md-5" id="login-col">
-        <h4 class="section-head">Sign In</h4>
-        <form class="form" on:submit|preventDefault={signIn}>
-          <div class="mb-3">
-            <label for="email" class="form-label"> Email</label>
-            <input
-              type="email"
-              class="form-control"
-              id="email"
-              placeholder="name@agency.com"
-              bind:value={userLogin.email}
-            />
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link active"
+              id="home-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#home"
+              type="button"
+              role="tab"
+              aria-controls="home"
+              aria-selected="true">Sign In</button
+            >
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              id="profile-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#profile"
+              type="button"
+              role="tab"
+              aria-controls="profile"
+              aria-selected="false">Register</button
+            >
+          </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+          <div
+            class="tab-pane fade show active"
+            id="home"
+            role="tabpanel"
+            aria-labelledby="home-tab"
+          >
+            <!-- Sign In tab -->
+            <form class="form" on:submit|preventDefault={signIn}>
+              <div class="mb-3">
+                <label for="emailLogin" class="form-label"> Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="emailLogin"
+                  placeholder="name@agency.com"
+                  bind:value={userLogin.email}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="passwordLogin" class="form-label"> Password</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="passwordLogin"
+                  placeholder="password"
+                  bind:value={userLogin.password}
+                />
+              </div>
+              <button type="submit">Sign In</button>
+            </form>
           </div>
-          <div class="mb-3">
-            <label for="password" class="form-label"> Password</label>
-            <input
-              type="text"
-              class="form-control"
-              id="password"
-              placeholder="password"
-              bind:value={userLogin.password}
-            />
+          <div
+            class="tab-pane fade"
+            id="profile"
+            role="tabpanel"
+            aria-labelledby="profile-tab"
+          >
+            <!-- Register tab -->
+            <form class="form" on:submit|preventDefault={register}>
+              <div class="mb-3">
+                <label for="accountType" class="form-label"> Type</label>
+                <select id="accountType" bind:value={userRegister.type}>
+                  <option value="Owner">Owner</option>
+                  <option value="Agent">Agent</option>
+                  <option value="Tenant">Tenant</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label"> Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="name"
+                  placeholder="Ivy Yeoh"
+                  bind:value={userRegister.name}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label"> Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="email"
+                  placeholder="name@agency.com"
+                  bind:value={userRegister.email}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label"> Password</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="password"
+                  placeholder="password"
+                  bind:value={userRegister.password}
+                />
+              </div>
+              <button type="submit">Register</button>
+            </form>
           </div>
-          <button type="submit">Sign In</button>
-        </form>
+        </div>
       </div>
     </div>
   </div>
@@ -141,6 +234,20 @@
     padding: 4rem auto;
   }
 
+  button.nav-link {
+    color: gray;
+    font-size: larger;
+  }
+
+  button.nav-link.active {
+    background-color: $ivory;
+    color: $blood;
+  }
+
+  form {
+    margin-top: 1rem;
+  }
+
   input {
     font-family: $body-font;
     background-color: $ivory;
@@ -149,6 +256,10 @@
   input:focus-within {
     background-color: $blood;
     color: $ivory;
+  }
+
+  select {
+    padding: 0.5rem 0.5rem;
   }
 
   hr {
