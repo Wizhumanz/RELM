@@ -97,6 +97,7 @@
         password: userRegister.password,
       })
       .then((res) => {
+        //TODO: further user flow for new registered user
         // storeUser.set(JSON.stringify(user));
         // goto("/listings/all");
         console.log(res.status + " -- " + res.data)
