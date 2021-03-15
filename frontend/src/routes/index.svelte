@@ -3,82 +3,18 @@
   import { storeUser } from "../../store.js";
   import Listings from "./listings/[slug].svelte";
   import axios from "axios";
-  import { time_ranges_to_array } from "svelte/internal";
 
-  var allListings = [];
-
-  //set when user logs in
+  //state of user across whole app
   let user = {
-    // id: "AGENT", //TEMP
-    // listings: allListings, //TEMP
-    id: "", //TEMP
-    listings: [] //TEMP
+    id: "",
+    listings: [],
   };
+
+  //only for user login
   let userLogin = {
     email: "",
     password: "",
   };
-
-  function signIn(e) {
-    if (
-      userLogin.email === "agent@agent.com" &&
-      userLogin.password === "agent"
-    ) {
-      //getListings()
-      user.id = "AGENT";
-      user.listings = allListings;
-      console.log(user)
-      storeUser.set(JSON.stringify(user));
-      goto("/listings/all");
-    } else if (
-      userLogin.email === "owner@owner.com" &&
-      userLogin.password === "owner"
-    ) {
-      user.id = "OWNER";
-    }
-  }
-
-  //function getListings() {
-    //auth header
-    const hds = {
-      // "Content-Type": "application/json",
-      auth: "password",
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
-    };
-    //TODO: response cached, won't fetch fresh data from api
-    //timestamp add onto request to avoid caching
-
-    /*
-  let t = new Date().getTime();
-  let basicURL =
-    "https://relm-api.myika.co/listings?user=2021-03-14_20:57:36_+0800" +
-    "&timestamp=" +
-    t;
-  //MUST replace all '+' with '%2B'
-  let GETUrl = basicURL.split("+").join("%2B");
-  console.log(GETUrl);
-  */
-
-    axios
-      .get(
-        "https://relm-api.myika.co/listings?user=2021-03-14_20:57:36_%2B0800",
-        {
-          headers: hds,
-        }
-      )
-      .then((res) => (allListings = res.data))
-      .catch((error) => console.log(error))
-      console.log(allListings)
-  //}
-
-
-  let publicUser = {
-    id: "not logged in",
-    listings: []
-  }
-  getPublicListings()
 
   function getPublicListings() {
     //auth header
@@ -90,23 +26,42 @@
       Expires: "0",
     };
 
+    //MUST replace all '+' with '%2B'
+    // let GETUrl = basicURL.split("+").join("%2B");
     axios
       .get(
-        "https://relm-api.myika.co/listings?user=2021-03-14_20:57:36_%2B0800&isPublic=true",
+        "https://relm-api.myika.co/listings?user=agent%40agent.com", //get all public listings for this user
         {
           headers: hds,
         }
       )
-      .then((res) => (publicUser.listings = res.data))
+      .then((res) => {
+        user.listings = res.data;
+        storeUser.set(JSON.stringify(user));
+      })
       .catch((error) => console.log(error));
   }
 
-  console.log(publicUser)
+  function signIn(e) {
+    if (
+      userLogin.email === "agent@agent.com" &&
+      userLogin.password === "agent"
+    ) {
+      //getListings()
+      user.id = "AGENT";
+      user.listings = allListings;
+      console.log(user);
+      storeUser.set(JSON.stringify(user));
+      goto("/listings/all");
+    } else if (
+      userLogin.email === "owner@owner.com" &&
+      userLogin.password === "owner"
+    ) {
+      user.id = "OWNER";
+    }
+  }
 
-  //TEMP mock login
-  // user.id = "AGENT";
-  // user.listings = allListings;
-  // userId.set(user.id);
+  getPublicListings();
 </script>
 
 <main>
@@ -152,7 +107,7 @@
   </div>
   <hr />
 
-  <Listings {...publicUser} />
+  <Listings />
 </main>
 
 <style type="text/scss">
