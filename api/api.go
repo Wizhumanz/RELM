@@ -275,15 +275,25 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var query *datastore.Query
-	isPublicParam := r.URL.Query()["isPublic"][0]
-	if isPublicParam == "" {
+	userIDParam := r.URL.Query()["user"][0]
+	var isPublicParam = true //default
+	if len(r.URL.Query()["isPublic"]) > 0 {
+		//extract correct isPublic param
+		isPublicQueryStr := r.URL.Query()["isPublic"][0]
+		if isPublicQueryStr == "true" {
+			isPublicParam = true
+		} else if isPublicQueryStr == "false" {
+			isPublicParam = false
+		}
+
 		query = datastore.NewQuery("Listing").
-			Filter("UserID =", r.URL.Query()["user"][0])
+			Filter("UserID =", userIDParam).
+			Filter("IsPublic =", isPublicParam)
 	} else {
 		query = datastore.NewQuery("Listing").
-			Filter("UserID =", r.URL.Query()["user"][0]).
-			Filter("IsPublic =", isPublicParam)
+			Filter("UserID =", userIDParam)
 	}
+
 	t := client.Run(ctx, query)
 	for {
 		var x Listing
