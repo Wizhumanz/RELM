@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/api/iterator"
@@ -54,20 +55,23 @@ func (l User) String() string {
 }
 
 type Listing struct {
-	UserID        string `json:"user"`
-	OwnerID       string `json:"owner"`
-	Name          string `json:"name"` // immutable once created, used for queries
-	Address       string `json:"address"`
-	Postcode      string `json:"postcode"`
-	Area          string `json:"area"`
-	Price         int    `json:"price"`
-	PropertyType  int    `json:"propertyType"` // 0 = landed, 1 = apartment
-	ListingType   int    `json:"listingType"`  // 0 = for rent, 1 = for sale
-	ImgURL        string `json:"img"`
-	AvailableDate string `json:"availableDate"`
-	IsPublic      bool   `json:"isPublic"`
-	IsCompleted   bool   `json:"isCompleted"`
-	IsPending     bool   `json:"isPending"`
+	UserID       string `json:"user"`
+	OwnerID      string `json:"owner"`
+	Name         string `json:"name"` // immutable once created, used for queries
+	Address      string `json:"address"`
+	Postcode     string `json:"postcode"`
+	Area         string `json:"area"`
+	Price        int    `json:",string"`
+	PropertyType int    `json:",string"` // 0 = landed, 1 = apartment
+	ListingType  int    `json:",string"` // 0 = for rent, 1 = for sale
+
+	//TODO: store url to cloud storage bucket for imgs, not img strs themselves
+
+	Imgs          []string `json:"imgs"`
+	AvailableDate string   `json:"availableDate"`
+	IsPublic      bool     `json:",string"`
+	IsCompleted   bool     `json:",string"`
+	IsPending     bool     `json:",string"`
 }
 
 func (l Listing) String() string {
@@ -278,17 +282,17 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 
 // almost identical logic with create and update (event sourcing)
 func addListing(w http.ResponseWriter, r *http.Request) {
-	var newListingReq newListingPostReq
+	var newListing Listing
 
 	// decode data
-	err := json.NewDecoder(r.Body).Decode(&newListingReq)
+	err := json.NewDecoder(r.Body).Decode(&newListing)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	authReq := loginReq{
-		Email:    newListingReq.UserID,
+		Email:    newListing.UserID,
 		Password: r.Header.Get("auth"),
 	}
 	if !authenticateUser(authReq) {
@@ -308,25 +312,6 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 	kind := "Listing"
 	name := time.Now().Format("2006-01-02_15:04:05_-0700")
 	newListingKey := datastore.NameKey(kind, name, nil)
-	price, _ := newListingReq.Price.Int64()
-	pType, _ := newListingReq.PropertyType.Int64()
-	lType, _ := newListingReq.ListingType.Int64()
-	newListing := Listing{
-		UserID:        newListingReq.UserID,
-		OwnerID:       newListingReq.OwnerID,
-		Name:          newListingReq.Name,
-		Address:       newListingReq.Address,
-		Postcode:      newListingReq.Postcode,
-		Area:          newListingReq.Area,
-		Price:         int(price),
-		PropertyType:  int(pType),
-		ListingType:   int(lType),
-		ImgURL:        newListingReq.ImgURL,
-		AvailableDate: newListingReq.AvailableDate,
-		IsPublic:      bool(newListingReq.IsPublic),
-		IsCompleted:   bool(newListingReq.IsCompleted),
-		IsPending:     bool(newListingReq.IsPending),
-	}
 
 	if _, err := client.Put(ctx, newListingKey, &newListing); err != nil {
 		log.Fatalf("Failed to save Listing: %v", err)
@@ -334,7 +319,7 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 
 	// return
 	data := jsonResponse{
-		Msg:  "Updated " + newListingKey.String(),
+		Msg:  "Added " + newListingKey.String(),
 		Body: newListing.String(),
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -353,6 +338,43 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// CLOUD STORAGE TEST
+
+	// Creates a client.
+	ctx := context.Background()
+	_, err := storage.NewClient(ctx)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
+	// //print all buckets
+	// var buckets []string
+	// it := client.Buckets(ctx, googleProjectID)
+	// for {
+	// 	battrs, err := it.Next()
+	// 	if err == iterator.Done {
+	// 		break
+	// 	}
+	// 	if err != nil {
+	// 		//something
+	// 	}
+	// 	buckets = append(buckets, battrs.Name)
+	// 	fmt.Printf("Bucket: %v\n", battrs.Name)
+	// }
+
+	// //create new bucket
+	// bucketName := "ifijdfiejdiejdiejdijeidjeijdiejij"
+	// bucket := client.Bucket(bucketName)
+
+	// ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	// defer cancel()
+	// if err := bucket.Create(ctx, googleProjectID, nil); err != nil {
+	// 	log.Fatalf("Failed to create bucket: %v", err)
+	// }
+	// fmt.Printf("Bucket %v created.\n", bucketName)
+
+	////////////////
+
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
 	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)
