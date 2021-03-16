@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"reflect"
 	"time"
@@ -300,10 +301,28 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//save images in new bucket
+	ctx := context.Background()
+	clientStorage, err := storage.NewClient(ctx)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
+	bucketName := url.QueryEscape(newListing.UserID + "." + newListing.Name)
+	bucket := clientStorage.Bucket(bucketName)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+	if err := bucket.Create(ctx, googleProjectID, nil); err != nil {
+		log.Fatalf("Failed to create bucket: %v", err)
+	}
+
+	for _, strImg := range newListing.Imgs {
+		//convert image from base64 string to JPEG
+		//store img in new bucket
+	}
+	//newListing.Imgs = [new_bucket_url]
 
 	// create new listing in DB
-	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, googleProjectID)
+	clientAdd, err := datastore.NewClient(ctx, googleProjectID)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
@@ -312,7 +331,7 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 	name := time.Now().Format("2006-01-02_15:04:05_-0700")
 	newListingKey := datastore.NameKey(kind, name, nil)
 
-	if _, err := client.Put(ctx, newListingKey, &newListing); err != nil {
+	if _, err := clientAdd.Put(ctx, newListingKey, &newListing); err != nil {
 		log.Fatalf("Failed to save Listing: %v", err)
 	}
 
@@ -337,43 +356,6 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// CLOUD STORAGE TEST
-
-	// Creates a client.
-	ctx := context.Background()
-	_, err := storage.NewClient(ctx)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
-	// //print all buckets
-	// var buckets []string
-	// it := client.Buckets(ctx, googleProjectID)
-	// for {
-	// 	battrs, err := it.Next()
-	// 	if err == iterator.Done {
-	// 		break
-	// 	}
-	// 	if err != nil {
-	// 		//something
-	// 	}
-	// 	buckets = append(buckets, battrs.Name)
-	// 	fmt.Printf("Bucket: %v\n", battrs.Name)
-	// }
-
-	// //create new bucket
-	// bucketName := "ifijdfiejdiejdiejdijeidjeijdiejij"
-	// bucket := client.Bucket(bucketName)
-
-	// ctx, cancel := context.WithTimeout(ctx, time.Second*10)
-	// defer cancel()
-	// if err := bucket.Create(ctx, googleProjectID, nil); err != nil {
-	// 	log.Fatalf("Failed to create bucket: %v", err)
-	// }
-	// fmt.Printf("Bucket %v created.\n", bucketName)
-
-	////////////////
-
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
 	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)
