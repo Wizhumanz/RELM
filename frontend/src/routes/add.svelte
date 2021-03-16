@@ -1,4 +1,29 @@
 <script>
+  function uploadImgs(e) {
+    const files = document.querySelector("[type=file]").files;
+    const filesStr = [];
+
+    for (let i = 0; i < files.length; i++) {
+      let file = files[i];
+      //TODO: convert to base64 encoded string
+      let fStr = encodeImageFileAsURL(file);
+      filesStr.push(fStr);
+    }
+  }
+
+  function encodeImageFileAsURL(fi) {
+    var fileReader = new FileReader();
+    fileReader.onload = function (fileLoadedEvent) {
+      var srcData = fileLoadedEvent.target.result; // <--- data: base64
+
+      var newImage = document.createElement("img");
+      newImage.src = srcData;
+
+      // document.getElementById("imgDisplay").innerHTML = newImage.outerHTML;
+      console.log("Converted Base64 version is " + newImage.src);
+    };
+    fileReader.readAsDataURL(fi);
+  }
 </script>
 
 <div class="container">
@@ -9,6 +34,17 @@
       <button id="excel-upload">Upload Excel</button>
     </div>
     <div class="col-sm col-md-9">
+      <!-- file upload -->
+      <!-- <div id="imgDisplay"></div> -->
+      <form
+        method="post"
+        enctype="multipart/form-data"
+        on:submit|preventDefault={uploadImgs}
+      >
+        <input type="file" name="files[]" multiple />
+        <input type="submit" value="Upload File" name="submit" />
+      </form>
+
       <div id="manual-add-box">
         <h4 class="section-head">Manual Add</h4>
         <form class="form">
