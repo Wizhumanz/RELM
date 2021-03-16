@@ -5,7 +5,7 @@
 
     for (let i = 0; i < files.length; i++) {
       let file = files[i];
-      //TODO: convert to base64 encoded string
+      //convert to base64 encoded string
       let fStr = encodeImageFileAsURL(file);
       filesStr.push(fStr);
     }
@@ -23,6 +23,27 @@
       console.log("Converted Base64 version is " + newImage.src);
     };
     fileReader.readAsDataURL(fi);
+  }
+
+  function addListing() {
+    const hds = {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+    };
+
+    axios
+      .post("https://relm-api.myika.co/listing", {
+        headers: hds,
+        imgs: JSON.stringify(filesStr),
+      })
+      .then((res) => {
+        //TODO: further user flow for new registered user
+        // storeUser.set(JSON.stringify(user));
+        // goto("/listings/all");
+        console.log(res.status + " -- " + res.data)
+      })
+      .catch((error) => console.log(error));
   }
 </script>
 
@@ -47,7 +68,7 @@
 
       <div id="manual-add-box">
         <h4 class="section-head">Manual Add</h4>
-        <form class="form">
+        <form class="form" on:submit|preventDefault={addListing}>
           <div class="mb-3">
             <label for="name" class="form-label">Name</label>
             <input
