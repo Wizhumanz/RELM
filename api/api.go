@@ -55,18 +55,15 @@ func (l User) String() string {
 }
 
 type Listing struct {
-	UserID       string `json:"user"`
-	OwnerID      string `json:"owner"`
-	Name         string `json:"name"` // immutable once created, used for queries
-	Address      string `json:"address"`
-	Postcode     string `json:"postcode"`
-	Area         string `json:"area"`
-	Price        int    `json:",string"`
-	PropertyType int    `json:",string"` // 0 = landed, 1 = apartment
-	ListingType  int    `json:",string"` // 0 = for rent, 1 = for sale
-
-	//TODO: store url to cloud storage bucket for imgs, not img strs themselves
-
+	UserID        string   `json:"user"`
+	OwnerID       string   `json:"owner"`
+	Name          string   `json:"name"` // immutable once created, used for queries
+	Address       string   `json:"address"`
+	Postcode      string   `json:"postcode"`
+	Area          string   `json:"area"`
+	Price         int      `json:",string"`
+	PropertyType  int      `json:",string"` // 0 = landed, 1 = apartment
+	ListingType   int      `json:",string"` // 0 = for rent, 1 = for sale
 	Imgs          []string `json:"imgs"`
 	AvailableDate string   `json:"availableDate"`
 	IsPublic      bool     `json:",string"`
@@ -301,6 +298,8 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(data)
 		return
 	}
+
+	//save images in new bucket
 
 	// create new listing in DB
 	ctx := context.Background()
