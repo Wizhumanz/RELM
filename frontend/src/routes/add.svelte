@@ -16,7 +16,7 @@
   }
 
   function encodeImageFileAsURL(fi) {
-    var newImage
+    var newImage;
     var fileReader = new FileReader();
     fileReader.onload = function (fileLoadedEvent) {
       var srcData = fileLoadedEvent.target.result; // <--- data: base64
@@ -38,26 +38,29 @@
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
       Expires: "0",
-      "auth": "agent",
+      auth: "agent",
+    };
+
+    let data = {
+      name: "TEST IMG",
+      imgs: filesStr,
+      user: "agent@agent.com",
+      owner: "owner@owner.com",
+      address: "Jalan Besar 7",
+      postcode: "10130",
+      area: "Teluk Bahang",
+      price: "8000",
+      propertyType: "1",
+      listingType: "1",
+      availableDate: "",
+      isPublic: "true",
+      isCompleted: "false",
+      isPending: "false",
     };
 
     axios
-      .post("http://localhost:8000/listing", {
-        headers: hds,
-        name: "TEST IMG",
-        imgs: filesStr,
-        user: "agent@agent.com",
-        owner: "owner@owner.com",
-        address: "Jalan Besar 7",
-        postcode: "10130",
-        area: "Teluk Bahang",
-        price: "8000",
-        propertyType: "1",
-        listingType: "1",
-        availableDate: "",
-        isPublic: "true",
-        isCompleted: "false",
-        isPending: "false",
+      .post("http://localhost:8000/listing", data, {
+        headers: hds
       })
       .then((res) => {
         console.log(res.status + " -- " + res.data);
