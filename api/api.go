@@ -2,13 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -293,6 +295,7 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 		Email:    newListing.UserID,
 		Password: r.Header.Get("auth"),
 	}
+	fmt.Println("Add listing AUTH - " + r.Header.Get("auth"))
 	if !authenticateUser(authReq) {
 		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
@@ -307,7 +310,11 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Failed to create client: %v", err)
 	}
 
-	bucketName := url.QueryEscape(newListing.UserID + "." + newListing.Name)
+	//use listing ID as bucket name
+	newListingName := time.Now().Format("2006-01-02_15:04:05_-0700")
+	//format for proper bucket name
+	bucketName := strings.ReplaceAll(newListingName, ":", "-") //url.QueryEscape(newListing.UserID + "." + newListing.Name)
+	bucketName = strings.ReplaceAll(bucketName, "+", "plus")
 	bucket := clientStorage.Bucket(bucketName)
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
@@ -315,11 +322,26 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Failed to create bucket: %v", err)
 	}
 
-	for _, strImg := range newListing.Imgs {
+	for j, strImg := range newListing.Imgs {
+		fmt.Println(strImg)
 		//convert image from base64 string to JPEG
+		i := strings.Index(strImg, ",")
+		if i < 0 {
+			fmt.Println("img in body no comma")
+		}
+
 		//store img in new bucket
+		dec := base64.NewDecoder(base64.StdEncoding, strings.NewReader(strImg[i+1:])) // pass reader to NewDecoder
+		// Upload an object with storage.Writer.
+		wc := clientStorage.Bucket(bucketName).Object(fmt.Sprintf("%d", j)).NewWriter(ctx)
+		if _, err = io.Copy(wc, dec); err != nil {
+			fmt.Printf("io.Copy: %v", err)
+		}
+		if err := wc.Close(); err != nil {
+			fmt.Printf("Writer.Close: %v", err)
+		}
 	}
-	//newListing.Imgs = [new_bucket_url]
+	newListing.Imgs = []string{bucketName} //just store bucket name, objects retrieved on getListing
 
 	// create new listing in DB
 	clientAdd, err := datastore.NewClient(ctx, googleProjectID)
@@ -328,8 +350,7 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	kind := "Listing"
-	name := time.Now().Format("2006-01-02_15:04:05_-0700")
-	newListingKey := datastore.NameKey(kind, name, nil)
+	newListingKey := datastore.NameKey(kind, newListingName, nil)
 
 	if _, err := clientAdd.Put(ctx, newListingKey, &newListing); err != nil {
 		log.Fatalf("Failed to save Listing: %v", err)

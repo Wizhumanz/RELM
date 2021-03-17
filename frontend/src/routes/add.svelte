@@ -1,47 +1,66 @@
 <script>
-  function uploadImgs(e) {
-    const files = document.querySelector("[type=file]").files;
-    const filesStr = [];
+  import axios from "axios";
 
+  let files;
+  let filesStr = [];
+
+  function uploadImgs(e) {
+    files = document.querySelector("[type=file]").files;
     for (let i = 0; i < files.length; i++) {
       let file = files[i];
       //convert to base64 encoded string
       let fStr = encodeImageFileAsURL(file);
       filesStr.push(fStr);
     }
+    console.log("imgs array length = " + filesStr.length);
   }
 
   function encodeImageFileAsURL(fi) {
+    var newImage
     var fileReader = new FileReader();
     fileReader.onload = function (fileLoadedEvent) {
       var srcData = fileLoadedEvent.target.result; // <--- data: base64
 
-      var newImage = document.createElement("img");
+      newImage = document.createElement("img");
       newImage.src = srcData;
 
       // document.getElementById("imgDisplay").innerHTML = newImage.outerHTML;
       console.log("Converted Base64 version is " + newImage.src);
+      return newImage.src;
     };
     fileReader.readAsDataURL(fi);
   }
 
   function addListing() {
+    console.log("adding listing");
+
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
       Expires: "0",
+      "auth": "agent",
     };
 
     axios
-      .post("https://relm-api.myika.co/listing", {
+      .post("http://localhost:8000/listing", {
         headers: hds,
-        imgs: JSON.stringify(filesStr),
+        name: "TEST IMG",
+        imgs: filesStr,
+        user: "agent@agent.com",
+        owner: "owner@owner.com",
+        address: "Jalan Besar 7",
+        postcode: "10130",
+        area: "Teluk Bahang",
+        price: "8000",
+        propertyType: "1",
+        listingType: "1",
+        availableDate: "",
+        isPublic: "true",
+        isCompleted: "false",
+        isPending: "false",
       })
       .then((res) => {
-        //TODO: further user flow for new registered user
-        // storeUser.set(JSON.stringify(user));
-        // goto("/listings/all");
-        console.log(res.status + " -- " + res.data)
+        console.log(res.status + " -- " + res.data);
       })
       .catch((error) => console.log(error));
   }
