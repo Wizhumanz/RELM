@@ -2,15 +2,19 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/api/iterator"
@@ -54,20 +58,20 @@ func (l User) String() string {
 }
 
 type Listing struct {
-	UserID        string `json:"user"`
-	OwnerID       string `json:"owner"`
-	Name          string `json:"name"` // immutable once created, used for queries
-	Address       string `json:"address"`
-	Postcode      string `json:"postcode"`
-	Area          string `json:"area"`
-	Price         int    `json:"price"`
-	PropertyType  int    `json:"propertyType"` // 0 = landed, 1 = apartment
-	ListingType   int    `json:"listingType"`  // 0 = for rent, 1 = for sale
-	ImgURL        string `json:"img"`
-	AvailableDate string `json:"availableDate"`
-	IsPublic      bool   `json:"isPublic"`
-	IsCompleted   bool   `json:"isCompleted"`
-	IsPending     bool   `json:"isPending"`
+	UserID        string   `json:"user"`
+	OwnerID       string   `json:"owner"`
+	Name          string   `json:"name"` // immutable once created, used for queries
+	Address       string   `json:"address"`
+	Postcode      string   `json:"postcode"`
+	Area          string   `json:"area"`
+	Price         int      `json:",string"`
+	PropertyType  int      `json:",string"` // 0 = landed, 1 = apartment
+	ListingType   int      `json:",string"` // 0 = for rent, 1 = for sale
+	Imgs          []string `json:"imgs"`
+	AvailableDate string   `json:"availableDate"`
+	IsPublic      bool     `json:",string"`
+	IsCompleted   bool     `json:",string"`
+	IsPending     bool     `json:",string"`
 }
 
 func (l Listing) String() string {
@@ -278,19 +282,20 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 
 // almost identical logic with create and update (event sourcing)
 func addListing(w http.ResponseWriter, r *http.Request) {
-	var newListingReq newListingPostReq
+	var newListing Listing
 
 	// decode data
-	err := json.NewDecoder(r.Body).Decode(&newListingReq)
+	err := json.NewDecoder(r.Body).Decode(&newListing)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	authReq := loginReq{
-		Email:    newListingReq.UserID,
+		Email:    newListing.UserID,
 		Password: r.Header.Get("auth"),
 	}
+	fmt.Println("Add listing AUTH - " + r.Header.Get("auth"))
 	if !authenticateUser(authReq) {
 		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
@@ -298,43 +303,62 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// create new listing in DB
+	//save images in new bucket
 	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, googleProjectID)
+	clientStorage, err := storage.NewClient(ctx)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
+	//use listing ID as bucket name
+	newListingName := time.Now().Format("2006-01-02_15:04:05_-0700")
+	//format for proper bucket name
+	bucketName := strings.ReplaceAll(newListingName, ":", "-") //url.QueryEscape(newListing.UserID + "." + newListing.Name)
+	bucketName = strings.ReplaceAll(bucketName, "+", "plus")
+	bucket := clientStorage.Bucket(bucketName)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+	if err := bucket.Create(ctx, googleProjectID, nil); err != nil {
+		log.Fatalf("Failed to create bucket: %v", err)
+	}
+
+	for j, strImg := range newListing.Imgs {
+		fmt.Println(strImg)
+		//convert image from base64 string to JPEG
+		i := strings.Index(strImg, ",")
+		if i < 0 {
+			fmt.Println("img in body no comma")
+		}
+
+		//store img in new bucket
+		dec := base64.NewDecoder(base64.StdEncoding, strings.NewReader(strImg[i+1:])) // pass reader to NewDecoder
+		// Upload an object with storage.Writer.
+		wc := clientStorage.Bucket(bucketName).Object(fmt.Sprintf("%d", j)).NewWriter(ctx)
+		if _, err = io.Copy(wc, dec); err != nil {
+			fmt.Printf("io.Copy: %v", err)
+		}
+		if err := wc.Close(); err != nil {
+			fmt.Printf("Writer.Close: %v", err)
+		}
+	}
+	newListing.Imgs = []string{bucketName} //just store bucket name, objects retrieved on getListing
+
+	// create new listing in DB
+	clientAdd, err := datastore.NewClient(ctx, googleProjectID)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
 
 	kind := "Listing"
-	name := time.Now().Format("2006-01-02_15:04:05_-0700")
-	newListingKey := datastore.NameKey(kind, name, nil)
-	price, _ := newListingReq.Price.Int64()
-	pType, _ := newListingReq.PropertyType.Int64()
-	lType, _ := newListingReq.ListingType.Int64()
-	newListing := Listing{
-		UserID:        newListingReq.UserID,
-		OwnerID:       newListingReq.OwnerID,
-		Name:          newListingReq.Name,
-		Address:       newListingReq.Address,
-		Postcode:      newListingReq.Postcode,
-		Area:          newListingReq.Area,
-		Price:         int(price),
-		PropertyType:  int(pType),
-		ListingType:   int(lType),
-		ImgURL:        newListingReq.ImgURL,
-		AvailableDate: newListingReq.AvailableDate,
-		IsPublic:      bool(newListingReq.IsPublic),
-		IsCompleted:   bool(newListingReq.IsCompleted),
-		IsPending:     bool(newListingReq.IsPending),
-	}
+	newListingKey := datastore.NameKey(kind, newListingName, nil)
 
-	if _, err := client.Put(ctx, newListingKey, &newListing); err != nil {
+	if _, err := clientAdd.Put(ctx, newListingKey, &newListing); err != nil {
 		log.Fatalf("Failed to save Listing: %v", err)
 	}
 
 	// return
 	data := jsonResponse{
-		Msg:  "Updated " + newListingKey.String(),
+		Msg:  "Added " + newListingKey.String(),
 		Body: newListing.String(),
 	}
 	w.Header().Set("Content-Type", "application/json")
