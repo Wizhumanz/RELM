@@ -8,11 +8,9 @@
     files = document.querySelector("[type=file]").files;
     for (let i = 0; i < files.length; i++) {
       let file = files[i];
-      //convert to base64 encoded string
-      let fStr = encodeImageFileAsURL(file);
-      filesStr.push(fStr);
+      //convert to base64 encoded string (pushed to filesStr)
+      encodeImageFileAsURL(file);
     }
-    console.log("imgs array length = " + filesStr.length);
   }
 
   function encodeImageFileAsURL(fi) {
@@ -25,8 +23,8 @@
       newImage.src = srcData;
 
       // document.getElementById("imgDisplay").innerHTML = newImage.outerHTML;
-      console.log("Converted Base64 version is " + newImage.src);
-      return newImage.src;
+      // console.log("Base64 img = " + newImage.src);
+      filesStr.push(newImage.src)
     };
     fileReader.readAsDataURL(fi);
   }
@@ -63,7 +61,7 @@
         headers: hds
       })
       .then((res) => {
-        console.log(res.status + " -- " + res.data);
+        console.log(res.status + " -- " + JSON.stringify(res.data));
       })
       .catch((error) => console.log(error));
   }
