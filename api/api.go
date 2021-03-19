@@ -58,6 +58,7 @@ func (l User) String() string {
 }
 
 type Listing struct {
+	KEY           string   `json:"KEY"`
 	UserID        string   `json:"user"`
 	OwnerID       string   `json:"owner"`
 	Name          string   `json:"name"` // immutable once created, used for queries
@@ -265,7 +266,10 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	t := client.Run(ctx, query)
 	for {
 		var x Listing
-		_, err := t.Next(&x)
+		key, err := t.Next(&x)
+		if key != nil {
+			x.KEY = key.Name
+		}
 		if err == iterator.Done {
 			break
 		}
@@ -367,6 +371,7 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateListingHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO: how to ID listing item? must pass ID to client on GET
 	// TODO: use listingName passed in URL to check if listing exists
 	// TODO: don't allow name modification
 	addListing(w, r)
