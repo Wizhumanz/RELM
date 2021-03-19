@@ -4,7 +4,7 @@
   let files;
   let filesStr = [];
 
-  function uploadImgs(e) {
+  function uploadImgs() {
     files = document.querySelector("[type=file]").files;
     for (let i = 0; i < files.length; i++) {
       let file = files[i];
@@ -24,13 +24,14 @@
 
       // document.getElementById("imgDisplay").innerHTML = newImage.outerHTML;
       // console.log("Base64 img = " + newImage.src);
-      filesStr.push(newImage.src)
+      filesStr.push(newImage.src);
     };
     fileReader.readAsDataURL(fi);
   }
 
   function addListing() {
-    console.log("adding listing");
+    //convert uploaded images to base64 encoded strings
+    uploadImgs();
 
     const hds = {
       "Cache-Control": "no-cache",
@@ -58,7 +59,7 @@
 
     axios
       .post("http://localhost:8000/listing", data, {
-        headers: hds
+        headers: hds,
       })
       .then((res) => {
         console.log(res.status + " -- " + JSON.stringify(res.data));
@@ -68,26 +69,21 @@
 </script>
 
 <div class="container">
-  <h1>Add Listing</h1>
+  <h1 id="head">Add Listing</h1>
 
   <div class="row">
     <div class="col-sm col-md-3">
       <button id="excel-upload">Upload Excel</button>
     </div>
-    <div class="col-sm col-md-9">
-      <!-- file upload -->
-      <!-- <div id="imgDisplay"></div> -->
-      <form
-        method="post"
-        enctype="multipart/form-data"
-        on:submit|preventDefault={uploadImgs}
-      >
-        <input type="file" name="files[]" multiple />
-        <input type="submit" value="Upload File" name="submit" />
-      </form>
 
+    <div class="col-sm col-md-9">
       <div id="manual-add-box">
-        <h4 class="section-head">Manual Add</h4>
+        <!-- <div id="imgDisplay"></div> -->
+        <form method="post" enctype="multipart/form-data">
+          <label for="imgUploadInput">Upload images</label>
+          <input id="imgUploadInput" type="file" name="files[]" placeholder="Upload images" multiple />
+        </form>
+
         <form class="form" on:submit|preventDefault={addListing}>
           <div class="mb-3">
             <label for="name" class="form-label">Name</label>
@@ -138,10 +134,18 @@
     padding-bottom: 4rem;
   }
 
+  #head {
+    margin-bottom: 2.5rem;
+  }
+
   #manual-add-box {
     padding: 0 4rem;
     text-align: left;
     border-left: 1px solid $blue;
+  }
+
+  label {
+    margin-bottom: 0.5rem;
   }
 
   input,
