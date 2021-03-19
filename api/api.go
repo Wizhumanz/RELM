@@ -285,7 +285,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // almost identical logic with create and update (event sourcing)
-func addListing(w http.ResponseWriter, r *http.Request) {
+func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingToUpdate Listing) {
 	var newListing Listing
 
 	// decode data
@@ -299,13 +299,23 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 		Email:    newListing.UserID,
 		Password: r.Header.Get("auth"),
 	}
-	fmt.Println("Add listing AUTH - " + r.Header.Get("auth"))
-	if !authenticateUser(authReq) {
+	// for PUT req, user already authenticated outside this function
+	if !isPutReq && !authenticateUser(authReq) {
 		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
 		return
 	}
+
+	// if updating listing, don't allow Name change
+	if isPutReq && (newListing.Name != "") {
+		data := jsonResponse{Msg: "Name property of Listing is immutable.", Body: "Do not pass Name property in request body."}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
+	// TODO: fill empty PUT listing fields
 
 	//save images in new bucket
 	ctx := context.Background()
@@ -371,14 +381,62 @@ func addListing(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateListingHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: how to ID listing item? must pass ID to client on GET
-	// TODO: use listingName passed in URL to check if listing exists
-	// TODO: don't allow name modification
-	addListing(w, r)
+	//check if listing already exists to update
+	putID := mux.Vars(r)["id"] //is actually Listing.Name, not __key__ in Datastore
+	listingsResp := make([]Listing, 0)
+
+	//auth
+	authReq := loginReq{
+		Email:    r.URL.Query()["user"][0],
+		Password: r.Header.Get("auth"),
+	}
+	if !authenticateUser(authReq) {
+		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
+	//get listing with ID
+	ctx := context.Background()
+	client, err := datastore.NewClient(ctx, googleProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
+	query := datastore.NewQuery("Listing").
+		Filter("Name =", putID)
+
+	t := client.Run(ctx, query)
+	for {
+		var x Listing
+		key, err := t.Next(&x)
+		if key != nil {
+			x.KEY = key.Name
+		}
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			// Handle error.
+		}
+		listingsResp = append(listingsResp, x)
+	}
+
+	//return if listing to update doesn't exist
+	putIDValid := len(listingsResp) > 0 && listingsResp[0].Address != ""
+	if !putIDValid {
+		data := jsonResponse{Msg: "Listing ID Invalid", Body: "Listing with provided Name does not exist."}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
+	addListing(w, r, true, listingsResp[0])
 }
 
 func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
-	addListing(w, r)
+	addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
 }
 
 func main() {
@@ -389,7 +447,7 @@ func main() {
 	router.Methods("POST").Path("/owner").HandlerFunc(createNewUserHandler)
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
-	router.Methods("PUT").Path("/listing/{listingName}").HandlerFunc(updateListingHandler)
+	router.Methods("PUT").Path("/listing/{id}").HandlerFunc(updateListingHandler)
 
 	auth := os.Getenv("AUTH")
 	fmt.Println("AUTH var = " + auth)
