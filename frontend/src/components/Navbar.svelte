@@ -1,12 +1,19 @@
 <script>
   import { storeUser } from "../../store.js";
+  import { goto } from "@sapper/app";
 
-  var id;
+  var id = storeUser.id;
+  // console.log(storeUser)
   storeUser.subscribe((newValue) => {
     if (newValue) {
       id = JSON.parse(newValue).id;
     }
   });
+
+  function logout() {
+    storeUser.set("");
+    goto("/");
+  }
 
   //css
   // TODO: not working hamburger menu anim
@@ -32,6 +39,9 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link disabled" disabled>{id ? id : ""}</a>
+        </li>
         {#if !id}
           <li class="nav-item">
             <a class="nav-link active" href="/">About</a>
@@ -48,6 +58,9 @@
           </li>
           <li class="nav-item">
             <a class="nav-link active" href="/add">Add</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" on:click={logout}>Log Out</a>
           </li>
         {/if}
         <li class="nav-item d-sm-none">
@@ -136,5 +149,12 @@
         padding: 0;
       }
     }
+  }
+
+  a.disabled {
+    color: $blue;
+  }
+  a.disabled:hover {
+    text-decoration: none;
   }
 </style>

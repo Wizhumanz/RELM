@@ -36,9 +36,9 @@ Using LTS Node Alpine image for final stage of build.
 
 ## Local Dev
 
-`AUTH=password PORT=8000 go run api.go`
+Serve command: `PORT=8000 go run api.go`
 
-`AUTH` and `PORT` env vars must be passed.
+`PORT` env var must be passed for local dev. This env var is passed by default when deployed to Cloud Run.
 
 ### [GCP Datastore testing](https://cloud.google.com/datastore/docs/reference/libraries#client-libraries-install-go):
 

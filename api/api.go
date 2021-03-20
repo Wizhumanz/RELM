@@ -65,14 +65,14 @@ type Listing struct {
 	Address       string   `json:"address"`
 	Postcode      string   `json:"postcode"`
 	Area          string   `json:"area"`
-	Price         int      `json:",string"`
-	PropertyType  int      `json:",string"` // 0 = landed, 1 = apartment
-	ListingType   int      `json:",string"` // 0 = for rent, 1 = for sale
+	Price         int      `json:"price,string"`
+	PropertyType  int      `json:"propertyType,string"` // 0 = landed, 1 = apartment
+	ListingType   int      `json:"listingType,string"`  // 0 = for rent, 1 = for sale
 	Imgs          []string `json:"imgs"`
 	AvailableDate string   `json:"availableDate"`
-	IsPublic      bool     `json:",string"`
-	IsCompleted   bool     `json:",string"`
-	IsPending     bool     `json:",string"`
+	IsPublic      bool     `json:"isPublic,string"`
+	IsCompleted   bool     `json:"isCompleted,string"`
+	IsPending     bool     `json:"isPending,string"`
 }
 
 func (l Listing) String() string {
@@ -143,14 +143,15 @@ func authenticateUser(req loginReq) bool {
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	var data jsonResponse
+	w.Header().Set("Content-Type", "application/json")
 	if r.Method != "GET" {
 		data = jsonResponse{Msg: "Only GET Allowed", Body: "This endpoint only accepts GET requests."}
 		w.WriteHeader(http.StatusUnauthorized)
 		return
+	} else {
+		data = jsonResponse{Msg: "RELM API", Body: "Ready"}
+		w.WriteHeader(http.StatusOK)
 	}
-	data = jsonResponse{Msg: "RELM API", Body: "Ready"}
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 	// w.Write([]byte(`{"msg": "привет сука"}`))
 }
@@ -445,9 +446,6 @@ func main() {
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
 	router.Methods("PUT").Path("/listing/{id}").HandlerFunc(updateListingHandler)
-
-	auth := os.Getenv("AUTH")
-	fmt.Println("AUTH var = " + auth)
 
 	port := os.Getenv("PORT")
 	fmt.Println("relm-api listening on port " + port)

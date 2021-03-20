@@ -34,9 +34,9 @@
       <p>{listing.postcode}</p>
       <p>{listing.area}</p>
       <p>
-        Price: RM {listing.price
+        Price: RM {listing.price ? listing.price
           .toString()
-          .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          .replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""}
       </p>
       <p>{listing.propertyType}</p>
       <p>Type: {listing.listingType}</p>
