@@ -101,7 +101,7 @@
       .then((res) => {
         console.log(res.status + " -- " + JSON.stringify(res.data));
       })
-      .catch((error) => console.log(error));
+      .catch((error) => console.log(error.response));
   }
 </script>
 
