@@ -40,6 +40,7 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
+          <!-- svelte-ignore a11y-missing-attribute -->
           <a class="nav-link disabled" disabled>{id ? id : ""}</a>
         </li>
         {#if !id}
@@ -60,6 +61,7 @@
             <a class="nav-link active" href="/add">Add</a>
           </li>
           <li class="nav-item">
+            <!-- svelte-ignore a11y-missing-attribute -->
             <a class="nav-link active" on:click={logout}>Log Out</a>
           </li>
         {/if}
