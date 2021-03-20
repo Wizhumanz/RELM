@@ -27,6 +27,9 @@
 
 
 <div class="container" class:active={(currentStatePublic !== listing.isPublic) || (currentStateComplete !== listing.isCompleted) || (currentStatePending !== listing.isPending)}>
+  {currentStatePublic + "-" + listing.isPublic}
+  {currentStateComplete + "-" + listing.isCompleted}
+  {currentStatePending + "-" + listing.isPending}
   <div class="row">
     <div class="col-2 d-flex justify-content-center">
       <h1><i class="bi bi-house-door" /></h1>

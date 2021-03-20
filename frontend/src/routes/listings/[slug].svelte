@@ -148,10 +148,10 @@
 
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
-      {#if (route === "pending" && l.isPending === "true") 
-        || ((showPending && l.isPending === "true") 
-        || (showPublic && l.isPublic === "true") 
-        || (showCompleted && l.isCompleted === "true")
+      {#if (route === "pending" && l.isPending) 
+        || ((showPending && l.isPending) 
+        || (showPublic && l.isPublic) 
+        || (showCompleted && l.isCompleted)
         || (!showPublic && !showCompleted))}
       <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
         <ListingLI id={user.id} listing={l} />
