@@ -35,9 +35,8 @@
       Expires: "0",
       auth: "agent",
     };
-    console.log(user.listings)
     axios
-      .put("https://relm-api.myika.co/listing/The+Gignatic+Mansion", JSON.stringify(user.listings), {
+      .put("https://relm-api.myika.co/listing/The+Gigantic+Mansion", JSON.stringify(user.listings), {
         headers: hds,
       })
       .then((res) => {
