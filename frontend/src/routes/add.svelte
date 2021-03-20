@@ -1,46 +1,47 @@
 <script>
   import axios from "axios";
-  import { onMount } from 'svelte';
+  import { onMount } from "svelte";
   import { storeUser } from "../../store.js";
-  
+
   let user = {};
   storeUser.subscribe((newValue) => {
     if (newValue) {
       user = JSON.parse(newValue);
     }
   });
-	
-	let now = new Date(), month, day, year;
-  let files
-  let filesStr = []
-  let owner = ''
-  let name = ''
-  let address = ''
-  let postcode = ''
-  let area = ''
-  let price = 0
-  let rentBuyOption
-  let propertyType
-  let listingType
-  let dateString
-  let isPublic = false
-  let isCompleted = false
-  let isPending = false
+
+  let now = new Date(),
+    month,
+    day,
+    year;
+  let files;
+  let filesStr = [];
+  let owner = "";
+  let name = "";
+  let address = "";
+  let postcode = "";
+  let area = "";
+  let price = 0;
+  let rentBuyOption;
+  let propertyType;
+  let listingType;
+  let dateString;
+  let isPublic = false;
+  let isCompleted = false;
+  let isPending = false;
 
   onMount(() => {
-        month = '' + (now.getMonth() +1),
-        day = '' + now.getDate(),
-        year = now.getFullYear();
+    (month = "" + (now.getMonth() + 1)),
+      (day = "" + now.getDate()),
+      (year = now.getFullYear());
 
-    if (month.length < 2) 
-        month = '0' + month;
-    if (day.length < 2) 
-        day = '0' + day;
+    if (month.length < 2) month = "0" + month;
+    if (day.length < 2) day = "0" + day;
 
-    dateString = [year, month, day].join('-');
-	})
+    dateString = [year, month, day].join("-");
+  });
 
-  function uploadImgs(e) {
+  function uploadImgs() {
     files = document.querySelector("[type=file]").files;
     for (let i = 0; i < files.length; i++) {
       let file = files[i];
@@ -60,13 +61,13 @@
 
       // document.getElementById("imgDisplay").innerHTML = newImage.outerHTML;
       // console.log("Base64 img = " + newImage.src);
-      filesStr.push(newImage.src)
+      filesStr.push(newImage.src);
     };
     fileReader.readAsDataURL(fi);
   }
 
   function addListing() {
-    console.log("adding listing");
+    uploadImgs(); //converts images to base64 strings
 
     const hds = {
       "Cache-Control": "no-cache",
@@ -77,7 +78,7 @@
     //Don't change any of these properties
     let data = {
       name: name, //name of listings are immutable
-      imgs: filesStr, 
+      imgs: filesStr,
       user: user.id, //get user.id from store.js
       owner: owner,
       address: address,
@@ -91,11 +92,11 @@
       isCompleted: isCompleted,
       isPending: isPending,
     };
-    console.log(data)
+    console.log(data);
 
     axios
       .post("http://localhost:8000/listing", data, {
-        headers: hds
+        headers: hds,
       })
       .then((res) => {
         console.log(res.status + " -- " + JSON.stringify(res.data));
@@ -105,26 +106,20 @@
 </script>
 
 <div class="container">
-  <h1>Add Listing</h1>
+  <h1 id="head">Add Listing</h1>
 
   <div class="row">
     <div class="col-sm col-md-3">
       <button id="excel-upload">Upload Excel</button>
     </div>
     <div class="col-sm col-md-9">
-      <!-- file upload -->
-      <!-- <div id="imgDisplay"></div> -->
-      <form
-        method="post"
-        enctype="multipart/form-data"
-        on:submit|preventDefault={uploadImgs}
-      >
-        <input type="file" name="files[]" multiple />
-        <input type="submit" value="Upload File" name="submit" />
-      </form>
-
       <div id="manual-add-box">
-        <h4 class="section-head">Manual Add</h4>
+        <!-- file upload -->
+        <!-- <div id="imgDisplay"></div> -->
+        <form method="post" enctype="multipart/form-data">
+          <label for="fileUpload" class="form-label">Upload Images</label>
+          <input id="fileUpload" type="file" name="files[]" multiple />
+        </form>
         <form class="form" on:submit|preventDefault={addListing}>
           <div class="mb-3">
             <label for="owner" class="form-label">Owner</label>
@@ -185,7 +180,7 @@
           </div>
           <div class="mb-3">
             <label for="availableDate" class="form-label">Available Date</label>
-            <input id="availableDate" type=date bind:value={dateString}>
+            <input id="availableDate" type="date" bind:value={dateString} />
           </div>
           <div class="mb-3">
             <label for="price" class="form-label">Price</label>
@@ -199,33 +194,50 @@
           </div>
           <div class="mb-3">
             <label for="listingType" class="form-label">Listing Type</label>
-            <select id="listingType" class="form-select" bind:value={listingType}>
+            <select
+              id="listingType"
+              class="form-select"
+              bind:value={listingType}
+            >
               <option value="0">For Rent</option>
               <option value="1">For Sale</option>
             </select>
           </div>
           <div class="mb-3">
             <label for="propertyType" class="form-label">Property Type</label>
-            <select id="propertyType" class="form-select" bind:value={propertyType}>
+            <select
+              id="propertyType"
+              class="form-select"
+              bind:value={propertyType}
+            >
               <option value="0">Landed</option>
               <option value="1">Apartment</option>
             </select>
           </div>
-          <div class="mb-3">
-            <label>
-              <input type=checkbox bind:checked={isPublic}>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input addCheckbox" id="publicCheck"
+              type="checkbox" value="" bind:checked={isPublic}>
+            <label class="form-check-label" for="publicCheck">
               Public
             </label>
-            <label>
-              <input type=checkbox bind:checked={isCompleted}>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input addCheckbox" id="completedCheck"
+              type="checkbox" value="" bind:checked={isCompleted}>
+            <label class="form-check-label" for="completedCheck">
               Completed
             </label>
-            <label>
-              <input type=checkbox bind:checked={isPending}>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input addCheckbox" id="pendingCheck"
+              type="checkbox" value="" bind:checked={isPending}>
+            <label class="form-check-label" for="pendingCheck">
               Pending
             </label>
           </div>
-          <button type="submit">Add</button>
+          <div>
+            <button type="submit">Add</button>
+          </div>
         </form>
       </div>
     </div>
@@ -238,6 +250,10 @@
   div.container {
     text-align: center;
     padding-bottom: 4rem;
+  }
+
+  #head {
+    margin-bottom: 2rem;
   }
 
   #manual-add-box {
@@ -255,6 +271,14 @@
   input:focus-within {
     background-color: $blood;
     color: $ivory;
+  }
+
+  .form-check {
+    margin: 0.75rem 0.5rem;
+
+    label {
+      // padding-left: 0.5rem;
+    }
   }
 
   button {
