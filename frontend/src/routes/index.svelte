@@ -100,12 +100,20 @@
         //TODO: further user flow for new registered user
         // storeUser.set(JSON.stringify(user));
         // goto("/listings/all");
-        console.log(res.status + " -- " + res.data)
+        console.log(res.status + " -- " + res.data);
       })
       .catch((error) => console.log(error));
   }
 
-  getPublicListings(true);
+  //if user already logged in, go straight to all listings
+  user = storeUser;
+  if (user.listings && user.listings.length > 0) {
+    if (typeof window !== 'undefined') {
+      goto("/listings/all");
+    }
+  } else {
+    getPublicListings(true);
+  }
 </script>
 
 <main>
