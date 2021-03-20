@@ -154,7 +154,7 @@
         || (showCompleted && l.isCompleted === "true")
         || (!showPublic && !showCompleted))}
       <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
-        <ListingLI listing={l} />
+        <ListingLI id={user.id} listing={l} />
       {/if}
     {/each}
   {:else}
