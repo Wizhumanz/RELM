@@ -53,6 +53,7 @@
       })
       .then((res) => {
         user.listings = res.data;
+        console.log(user.listings)
         storeUser.set(JSON.stringify(user));
       })
       .catch((error) => console.log(error));

@@ -3,6 +3,7 @@
   import ListingLI from "../../components/ListingLI.svelte";
   import { storeUser, resetState, currentPage } from "../../../store.js";
   const { page } = stores();
+  import axios from "axios";
   var route;
 
   page.subscribe(({ path, params, query }) => {
@@ -25,11 +26,24 @@
   let showLanded = true;
 
   function handleClick() {
-    user.listings.forEach((listing) => {
-      //console.log("MOCK POST / " + listing.isPublic);
-      //console.log("MOCK POST / " + listing.isCompleted)
-      //console.log("MOCK POST / " + listing.isPending);
-    });
+    user.IsPublic = user.isPublic.toString()
+    user.IsCompleted = user.isCompleted.toString()
+    user.IsPending = user.isPending.toString()
+    const hds = {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+      auth: "agent",
+    };
+    console.log(user.listings)
+    axios
+      .put("https://relm-api.myika.co/listing/The+Gignatic+Mansion", user.listings, {
+        headers: hds,
+      })
+      .then((res) => {
+        console.log(res.status + " -- " + JSON.stringify(res.data));
+      })
+      .catch((error) => console.log(error.response));
     storeUser.set(JSON.stringify(user));
     resetState.set(true);
   }
