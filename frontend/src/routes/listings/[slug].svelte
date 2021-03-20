@@ -54,10 +54,10 @@
           class="form-check-input"
           type="checkbox"
           value=""
-          id="flexCheckDefault"
+          id="flexCheckPublic"
           bind:checked={showPublic}
         />
-        <label class="form-check-label" for="flexCheckDefault"> Public </label>
+        <label class="form-check-label" for="flexCheckPublic"> Public </label>
       </div>
 
       {#if route !== "pending"}
@@ -66,10 +66,10 @@
             class="form-check-input"
             type="checkbox"
             value=""
-            id="flexCheckChecked"
+            id="flexCheckCompleted"
             bind:checked={showCompleted}
           />
-          <label class="form-check-label" for="flexCheckChecked">
+          <label class="form-check-label" for="flexCheckCompleted">
             Completed
           </label>
         </div>
@@ -94,10 +94,10 @@
           class="form-check-input"
           type="checkbox"
           value=""
-          id="flexCheckDefault"
+          id="flexCheckApartments"
           bind:checked={showApartments}
         />
-        <label class="form-check-label" for="flexCheckDefault">
+        <label class="form-check-label" for="flexCheckApartments">
           Apartments
         </label>
       </div>
@@ -106,10 +106,10 @@
           class="form-check-input"
           type="checkbox"
           value=""
-          id="flexCheckChecked"
+          id="flexCheckLanded"
           bind:checked={showLanded}
         />
-        <label class="form-check-label" for="flexCheckChecked"> Landed </label>
+        <label class="form-check-label" for="flexCheckLanded"> Landed </label>
       </div>
       <hr />
     </div>

@@ -19,7 +19,6 @@
   currentPage.subscribe((newValue) => {
     if (newValue) {
       route = newValue
-      console.log(route)
     }
   });
 </script>

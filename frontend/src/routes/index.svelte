@@ -7,6 +7,7 @@
   //state of user across whole app
   let user = {
     id: "",
+    password: "",
     listings: [],
   };
 
@@ -16,24 +17,40 @@
     password: "",
   };
 
-  function getPublicListings() {
+  //only for user register
+  let userRegister = {
+    email: "",
+    name: "",
+    type: "Owner",
+    password: "",
+  };
+
+  function getPublicListings(onlyPublic) {
     //auth header
-    const hds = {
-      // "Content-Type": "application/json",
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
-    };
+    const hds = onlyPublic
+      ? {
+          // "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+          Expires: "0",
+        }
+      : {
+          // "Content-Type": "application/json",
+          auth: user.password,
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+          Expires: "0",
+        };
 
     //MUST replace all '+' with '%2B'
     // let GETUrl = basicURL.split("+").join("%2B");
+    let url = onlyPublic
+      ? "https://relm-api.myika.co/listings?user=agent%40agent.com&isPublic=true"
+      : "https://relm-api.myika.co/listings?user=agent%40agent.com";
     axios
-      .get(
-        "https://relm-api.myika.co/listings?user=agent%40agent.com&isPublic=true", //get all public listings for this user
-        {
-          headers: hds,
-        }
-      )
+      .get(url, {
+        headers: hds,
+      })
       .then((res) => {
         user.listings = res.data;
         storeUser.set(JSON.stringify(user));
@@ -42,25 +59,53 @@
   }
 
   function signIn(e) {
-    if (
-      userLogin.email === "agent@agent.com" &&
-      userLogin.password === "agent"
-    ) {
-      //getListings()
-      user.id = "AGENT";
-      user.listings = allListings;
-      console.log(user);
-      storeUser.set(JSON.stringify(user));
-      goto("/listings/all");
-    } else if (
-      userLogin.email === "owner@owner.com" &&
-      userLogin.password === "owner"
-    ) {
-      user.id = "OWNER";
-    }
+    const hds = {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+    };
+
+    axios
+      .post("https://relm-api.myika.co/login", {
+        headers: hds,
+        email: userLogin.email,
+        password: userLogin.password,
+      })
+      .then((res) => {
+        user.id = userLogin.email;
+        user.password = userLogin.password;
+        getPublicListings(false);
+        storeUser.set(JSON.stringify(user));
+        goto("/listings/all");
+      })
+      .catch((error) => console.log(error));
   }
 
-  getPublicListings();
+  function register(e) {
+    const hds = {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+    };
+
+    axios
+      .post("https://relm-api.myika.co/user", {
+        headers: hds,
+        name: userRegister.name,
+        email: userRegister.email,
+        type: userRegister.type,
+        password: userRegister.password,
+      })
+      .then((res) => {
+        //TODO: further user flow for new registered user
+        // storeUser.set(JSON.stringify(user));
+        // goto("/listings/all");
+        console.log(res.status + " -- " + res.data)
+      })
+      .catch((error) => console.log(error));
+  }
+
+  getPublicListings(true);
 </script>
 
 <main>
@@ -77,30 +122,114 @@
         </p>
       </div>
       <div class="col-sm col-md-5" id="login-col">
-        <h4 class="section-head">Sign In</h4>
-        <form class="form" on:submit|preventDefault={signIn}>
-          <div class="mb-3">
-            <label for="email" class="form-label"> Email</label>
-            <input
-              type="email"
-              class="form-control"
-              id="email"
-              placeholder="name@agency.com"
-              bind:value={userLogin.email}
-            />
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link active"
+              id="home-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#home"
+              type="button"
+              role="tab"
+              aria-controls="home"
+              aria-selected="true">Sign In</button
+            >
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              id="profile-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#profile"
+              type="button"
+              role="tab"
+              aria-controls="profile"
+              aria-selected="false">Register</button
+            >
+          </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+          <div
+            class="tab-pane fade show active"
+            id="home"
+            role="tabpanel"
+            aria-labelledby="home-tab"
+          >
+            <!-- Sign In tab -->
+            <form class="form" on:submit|preventDefault={signIn}>
+              <div class="mb-3">
+                <label for="emailLogin" class="form-label"> Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="emailLogin"
+                  placeholder="name@agency.com"
+                  bind:value={userLogin.email}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="passwordLogin" class="form-label"> Password</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="passwordLogin"
+                  placeholder="password"
+                  bind:value={userLogin.password}
+                />
+              </div>
+              <button type="submit">Sign In</button>
+            </form>
           </div>
-          <div class="mb-3">
-            <label for="password" class="form-label"> Password</label>
-            <input
-              type="text"
-              class="form-control"
-              id="password"
-              placeholder="password"
-              bind:value={userLogin.password}
-            />
+          <div
+            class="tab-pane fade"
+            id="profile"
+            role="tabpanel"
+            aria-labelledby="profile-tab"
+          >
+            <!-- Register tab -->
+            <form class="form" on:submit|preventDefault={register}>
+              <div class="mb-3">
+                <label for="accountType" class="form-label"> Type</label>
+                <select id="accountType" bind:value={userRegister.type}>
+                  <option value="Owner">Owner</option>
+                  <option value="Agent">Agent</option>
+                  <option value="Tenant">Tenant</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label"> Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="name"
+                  placeholder="Ivy Yeoh"
+                  bind:value={userRegister.name}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label"> Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="email"
+                  placeholder="name@agency.com"
+                  bind:value={userRegister.email}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label"> Password</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="password"
+                  placeholder="password"
+                  bind:value={userRegister.password}
+                />
+              </div>
+              <button type="submit">Register</button>
+            </form>
           </div>
-          <button type="submit">Sign In</button>
-        </form>
+        </div>
       </div>
     </div>
   </div>
@@ -125,6 +254,20 @@
     padding: 4rem auto;
   }
 
+  button.nav-link {
+    color: gray;
+    font-size: larger;
+  }
+
+  button.nav-link.active {
+    background-color: $ivory;
+    color: $blood;
+  }
+
+  form {
+    margin-top: 1rem;
+  }
+
   input {
     font-family: $body-font;
     background-color: $ivory;
@@ -133,6 +276,10 @@
   input:focus-within {
     background-color: $blood;
     color: $ivory;
+  }
+
+  select {
+    padding: 0.5rem 0.5rem;
   }
 
   hr {
