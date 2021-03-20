@@ -9,20 +9,6 @@
   let currentStateComplete = listing.isCompleted
   let currentStatePending = listing.isPending
 
-  let owner = "";
-  let name = "";
-  let address = "";
-  let postcode = "";
-  let area = "";
-  let Price = 0;
-  let rentBuyOption;
-  let PropertyType;
-  let ListingType;
-  let dateString;
-  let isPublic = false;
-  let isCompleted = false;
-  let isPending = false;
-
   resetState.subscribe((newValue) => {
     if (newValue !== false) {
       currentStatePublic = listing.isPublic
@@ -71,7 +57,7 @@
       <label for="area">Area: </label>
       <input type="text" id="area" bind:value={listing.area}><br>
       <label for="price">Price: </label>
-      <input type="text" id="price" bind:value={listing.Price}><br>
+      <input type="text" id="price" bind:value={listing.price}><br>
       <label for="rentBuy" class="form-label">Rent/Buy</label>
           <select id="rentBuy" class="form-select" bind:value={listing.rentBuyOption}>
             <option value="Rent">Rent</option>
@@ -79,14 +65,14 @@
           </select>
       <div class="mb-3">
         <label for="propertyType" class="form-label">Property Type</label>
-        <select id="propertyType" class="form-select" bind:value={listing.PropertyType}>
+        <select id="propertyType" class="form-select" bind:value={listing.propertyType}>
           <option value="0">Landed</option>
           <option value="1">Apartment</option>
         </select>
       </div>
       <div class="mb-3">
           <label for="listingType" class="form-label">Listing Type</label>
-          <select id="listingType" class="form-select" bind:value={listing.ListingType}>
+          <select id="listingType" class="form-select" bind:value={listing.listingType}>
             <option value="0">For Rent</option>
             <option value="1">For Sale</option>
           </select>

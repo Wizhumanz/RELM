@@ -26,9 +26,9 @@
   let showLanded = true;
 
   function handleClick() {
-    user.IsPublic = user.isPublic.toString()
-    user.IsCompleted = user.isCompleted.toString()
-    user.IsPending = user.isPending.toString()
+    //user.IsPublic = user.isPublic.toString()
+    //user.IsCompleted = user.isCompleted.toString()
+    //user.IsPending = user.isPending.toString()
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
@@ -37,7 +37,7 @@
     };
     console.log(user.listings)
     axios
-      .put("https://relm-api.myika.co/listing/The+Gignatic+Mansion", user.listings, {
+      .put("https://relm-api.myika.co/listing/The+Gignatic+Mansion", JSON.stringify(user.listings), {
         headers: hds,
       })
       .then((res) => {
