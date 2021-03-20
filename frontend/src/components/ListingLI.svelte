@@ -23,10 +23,6 @@
       route = newValue
     }
   });
-
-  function changeIsPublic(v) {
-    console.log(v.data)
-  }
 </script>
 
 
@@ -95,7 +91,7 @@
             type="checkbox"
             id="inlineCheckbox1"
             value="option1"
-            checked={listing.isPublic} on:change={changeIsPublic}
+            bind:checked={listing.isPublic}
           />
         </div>
 
