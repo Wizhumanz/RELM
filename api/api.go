@@ -143,14 +143,15 @@ func authenticateUser(req loginReq) bool {
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	var data jsonResponse
+	w.Header().Set("Content-Type", "application/json")
 	if r.Method != "GET" {
 		data = jsonResponse{Msg: "Only GET Allowed", Body: "This endpoint only accepts GET requests."}
 		w.WriteHeader(http.StatusUnauthorized)
 		return
+	} else {
+		data = jsonResponse{Msg: "RELM API", Body: "Ready"}
+		w.WriteHeader(http.StatusOK)
 	}
-	data = jsonResponse{Msg: "RELM API", Body: "Ready"}
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 	// w.Write([]byte(`{"msg": "привет сука"}`))
 }
@@ -448,9 +449,6 @@ func main() {
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
 	router.Methods("PUT").Path("/listing/{id}").HandlerFunc(updateListingHandler)
-
-	auth := os.Getenv("AUTH")
-	fmt.Println("AUTH var = " + auth)
 
 	port := os.Getenv("PORT")
 	fmt.Println("relm-api listening on port " + port)
