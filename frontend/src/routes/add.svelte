@@ -84,13 +84,13 @@
       address: address,
       postcode: postcode,
       area: area,
-      price: price,
-      propertyType: propertyType,
-      listingType: listingType,
-      availableDate: dateString,
-      isPublic: isPublic,
-      isCompleted: isCompleted,
-      isPending: isPending,
+      price: price.toString(),
+      propertyType: propertyType.toString(),
+      listingType: listingType.toString(),
+      availableDate: dateString.toString(),
+      isPublic: isPublic.toString(),
+      isCompleted: isCompleted.toString(),
+      isPending: isPending.toString(),
     };
     console.log(data);
 
