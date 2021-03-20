@@ -146,42 +146,19 @@
     </div>
   {/if}
 
-  {#if user.listings}
+  {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
-      {#if route !== "pending"}
-        {#if showPublic && showCompleted}
-          {#if l.isPublic && l.isCompleted}
-            <ListingLI id={user.id} bind:listing={l} />
-          {/if}
-        {:else if showCompleted}
-          {#if l.isCompleted}
-            <ListingLI id={user.id} bind:listing={l} />
-          {/if}
-        {:else if showPublic}
-          {#if l.isPublic}
-            <ListingLI id={user.id} bind:listing={l} />
-          {/if}
-        {:else}
-          <ListingLI id={user.id} bind:listing={l} />
-        {/if}
-      {:else}
-        {#if showPublic && showPending}
-          {#if l.isPublic && l.isPending}
-            <ListingLI id={user.id} bind:listing={l} />
-          {/if}
-        {:else if showPublic}
-          {#if l.isPublic}
-            <ListingLI id={user.id} bind:listing={l} />
-          {/if}
-        {:else if showPending}
-          {#if l.isPending}
-            <ListingLI id={user.id} bind:listing={l} />
-          {/if}
-        {:else}
-          <ListingLI id={user.id} bind:listing={l} />
-        {/if}
+      {#if (route === "pending" && l.isPending === "true") 
+        || ((showPending && l.isPending === "true") 
+        || (showPublic && l.isPublic === "true") 
+        || (showCompleted && l.isCompleted === "true")
+        || (!showPublic && !showCompleted))}
+      <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
+        <ListingLI listing={l} />
       {/if}
     {/each}
+  {:else}
+    <p>Error: No listings to show.</p>
   {/if}
 
   {#if user.id && user.id !== ""}
