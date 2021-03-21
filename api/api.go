@@ -313,6 +313,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 		json.NewEncoder(w).Encode(data)
 		return
 	}
+	newListing.Name = listingToUpdate.Name
 
 	// TODO: fill empty PUT listing fields
 
