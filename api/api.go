@@ -140,6 +140,16 @@ func authenticateUser(req loginReq) bool {
 	return CheckPasswordHash(req.Password, userWithEmail.Password)
 }
 
+func deleteElement(sli []Listing, del Listing) []Listing {
+	var rSli []Listing
+	for _, e := range sli {
+		if e.KEY != del.KEY {
+			rSli = append(rSli, e)
+		}
+	}
+	return rSli
+}
+
 // route handlers
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -278,9 +288,37 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		listingsResp = append(listingsResp, x)
 	}
 
+	//sum up event sourcing for listings
+	var existingListingsArr []Listing
+	for _, li := range listingsResp {
+		//find listing in existing listings array
+		var exListing Listing
+		for i := range existingListingsArr {
+			if existingListingsArr[i].Name == li.Name {
+				exListing = existingListingsArr[i]
+			}
+		}
+		//if listings already exists, remove one
+		if exListing.Name != "" {
+			//compare date keys
+			layout := "2006-01-02_15:04:05_-0700"
+			existingTime, _ := time.Parse(layout, exListing.KEY)
+			currentLITime, _ := time.Parse(layout, li.KEY)
+			//if existing is older, remove and add newer current listing; otherwise, do nothing
+			if existingTime.Before(currentLITime) {
+				//rm existing listing
+				existingListingsArr = deleteElement(existingListingsArr, exListing)
+				//append current listing
+				existingListingsArr = append(existingListingsArr, li)
+			}
+		} else {
+			existingListingsArr = append(existingListingsArr, li)
+		}
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(listingsResp)
+	json.NewEncoder(w).Encode(existingListingsArr)
 }
 
 // almost identical logic with create and update (event sourcing)
