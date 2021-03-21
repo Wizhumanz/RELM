@@ -33,11 +33,15 @@
     }
   });
 
-  onMount(async () => {
+  //onMount(() => {
     currentStatePublic = listing.isPublic;
     currentStateComplete = listing.isCompleted;
     currentStatePending = listing.isPending;
-  });
+  //});
+
+  // $: isPublic = listing.isPublic
+  // $: isCompleted = listing.isCompleted
+  // $: isPending = listing.isPending
 
   const addListing = () => {
     showEdit = false
@@ -74,15 +78,79 @@
       })
       .catch((error) => console.log(error.response) );
   }
+  let active = false
+
+  /*
+  let publicClickedIt = false
+  let completeClickedIt = false
+  let pendingClickedIt = false
+  let clickArr = []
   
+  $: if (currentStatePublic !== listing.isPublic) {
+      currentStatePublic = listing.isPublic;
+      
+      if (active && (completeClickedIt || pendingClickedIt) && publicClickedIt) {
+        publicClickedIt = false
+      }
+      else if (active) {
+        publicClickedIt = false
+        active = false
+      }
+      else {
+        publicClickedIt = true
+        active = true
+      }
+    }
+
+  $: if (currentStateComplete !== listing.isCompleted) {
+      currentStateComplete = listing.isCompleted;
+
+      if (active && (publicClickedIt || pendingClickedIt) && completeClickedIt) {
+          completeClickedIt = false
+        }
+        else if (active) {
+          completeClickedIt = false
+          active = false
+        }
+        else {
+          completeClickedIt = true
+          active = true
+        }
+  }
+
+  $: if (currentStatePending !== listing.isPending) {
+    currentStatePending = listing.isPending;
+    active = !active
+    if (!active) {
+        clickArr.push(1)
+        active = true
+      }
+      else {
+        clickArr.pop()
+      }
+      if (clickArr.length === 0) {
+        active = false
+      }
+  }
+  */
+
+
+ $: if (currentStatePublic !== listing.isPublic || currentStateComplete !== listing.isCompleted || currentStatePending !== listing.isPending) {
+  currentStatePublic = listing.isPublic;
+  currentStateComplete = listing.isCompleted;
+  currentStatePending = listing.isPending;
+  active = !active
+ }
 </script>
 
-<div
-  class="container"
-  class:active={currentStatePublic !== listing.isPublic ||
-    currentStateComplete !== listing.isCompleted ||
-    currentStatePending !== listing.isPending}
->
+<!--
+{#if (currentStatePublic !== isPublic ||
+    currentStateComplete !== isCompleted ||
+    currentStatePending !== isPending)}
+    <script>checkBoxFunc()</script>
+{/if}
+-->
+<div class="container" class:active={active}>
   <div class="row">
     <div class="col-2 d-flex justify-content-center">
       <h1><i class="bi bi-house-door" /></h1>

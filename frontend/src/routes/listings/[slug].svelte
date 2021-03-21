@@ -29,6 +29,8 @@
     //user.IsPublic = user.isPublic.toString()
     //user.IsCompleted = user.isCompleted.toString()
     //user.IsPending = user.isPending.toString()
+    resetState.set(true);
+
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
@@ -36,15 +38,27 @@
       auth: "agent",
     };
 
-    axios
-      .put("https://relm-api.myika.co/listing/", JSON.stringify(user.listings), {
-        headers: hds,
+    for (let i = 0; i < checkBoxArr.length-1; i++) {
+      user.listings.forEach((listing) => {
+        if (listing.name === checkBoxArr[i]) {
+          let listingSubstitute = {...listing}
+          listingSubstitute.name = null
+          listingSubstitute.isPublic = listing.isPublic.toString()
+          listingSubstitute.isPending = listing.isPending.toString()
+          listingSubstitute.isCompleted = listing.isCompleted.toString()
+
+          axios
+            .put("https://relm-api.myika.co/listing/" + listing.name.replaceAll(" ", "+") + "?user=agent%40agent.com", 
+            JSON.stringify(listingSubstitute), {
+              headers: hds,
+            })
+            .then((res) => {
+              console.log(res.status + " -- " + JSON.stringify(res.data));
+            })
+            .catch((error) => console.log(error.response))
+        }
       })
-      .then((res) => {
-        console.log(res.status + " -- " + JSON.stringify(res.data));
-      })
-      .catch((error) => console.log(error.response));
-      resetState.set(true);
+    }
   }
 </script>
 
@@ -148,13 +162,9 @@
 
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
-      {#if (route === "pending" && l.isPending) 
-        || ((showPending && l.isPending) 
-        || (showPublic && l.isPublic) 
-        || (showCompleted && l.isCompleted)
-        || (!showPublic && !showCompleted))}
-      <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
-        <ListingLI id={user.id} listing={l} {checkBoxArr}/>
+      {#if (route === "pending" && l.isPending) || (showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted)}
+        <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
+        <ListingLI id={user.id} listing={l} {checkBoxArr} />
       {/if}
     {/each}
   {:else}
