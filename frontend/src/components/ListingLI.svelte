@@ -46,8 +46,6 @@
     listingSubstitute.isPublic = listing.isPublic.toString()
     listingSubstitute.isPending = listing.isPending.toString()
     listingSubstitute.isCompleted = listing.isCompleted.toString()
-    console.log(listingSubstitute)
-    console.log(listing)
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
@@ -62,14 +60,17 @@
       .then((res) => {
         console.log(res.status + " -- " + JSON.stringify(res.data));
         
-        console.log("Before" + JSON.stringify(user.listings))
+        // console.log("Before" + JSON.stringify(user.listings))
+        let storeListings = []
         user.listings.forEach((l) => {
           if (l.name == listing.name){
-            l = listing
+            storeListings.push(listing)
+          } else {
+            storeListings.push(l)
           }
         })
+        user.listings = storeListings;
         storeUser.set(JSON.stringify(user));
-        console.log("After" + JSON.stringify(user.listings))
       })
       .catch((error) => console.log(error.response) );
   }
