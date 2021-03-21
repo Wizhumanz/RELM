@@ -3,6 +3,7 @@
   import ListingLI from "../../components/ListingLI.svelte";
   import { storeUser, resetState, currentPage } from "../../../store.js";
   const { page } = stores();
+  import axios from "axios";
   var route;
 
   page.subscribe(({ path, params, query }) => {
@@ -25,11 +26,23 @@
   let showLanded = true;
 
   function handleClick() {
-    user.listings.forEach((listing) => {
-      //console.log("MOCK POST / " + listing.isPublic);
-      //console.log("MOCK POST / " + listing.isCompleted)
-      //console.log("MOCK POST / " + listing.isPending);
-    });
+    //user.IsPublic = user.isPublic.toString()
+    //user.IsCompleted = user.isCompleted.toString()
+    //user.IsPending = user.isPending.toString()
+    const hds = {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+      auth: "agent",
+    };
+    axios
+      .put("https://relm-api.myika.co/listing/The+Gigantic+Mansion", JSON.stringify(user.listings), {
+        headers: hds,
+      })
+      .then((res) => {
+        console.log(res.status + " -- " + JSON.stringify(res.data));
+      })
+      .catch((error) => console.log(error.response));
     storeUser.set(JSON.stringify(user));
     resetState.set(true);
   }
@@ -133,42 +146,19 @@
     </div>
   {/if}
 
-  {#if user.listings}
+  {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
-      {#if route !== "pending"}
-        {#if showPublic && showCompleted}
-          {#if l.isPublic && l.isCompleted}
-            <ListingLI id={user.id} bind:listing={l} />
-          {/if}
-        {:else if showCompleted}
-          {#if l.isCompleted}
-            <ListingLI id={user.id} bind:listing={l} />
-          {/if}
-        {:else if showPublic}
-          {#if l.isPublic}
-            <ListingLI id={user.id} bind:listing={l} />
-          {/if}
-        {:else}
-          <ListingLI id={user.id} bind:listing={l} />
-        {/if}
-      {:else}
-        {#if showPublic && showPending}
-          {#if l.isPublic && l.isPending}
-            <ListingLI id={user.id} bind:listing={l} />
-          {/if}
-        {:else if showPublic}
-          {#if l.isPublic}
-            <ListingLI id={user.id} bind:listing={l} />
-          {/if}
-        {:else if showPending}
-          {#if l.isPending}
-            <ListingLI id={user.id} bind:listing={l} />
-          {/if}
-        {:else}
-          <ListingLI id={user.id} bind:listing={l} />
-        {/if}
+      {#if (route === "pending" && l.isPending) 
+        || ((showPending && l.isPending) 
+        || (showPublic && l.isPublic) 
+        || (showCompleted && l.isCompleted)
+        || (!showPublic && !showCompleted))}
+      <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
+        <ListingLI id={user.id} listing={l} />
       {/if}
     {/each}
+  {:else}
+    <p>Error: No listings to show.</p>
   {/if}
 
   {#if user.id && user.id !== ""}

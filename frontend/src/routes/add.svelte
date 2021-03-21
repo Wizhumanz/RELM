@@ -85,6 +85,7 @@
       postcode: postcode,
       area: area,
       price: price.toString(),
+      rentBuyOption: rentBuyOption.toString(),
       propertyType: propertyType.toString(),
       listingType: listingType.toString(),
       availableDate: dateString.toString(),

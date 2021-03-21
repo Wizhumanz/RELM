@@ -25,7 +25,7 @@
     password: "",
   };
 
-  function getPublicListings(onlyPublic) {
+  function getListings(onlyPublic) {
     //auth header
     const hds = onlyPublic
       ? {
@@ -53,6 +53,11 @@
       })
       .then((res) => {
         user.listings = res.data;
+        user.listings.forEach((l) => {
+          l.isPublic = l.isPublic === "true" ? true : false;
+          l.isPending = l.isPending === "true" ? true : false;
+          l.isCompleted = l.isCompleted === "true" ? true : false;
+        });
         storeUser.set(JSON.stringify(user));
       })
       .catch((error) => console.log(error));
@@ -74,7 +79,7 @@
       .then((res) => {
         user.id = userLogin.email;
         user.password = userLogin.password;
-        getPublicListings(false);
+        getListings(false);
         storeUser.set(JSON.stringify(user));
         goto("/listings/all");
       })
@@ -108,11 +113,11 @@
   //if user already logged in, go straight to all listings
   user = storeUser;
   if (user.listings && user.listings.length > 0) {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       goto("/listings/all");
     }
   } else {
-    getPublicListings(true);
+    getListings(true);
   }
 </script>
 
