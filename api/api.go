@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"reflect"
 	"strings"
@@ -383,7 +384,13 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 
 func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 	//check if listing already exists to update
-	putID := mux.Vars(r)["id"] //is actually Listing.Name, not __key__ in Datastore
+	putID, unescapeErr := url.QueryUnescape(mux.Vars(r)["id"]) //is actually Listing.Name, not __key__ in Datastore
+	if unescapeErr != nil {
+		data := jsonResponse{Msg: "Listing ID Parse Error", Body: unescapeErr.Error()}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
 	listingsResp := make([]Listing, 0)
 
 	//auth
