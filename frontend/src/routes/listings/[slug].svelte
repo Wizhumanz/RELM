@@ -5,7 +5,7 @@
   const { page } = stores();
   import axios from "axios";
   var route;
-  let checkBoxArr = []
+  let checkBoxArr = [];
   page.subscribe(({ path, params, query }) => {
     route = params.slug;
     currentPage.set(route);
@@ -25,7 +25,7 @@
   let showApartments = true;
   let showLanded = true;
 
-  function handleClick() {
+  function handleUpdateBtnClick() {
     //user.IsPublic = user.isPublic.toString()
     //user.IsCompleted = user.isCompleted.toString()
     //user.IsPending = user.isPending.toString()
@@ -38,27 +38,34 @@
       auth: "agent",
     };
 
-    for (let i = 0; i < checkBoxArr.length-1; i++) {
-      user.listings.forEach((listing) => {
-        if (listing.name === checkBoxArr[i]) {
-          let listingSubstitute = {...listing}
-          listingSubstitute.name = null
-          listingSubstitute.isPublic = listing.isPublic.toString()
-          listingSubstitute.isPending = listing.isPending.toString()
-          listingSubstitute.isCompleted = listing.isCompleted.toString()
+    console.log("user.listings " + JSON.stringify(user.listings));
 
-          axios
-            .put("https://relm-api.myika.co/listing/" + listing.name.replaceAll(" ", "+") + "?user=agent%40agent.com", 
-            JSON.stringify(listingSubstitute), {
+    checkBoxArr.forEach((n) => {
+      let found = user.listings.find((e) => e.name === n);
+      if (found && found != "" && found != null) {
+        //update listing in DB
+        let listingSubstitute = { ...found };
+        listingSubstitute.name = null;
+        listingSubstitute.isPublic = found.isPublic.toString();
+        listingSubstitute.isPending = found.isPending.toString();
+        listingSubstitute.isCompleted = found.isCompleted.toString();
+
+        axios
+          .put(
+            "https://relm-api.myika.co/listing/" +
+              found.name.replaceAll(" ", "+") +
+              "?user=agent%40agent.com",
+            JSON.stringify(listingSubstitute),
+            {
               headers: hds,
-            })
-            .then((res) => {
-              console.log(res.status + " -- " + JSON.stringify(res.data));
-            })
-            .catch((error) => console.log(error.response))
-        }
-      })
-    }
+            }
+          )
+          .then((res) => {
+            console.log(res.status + " -- " + JSON.stringify(res.data));
+          })
+          .catch((error) => console.log(error.response));
+      }
+    });
   }
 </script>
 
@@ -172,7 +179,7 @@
   {/if}
 
   {#if user.id && user.id !== ""}
-    <button on:click={handleClick}>Update Listings</button>
+    <button on:click={handleUpdateBtnClick}>Update Listings</button>
   {/if}
 </div>
 

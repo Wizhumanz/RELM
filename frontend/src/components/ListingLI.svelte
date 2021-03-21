@@ -16,7 +16,8 @@
   let currentStatePublic;
   let currentStateComplete;
   let currentStatePending;
-  let checkBoxArr = []
+  export let checkBoxArr = [];
+  let active = false;
 
   resetState.subscribe((newValue) => {
     if (newValue !== false) {
@@ -34,9 +35,9 @@
   });
 
   //onMount(() => {
-    currentStatePublic = listing.isPublic;
-    currentStateComplete = listing.isCompleted;
-    currentStatePending = listing.isPending;
+  currentStatePublic = listing.isPublic;
+  currentStateComplete = listing.isCompleted;
+  currentStatePending = listing.isPending;
   //});
 
   // $: isPublic = listing.isPublic
@@ -44,12 +45,12 @@
   // $: isPending = listing.isPending
 
   const addListing = () => {
-    showEdit = false
-    let listingSubstitute = {...listing}
-    listingSubstitute.name = null
-    listingSubstitute.isPublic = listing.isPublic.toString()
-    listingSubstitute.isPending = listing.isPending.toString()
-    listingSubstitute.isCompleted = listing.isCompleted.toString()
+    showEdit = false;
+    let listingSubstitute = { ...listing };
+    listingSubstitute.name = null;
+    listingSubstitute.isPublic = listing.isPublic.toString();
+    listingSubstitute.isPending = listing.isPending.toString();
+    listingSubstitute.isCompleted = listing.isCompleted.toString();
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
@@ -57,90 +58,56 @@
       auth: "agent",
     };
     axios
-      .put("https://relm-api.myika.co/listing/" + listing.name.replaceAll(" ", "+") + "?user=agent%40agent.com", 
-      JSON.stringify(listingSubstitute), {
-        headers: hds,
-      })
+      .put(
+        "https://relm-api.myika.co/listing/" +
+          listing.name.replaceAll(" ", "+") +
+          "?user=agent%40agent.com",
+        JSON.stringify(listingSubstitute),
+        {
+          headers: hds,
+        }
+      )
       .then((res) => {
         console.log(res.status + " -- " + JSON.stringify(res.data));
-        
+
         // console.log("Before" + JSON.stringify(user.listings))
-        let storeListings = []
+        let storeListings = [];
         user.listings.forEach((l) => {
-          if (l.name == listing.name){
-            storeListings.push(listing)
+          if (l.name == listing.name) {
+            storeListings.push(listing);
           } else {
-            storeListings.push(l)
+            storeListings.push(l);
           }
-        })
+        });
         user.listings = storeListings;
         storeUser.set(JSON.stringify(user));
       })
-      .catch((error) => console.log(error.response) );
-  }
-  let active = false
+      .catch((error) => console.log(error.response));
+  };
 
-  /*
-  let publicClickedIt = false
-  let completeClickedIt = false
-  let pendingClickedIt = false
-  let clickArr = []
-  
-  $: if (currentStatePublic !== listing.isPublic) {
-      currentStatePublic = listing.isPublic;
-      
-      if (active && (completeClickedIt || pendingClickedIt) && publicClickedIt) {
-        publicClickedIt = false
-      }
-      else if (active) {
-        publicClickedIt = false
-        active = false
-      }
-      else {
-        publicClickedIt = true
-        active = true
-      }
+  //if fields mismatch, set active
+  $: if (
+    currentStatePublic !== listing.isPublic ||
+    currentStateComplete !== listing.isCompleted ||
+    currentStatePending !== listing.isPending
+  ) {
+    active = true;
+    checkBoxArr.push(listing.name);
+    console.log(checkBoxArr);
+  }
+  //if fields match, set as inactive
+  $: if (
+    currentStatePublic === listing.isPublic &&
+    currentStateComplete === listing.isCompleted &&
+    currentStatePending === listing.isPending
+  ) {
+    active = false;
+    let index = checkBoxArr.indexOf(listing.name);
+    if (index >= 0) {
+      checkBoxArr.splice(index);
+      console.log(checkBoxArr);
     }
-
-  $: if (currentStateComplete !== listing.isCompleted) {
-      currentStateComplete = listing.isCompleted;
-
-      if (active && (publicClickedIt || pendingClickedIt) && completeClickedIt) {
-          completeClickedIt = false
-        }
-        else if (active) {
-          completeClickedIt = false
-          active = false
-        }
-        else {
-          completeClickedIt = true
-          active = true
-        }
   }
-
-  $: if (currentStatePending !== listing.isPending) {
-    currentStatePending = listing.isPending;
-    active = !active
-    if (!active) {
-        clickArr.push(1)
-        active = true
-      }
-      else {
-        clickArr.pop()
-      }
-      if (clickArr.length === 0) {
-        active = false
-      }
-  }
-  */
-
-
- $: if (currentStatePublic !== listing.isPublic || currentStateComplete !== listing.isCompleted || currentStatePending !== listing.isPending) {
-  currentStatePublic = listing.isPublic;
-  currentStateComplete = listing.isCompleted;
-  currentStatePending = listing.isPending;
-  active = !active
- }
 </script>
 
 <!--
@@ -150,11 +117,13 @@
     <script>checkBoxFunc()</script>
 {/if}
 -->
-<div class="container" class:active={active}>
+<div class="container" class:active>
   <div class="row">
     <div class="col-2 d-flex justify-content-center">
       <h1><i class="bi bi-house-door" /></h1>
-      <button disabled={showEdit} on:click={() => showEdit = true}>Edit</button>
+      <button disabled={showEdit} on:click={() => (showEdit = true)}
+        >Edit</button
+      >
     </div>
     <div class="col-7">
       <h4>{listing.name}</h4>
@@ -174,52 +143,54 @@
         <a href={listing.imgsL}>View Images</a>
         <p>Available on: {listing.availableDate}</p>
       {:else}
-      <form class="form" on:submit|preventDefault={addListing}>
-        <label for="address">Address:</label>
-        <input type="text" id="address" bind:value={listing.address} /><br />
-        <label for="postcode">Postcode: </label>
-        <input type="text" id="postcode" bind:value={listing.postcode} /><br />
-        <label for="area">Area: </label>
-        <input type="text" id="area" bind:value={listing.area} /><br />
-        <label for="price">Price: </label>
-        <input type="text" id="price" bind:value={listing.price} /><br />
-        <label for="rentBuy" class="form-label">Rent/Buy</label>
-        <select
-          id="rentBuy"
-          class="form-select"
-          bind:value={listing.rentBuyOption}
-        >
-          <option value="Rent">Rent</option>
-          <option value="Buy">Buy</option>
-        </select>
-        <div class="mb-3">
-          <label for="propertyType" class="form-label">Property Type</label>
+        <form class="form" on:submit|preventDefault={addListing}>
+          <label for="address">Address:</label>
+          <input type="text" id="address" bind:value={listing.address} /><br />
+          <label for="postcode">Postcode: </label>
+          <input type="text" id="postcode" bind:value={listing.postcode} /><br
+          />
+          <label for="area">Area: </label>
+          <input type="text" id="area" bind:value={listing.area} /><br />
+          <label for="price">Price: </label>
+          <input type="text" id="price" bind:value={listing.price} /><br />
+          <label for="rentBuy" class="form-label">Rent/Buy</label>
           <select
-            id="propertyType"
+            id="rentBuy"
             class="form-select"
-            bind:value={listing.propertyType}
+            bind:value={listing.rentBuyOption}
           >
-            <option value="0">Landed</option>
-            <option value="1">Apartment</option>
+            <option value="Rent">Rent</option>
+            <option value="Buy">Buy</option>
           </select>
-        </div>
-        <div class="mb-3">
-          <label for="listingType" class="form-label">Listing Type</label>
-          <select
-            id="listingType"
-            class="form-select"
-            bind:value={listing.listingType}
-          >
-            <option value="0">For Rent</option>
-            <option value="1">For Sale</option>
-          </select>
-        </div>
-        <label for="owner">Owner: </label>
-        <input type="text" id="owner" bind:value={listing.owner} /><br />
-        <label for="date">Available on: </label>
-        <input type="text" id="date" bind:value={listing.availableDate} /><br />
-        <button type="submit">Save</button>
-      </form>
+          <div class="mb-3">
+            <label for="propertyType" class="form-label">Property Type</label>
+            <select
+              id="propertyType"
+              class="form-select"
+              bind:value={listing.propertyType}
+            >
+              <option value="0">Landed</option>
+              <option value="1">Apartment</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="listingType" class="form-label">Listing Type</label>
+            <select
+              id="listingType"
+              class="form-select"
+              bind:value={listing.listingType}
+            >
+              <option value="0">For Rent</option>
+              <option value="1">For Sale</option>
+            </select>
+          </div>
+          <label for="owner">Owner: </label>
+          <input type="text" id="owner" bind:value={listing.owner} /><br />
+          <label for="date">Available on: </label>
+          <input type="text" id="date" bind:value={listing.availableDate} /><br
+          />
+          <button type="submit">Save</button>
+        </form>
       {/if}
     </div>
     <div class="col-3">
