@@ -5,7 +5,7 @@
   const { page } = stores();
   import axios from "axios";
   var route;
-
+  let checkBoxArr = []
   page.subscribe(({ path, params, query }) => {
     route = params.slug;
     currentPage.set(route);
@@ -35,16 +35,16 @@
       Expires: "0",
       auth: "agent",
     };
+
     axios
-      .put("https://relm-api.myika.co/listing/The+Gigantic+Mansion", JSON.stringify(user.listings), {
+      .put("https://relm-api.myika.co/listing/", JSON.stringify(user.listings), {
         headers: hds,
       })
       .then((res) => {
         console.log(res.status + " -- " + JSON.stringify(res.data));
       })
       .catch((error) => console.log(error.response));
-    storeUser.set(JSON.stringify(user));
-    resetState.set(true);
+      resetState.set(true);
   }
 </script>
 
@@ -154,7 +154,7 @@
         || (showCompleted && l.isCompleted)
         || (!showPublic && !showCompleted))}
       <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
-        <ListingLI id={user.id} listing={l} />
+        <ListingLI id={user.id} listing={l} {checkBoxArr}/>
       {/if}
     {/each}
   {:else}
