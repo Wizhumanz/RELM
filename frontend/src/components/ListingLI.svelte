@@ -1,15 +1,9 @@
 <script>
   import { resetState, currentPage, storeUser } from "../../store.js";
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher } from "svelte";
   import axios from "axios";
 
   const dispatch = createEventDispatcher();
-  function updateArr() {
-    console.log("Dispatching! " + JSON.stringify(checkBoxArr))
-		dispatch('checkedChange', {
-			arr: checkBoxArr
-		});
-	}
 
   export let id;
   export let listing;
@@ -96,6 +90,9 @@
     active = true;
     checkBoxArr.push(listing.name);
     console.log(checkBoxArr);
+    dispatch("checkedChange", {
+      arr: checkBoxArr,
+    });
   }
   //if fields match, set as inactive
   $: if (
@@ -108,6 +105,9 @@
     if (index >= 0) {
       checkBoxArr.splice(index);
       console.log(checkBoxArr);
+      dispatch("checkedChange", {
+        arr: checkBoxArr,
+      });
     }
   }
 </script>
@@ -203,7 +203,7 @@
             type="checkbox"
             id="inlineCheckbox1"
             value="option1"
-            bind:checked={listing.isPublic} on:click={updateArr}
+            bind:checked={listing.isPublic}
           />
         </div>
 
@@ -214,7 +214,7 @@
               type="checkbox"
               id="inlineCheckbox2"
               value="option2"
-              bind:checked={listing.isCompleted} on:click={updateArr}
+              bind:checked={listing.isCompleted}
             />
           </div>
 
