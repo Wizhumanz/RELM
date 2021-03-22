@@ -4,6 +4,8 @@
   import Listings from "./listings/[slug].svelte";
   import axios from "axios";
 
+  let showAlert = "display: none;"
+
   //state of user across whole app
   let user = {
     id: "",
@@ -83,7 +85,9 @@
         storeUser.set(JSON.stringify(user));
         goto("/listings/all");
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {console.log(error)
+        showAlert = "display: block;"
+      });
   }
 
   function register(e) {
@@ -169,6 +173,9 @@
             aria-labelledby="home-tab"
           >
             <!-- Sign In tab -->
+            <div style={showAlert}>
+              <p>Incorrect Login Details</p>
+            </div>
             <form class="form" on:submit|preventDefault={signIn}>
               <div class="mb-3">
                 <label for="emailLogin" class="form-label"> Email</label>
