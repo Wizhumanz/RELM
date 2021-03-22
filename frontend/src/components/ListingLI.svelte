@@ -220,6 +220,7 @@
             value="option1"
             bind:checked={listing.isPublic}
           />
+          <p>Public</p>
         </div>
 
         {#if route !== "pending"}
@@ -231,6 +232,7 @@
               value="option2"
               bind:checked={listing.isCompleted}
             />
+            <p>Completed</p>
           </div>
 
           <div class="form-check form-check-inline">
@@ -272,7 +274,7 @@
   }
 
   input.form-check-input {
-    margin: 1rem 0.75rem;
+    margin: 1rem auto;
   }
 
   .editA {

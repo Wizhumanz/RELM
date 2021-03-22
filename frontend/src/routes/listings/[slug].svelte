@@ -155,24 +155,6 @@
     </div>
   </div>
 
-  {#if user.id && user.id !== ""}
-    <div class="row">
-      <div class="col-2" />
-      <div class="col-7" />
-      <div class="col-3">
-        <ul id="checkbox-headers">
-          <li>Public</li>
-          {#if route !== "pending"}
-            <li>Complete</li>
-            <li>Check</li>
-          {:else}
-            <li>Pending</li>
-          {/if}
-        </ul>
-      </div>
-    </div>
-  {/if}
-
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
       {#if (route === "pending" && l.isPending) || (showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted)}
