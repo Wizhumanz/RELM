@@ -108,15 +108,27 @@
       console.log(checkBoxArr);
     }
   }
+
+  function checkAvailability() {
+    const hds = {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+      auth: "agent",
+    };
+
+    let data = {owner: listing.owner}
+    axios
+      .post("https://relm-api.myika.co/twilio", data, {
+        headers: hds,
+      })
+      .then((res) => {
+        console.log(res.status + " -- " + JSON.stringify(res.data));
+      })
+      .catch((error) => console.log(error.response));
+  }
 </script>
 
-<!--
-{#if (currentStatePublic !== isPublic ||
-    currentStateComplete !== isCompleted ||
-    currentStatePending !== isPending)}
-    <script>checkBoxFunc()</script>
-{/if}
--->
 <div class="container" class:active>
   <div class="row">
     <div class="col-2 d-flex justify-content-center">
@@ -217,12 +229,9 @@
           </div>
 
           <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              id="inlineCheckbox3"
-              value="option3"
-            />
+            <button class="form-check-input" id="inlineCheckbox3" on:click={checkAvailability}>
+              Check Availability
+            </button>
           </div>
         {:else}
           <div class="form-check form-check-inline">
