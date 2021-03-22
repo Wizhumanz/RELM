@@ -5,7 +5,7 @@
   const { page } = stores();
   import axios from "axios";
   var route;
-
+  let checkBoxArr = [];
   page.subscribe(({ path, params, query }) => {
     route = params.slug;
     currentPage.set(route);
@@ -25,26 +25,52 @@
   let showApartments = true;
   let showLanded = true;
 
-  function handleClick() {
+  function handleUpdateBtnClick() {
     //user.IsPublic = user.isPublic.toString()
     //user.IsCompleted = user.isCompleted.toString()
     //user.IsPending = user.isPending.toString()
+    resetState.set(true);
+
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
       Expires: "0",
       auth: "agent",
     };
-    axios
-      .put("https://relm-api.myika.co/listing/The+Gigantic+Mansion", JSON.stringify(user.listings), {
-        headers: hds,
-      })
-      .then((res) => {
-        console.log(res.status + " -- " + JSON.stringify(res.data));
-      })
-      .catch((error) => console.log(error.response));
-    storeUser.set(JSON.stringify(user));
-    resetState.set(true);
+
+    //console.log("user.listings " + JSON.stringify(user.listings));
+    let checkBoxSet = new Set(checkBoxArr)
+    console.log(checkBoxSet)
+
+    checkBoxSet.forEach((n) => {
+      console.log(n)
+      let found = user.listings.find((e) => e.name === n);
+      if (found && found != "" && found != null) {
+        //update listing in DB
+        let listingSubstitute = { ...found };
+        listingSubstitute.name = null;
+        listingSubstitute.isPublic = found.isPublic.toString();
+        listingSubstitute.isPending = found.isPending.toString();
+        listingSubstitute.isCompleted = found.isCompleted.toString();
+
+        //trying hacky way
+        setTimeout( function() {
+        axios
+          .put(
+            "https://relm-api.myika.co/listing/" +
+              found.name.replaceAll(" ", "+") +
+              "?user=agent%40agent.com",
+            JSON.stringify(listingSubstitute),
+            {
+              headers: hds,
+            }
+          )
+          .then((res) => {
+            console.log(res.status + " -- " + JSON.stringify(res.data));
+          })
+          .catch((error) => console.log(error.response))}, 5000)
+      }
+    });
   }
 </script>
 
@@ -148,13 +174,9 @@
 
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
-      {#if (route === "pending" && l.isPending) 
-        || ((showPending && l.isPending) 
-        || (showPublic && l.isPublic) 
-        || (showCompleted && l.isCompleted)
-        || (!showPublic && !showCompleted))}
-      <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
-        <ListingLI id={user.id} listing={l} />
+      {#if (route === "pending" && l.isPending) || (showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted)}
+        <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
+        <ListingLI id={user.id} listing={l} {checkBoxArr} />
       {/if}
     {/each}
   {:else}
@@ -162,7 +184,7 @@
   {/if}
 
   {#if user.id && user.id !== ""}
-    <button on:click={handleClick}>Update Listings</button>
+    <button on:click={handleUpdateBtnClick}>Update Listings</button>
   {/if}
 </div>
 
