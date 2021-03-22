@@ -231,7 +231,7 @@
           </div>
 
           <div class="form-check form-check-inline">
-            <button class="form-check-input" id="inlineCheckbox3" on:click={checkAvailability}>
+            <button id="inlineCheckbox3" on:click={checkAvailability}>
               Check Availability
             </button>
           </div>
