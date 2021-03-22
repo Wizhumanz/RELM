@@ -5,7 +5,7 @@
   const { page } = stores();
   import axios from "axios";
   var route;
-  let checkBoxArr = [];
+  var checkBoxArr = [];
   page.subscribe(({ path, params, query }) => {
     route = params.slug;
     currentPage.set(route);
@@ -38,12 +38,12 @@
       auth: "agent",
     };
 
-    //console.log("user.listings " + JSON.stringify(user.listings));
-    let checkBoxSet = new Set(checkBoxArr)
-    console.log(checkBoxSet)
+    let checkBoxSet = new Set(checkBoxArr);
+    console.log(checkBoxSet);
+    checkBoxArr = checkBoxSet;
 
     checkBoxSet.forEach((n) => {
-      console.log(n)
+      console.log(n);
       let found = user.listings.find((e) => e.name === n);
       if (found && found != "" && found != null) {
         //update listing in DB
@@ -54,21 +54,22 @@
         listingSubstitute.isCompleted = found.isCompleted.toString();
 
         //trying hacky way
-        setTimeout( function() {
-        axios
-          .put(
-            "https://relm-api.myika.co/listing/" +
-              found.name.replaceAll(" ", "+") +
-              "?user=agent%40agent.com",
-            JSON.stringify(listingSubstitute),
-            {
-              headers: hds,
-            }
-          )
-          .then((res) => {
-            console.log(res.status + " -- " + JSON.stringify(res.data));
-          })
-          .catch((error) => console.log(error.response))}, 5000)
+        setTimeout(function () {
+          axios
+            .put(
+              "https://relm-api.myika.co/listing/" +
+                found.name.replaceAll(" ", "+") +
+                "?user=agent%40agent.com",
+              JSON.stringify(listingSubstitute),
+              {
+                headers: hds,
+              }
+            )
+            .then((res) => {
+              console.log(res.status + " -- " + JSON.stringify(res.data));
+            })
+            .catch((error) => console.log(error.response));
+        }, 5000);
       }
     });
   }
@@ -176,14 +177,14 @@
     {#each user.listings as l}
       {#if (route === "pending" && l.isPending) || (showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted)}
         <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
-        <ListingLI id={user.id} listing={l} {checkBoxArr} />
+        <ListingLI id={user.id} listing={l} on:checkedChange={(e) => checkBoxArr = e.detail.arr} />
       {/if}
     {/each}
   {:else}
     <p>Error: No listings to show.</p>
   {/if}
 
-  {#if user.id && user.id !== ""}
+  {#if user.id && user.id !== "" && (checkBoxArr.length > 0)}
     <button on:click={handleUpdateBtnClick}>Update Listings</button>
   {/if}
 </div>
@@ -228,5 +229,9 @@
 
   button {
     font-size: x-large;
+  }
+
+  button:disabled {
+    opacity: 0.5;
   }
 </style>

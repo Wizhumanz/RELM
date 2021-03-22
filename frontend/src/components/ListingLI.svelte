@@ -1,7 +1,15 @@
 <script>
   import { resetState, currentPage, storeUser } from "../../store.js";
-  import { onMount } from "svelte";
+  import { createEventDispatcher } from 'svelte';
   import axios from "axios";
+
+  const dispatch = createEventDispatcher();
+  function updateArr() {
+    console.log("Dispatching! " + JSON.stringify(checkBoxArr))
+		dispatch('checkedChange', {
+			arr: checkBoxArr
+		});
+	}
 
   export let id;
   export let listing;
@@ -16,7 +24,7 @@
   let currentStatePublic;
   let currentStateComplete;
   let currentStatePending;
-  export let checkBoxArr = [];
+  export var checkBoxArr = [];
   let active = false;
 
   resetState.subscribe((newValue) => {
@@ -34,15 +42,9 @@
     }
   });
 
-  //onMount(() => {
   currentStatePublic = listing.isPublic;
   currentStateComplete = listing.isCompleted;
   currentStatePending = listing.isPending;
-  //});
-
-  // $: isPublic = listing.isPublic
-  // $: isCompleted = listing.isCompleted
-  // $: isPending = listing.isPending
 
   const addListing = () => {
     showEdit = false;
@@ -102,7 +104,7 @@
     currentStatePending === listing.isPending
   ) {
     active = false;
-    let index = checkBoxArr.indexOf(listing.name);
+    let index = checkBoxArr ? checkBoxArr.indexOf(listing.name) : -1;
     if (index >= 0) {
       checkBoxArr.splice(index);
       console.log(checkBoxArr);
@@ -201,7 +203,7 @@
             type="checkbox"
             id="inlineCheckbox1"
             value="option1"
-            bind:checked={listing.isPublic}
+            bind:checked={listing.isPublic} on:click={updateArr}
           />
         </div>
 
@@ -212,7 +214,7 @@
               type="checkbox"
               id="inlineCheckbox2"
               value="option2"
-              bind:checked={listing.isCompleted}
+              bind:checked={listing.isCompleted} on:click={updateArr}
             />
           </div>
 
