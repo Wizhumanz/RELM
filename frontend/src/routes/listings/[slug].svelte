@@ -38,9 +38,12 @@
       auth: "agent",
     };
 
-    console.log("user.listings " + JSON.stringify(user.listings));
+    //console.log("user.listings " + JSON.stringify(user.listings));
+    let checkBoxSet = new Set(checkBoxArr)
+    console.log(checkBoxSet)
 
-    checkBoxArr.forEach((n) => {
+    checkBoxSet.forEach((n) => {
+      console.log(n)
       let found = user.listings.find((e) => e.name === n);
       if (found && found != "" && found != null) {
         //update listing in DB
@@ -50,6 +53,8 @@
         listingSubstitute.isPending = found.isPending.toString();
         listingSubstitute.isCompleted = found.isCompleted.toString();
 
+        //trying hacky way
+        setTimeout( function() {
         axios
           .put(
             "https://relm-api.myika.co/listing/" +
@@ -63,7 +68,7 @@
           .then((res) => {
             console.log(res.status + " -- " + JSON.stringify(res.data));
           })
-          .catch((error) => console.log(error.response));
+          .catch((error) => console.log(error.response))}, 5000)
       }
     });
   }
