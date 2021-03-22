@@ -47,6 +47,10 @@ type User struct {
 	Password    string `json:"password"`
 }
 
+type TwilioReq struct {
+	OwnerNumber string `json:"owner"`
+}
+
 func (l User) String() string {
 	r := ""
 	v := reflect.ValueOf(l)
@@ -483,7 +487,32 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 	addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
 }
 
+func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func main() {
+	accountSid := "ACa59451c872071e8037cf59811057fd21"
+	authToken := "3b6a2f39bb05f5214283ef7bd6db973f"
+	urlStr := "https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
+
+	v := url.Values{}
+	v.Set("To", "+8201020416880")
+	v.Set("From", "+15076160092")
+	v.Set("Body", "Brooklyn's in the house!")
+	rb := *strings.NewReader(v.Encode())
+
+	// Create Client
+	client := &http.Client{}
+
+	req, _ := http.NewRequest("POST", urlStr, &rb)
+	req.SetBasicAuth(accountSid, authToken)
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, _ := client.Do(req)
+	fmt.Println(resp.Status)
+
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
 	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)
@@ -492,6 +521,7 @@ func main() {
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
 	router.Methods("PUT").Path("/listing/{id}").HandlerFunc(updateListingHandler)
+	router.Methods("POST").Path("/twilio").HandlerFunc(getOwnerNumberHandler)
 
 	port := os.Getenv("PORT")
 	fmt.Println("relm-api listening on port " + port)
