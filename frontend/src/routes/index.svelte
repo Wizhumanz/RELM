@@ -84,6 +84,7 @@
         getListings(false);
         storeUser.set(JSON.stringify(user));
         goto("/listings/all");
+        document.location.reload()
       })
       .catch((error) => {console.log(error)
         showAlert = "display: block;"
