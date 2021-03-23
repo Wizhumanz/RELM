@@ -93,7 +93,7 @@
     };
 
     axios
-      .post("http://localhost:8000/listing", data, {
+      .post("https://relm-api.myika.co/listing", data, {
         headers: hds,
       })
       .then((res) => {
