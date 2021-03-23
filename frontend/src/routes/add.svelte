@@ -21,7 +21,7 @@
   let address = "";
   let postcode = "";
   let area = "";
-  let price = 0;
+  let price = 1000;
   let propertyType;
   let listingType;
   let dateString;
@@ -180,7 +180,6 @@
               type="number"
               class="form-control"
               id="price"
-              placeholder="RM 1,000"
               bind:value={price}
             />
           </div>
