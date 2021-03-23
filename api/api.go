@@ -408,45 +408,49 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 		json.NewEncoder(w).Encode(data)
 		return
 	}
-	//save images in new bucket
+	//save images in new bucket on POST only
 	ctx := context.Background()
-	clientStorage, err := storage.NewClient(ctx)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
 	//use listing ID as bucket name
 	newListingName := time.Now().Format("2006-01-02_15:04:05_-0700")
-	//format for proper bucket name
-	bucketName := strings.ReplaceAll(newListingName, ":", "-") //url.QueryEscape(newListing.UserID + "." + newListing.Name)
-	bucketName = strings.ReplaceAll(bucketName, "+", "plus")
-	bucket := clientStorage.Bucket(bucketName)
-	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
-	defer cancel()
-	if err := bucket.Create(ctx, googleProjectID, nil); err != nil {
-		log.Fatalf("Failed to create bucket: %v", err)
-	}
-
-	for j, strImg := range newListing.Imgs {
-		fmt.Println(strImg)
-		//convert image from base64 string to JPEG
-		i := strings.Index(strImg, ",")
-		if i < 0 {
-			fmt.Println("img in body no comma")
+	if !isPutReq {
+		clientStorage, err := storage.NewClient(ctx)
+		if err != nil {
+			log.Fatalf("Failed to create client: %v", err)
 		}
 
-		//store img in new bucket
-		dec := base64.NewDecoder(base64.StdEncoding, strings.NewReader(strImg[i+1:])) // pass reader to NewDecoder
-		// Upload an object with storage.Writer.
-		wc := clientStorage.Bucket(bucketName).Object(fmt.Sprintf("%d", j)).NewWriter(ctx)
-		if _, err = io.Copy(wc, dec); err != nil {
-			fmt.Printf("io.Copy: %v", err)
+		//format for proper bucket name
+		bucketName := strings.ReplaceAll(newListingName, ":", "-") //url.QueryEscape(newListing.UserID + "." + newListing.Name)
+		bucketName = strings.ReplaceAll(bucketName, "+", "plus")
+		bucket := clientStorage.Bucket(bucketName)
+		ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+		defer cancel()
+		if err := bucket.Create(ctx, googleProjectID, nil); err != nil {
+			log.Fatalf("Failed to create bucket: %v", err)
 		}
-		if err := wc.Close(); err != nil {
-			fmt.Printf("Writer.Close: %v", err)
+
+		for j, strImg := range newListing.Imgs {
+			fmt.Println(strImg)
+			//convert image from base64 string to JPEG
+			i := strings.Index(strImg, ",")
+			if i < 0 {
+				fmt.Println("img in body no comma")
+			}
+
+			//store img in new bucket
+			dec := base64.NewDecoder(base64.StdEncoding, strings.NewReader(strImg[i+1:])) // pass reader to NewDecoder
+			// Upload an object with storage.Writer.
+			wc := clientStorage.Bucket(bucketName).Object(fmt.Sprintf("%d", j)).NewWriter(ctx)
+			if _, err = io.Copy(wc, dec); err != nil {
+				fmt.Printf("io.Copy: %v", err)
+			}
+			if err := wc.Close(); err != nil {
+				fmt.Printf("Writer.Close: %v", err)
+			}
 		}
+		newListing.Imgs = []string{bucketName} //just store bucket name, objects retrieved on getListing
+	} else {
+		newListing.Imgs = listingToUpdate.Imgs
 	}
-	newListing.Imgs = []string{bucketName} //just store bucket name, objects retrieved on getListing
 
 	// create new listing in DB
 	clientAdd, err := datastore.NewClient(ctx, googleProjectID)
@@ -503,19 +507,19 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 
 	query := datastore.NewQuery("Listing").
 		Filter("Name =", putID)
-
 	t := client.Run(ctx, query)
 	for {
 		var x Listing
 		key, err := t.Next(&x)
-		if key != nil {
-			x.KEY = key.Name
-		}
 		if err == iterator.Done {
 			break
 		}
 		if err != nil {
 			// Handle error.
+		}
+
+		if key != nil {
+			x.KEY = key.Name
 		}
 		listingsResp = append(listingsResp, x)
 	}
@@ -529,7 +533,7 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	addListing(w, r, true, listingsResp[0])
+	addListing(w, r, true, listingsResp[len(listingsResp)-1])
 }
 
 func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
