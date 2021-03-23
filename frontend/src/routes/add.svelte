@@ -21,8 +21,7 @@
   let address = "";
   let postcode = "";
   let area = "";
-  let price = 0;
-  let rentBuyOption;
+  let price = 1000;
   let propertyType;
   let listingType;
   let dateString;
@@ -77,21 +76,20 @@
     };
     //Don't change any of these properties
     let data = {
-      name: name, //name of listings are immutable
-      imgs: filesStr,
       user: user.id, //get user.id from store.js
       owner: owner,
+      name: name, //name of listings are immutable
       address: address,
       postcode: postcode,
       area: area,
       price: price.toString(),
-      rentBuyOption: rentBuyOption.toString(),
       propertyType: propertyType.toString(),
       listingType: listingType.toString(),
       availableDate: dateString.toString(),
       isPublic: isPublic.toString(),
       isCompleted: isCompleted.toString(),
       isPending: isPending.toString(),
+      imgs: filesStr,
     };
     console.log(data);
 
@@ -173,13 +171,6 @@
             />
           </div>
           <div class="mb-3">
-            <label for="rentBuy" class="form-label">Rent/Buy</label>
-            <select id="rentBuy" class="form-select" bind:value={rentBuyOption}>
-              <option value="Rent">Rent</option>
-              <option value="Buy">Buy</option>
-            </select>
-          </div>
-          <div class="mb-3">
             <label for="availableDate" class="form-label">Available Date</label>
             <input id="availableDate" type="date" bind:value={dateString} />
           </div>
@@ -189,7 +180,6 @@
               type="number"
               class="form-control"
               id="price"
-              placeholder="RM 1,000"
               bind:value={price}
             />
           </div>

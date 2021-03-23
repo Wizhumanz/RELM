@@ -5,7 +5,7 @@
   const { page } = stores();
   import axios from "axios";
   var route;
-
+  var checkBoxArr = [];
   page.subscribe(({ path, params, query }) => {
     route = params.slug;
     currentPage.set(route);
@@ -25,26 +25,53 @@
   let showApartments = true;
   let showLanded = true;
 
-  function handleClick() {
+  function handleUpdateBtnClick() {
     //user.IsPublic = user.isPublic.toString()
     //user.IsCompleted = user.isCompleted.toString()
     //user.IsPending = user.isPending.toString()
+    resetState.set(true);
+
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
       Expires: "0",
       auth: "agent",
     };
-    axios
-      .put("https://relm-api.myika.co/listing/The+Gigantic+Mansion", JSON.stringify(user.listings), {
-        headers: hds,
-      })
-      .then((res) => {
-        console.log(res.status + " -- " + JSON.stringify(res.data));
-      })
-      .catch((error) => console.log(error.response));
-    storeUser.set(JSON.stringify(user));
-    resetState.set(true);
+
+    let checkBoxSet = new Set(checkBoxArr);
+    console.log(checkBoxSet);
+    checkBoxArr = checkBoxSet;
+
+    checkBoxSet.forEach((n) => {
+      console.log(n);
+      let found = user.listings.find((e) => e.name === n);
+      if (found && found != "" && found != null) {
+        //update listing in DB
+        let listingSubstitute = { ...found };
+        listingSubstitute.name = null;
+        listingSubstitute.isPublic = found.isPublic.toString();
+        listingSubstitute.isPending = found.isPending.toString();
+        listingSubstitute.isCompleted = found.isCompleted.toString();
+
+        //trying hacky way
+        setTimeout(function () {
+          axios
+            .put(
+              "https://relm-api.myika.co/listing/" +
+                found.name.replaceAll(" ", "+") +
+                "?user=agent%40agent.com",
+              JSON.stringify(listingSubstitute),
+              {
+                headers: hds,
+              }
+            )
+            .then((res) => {
+              console.log(res.status + " -- " + JSON.stringify(res.data));
+            })
+            .catch((error) => console.log(error.response));
+        }, 5000);
+      }
+    });
   }
 </script>
 
@@ -128,41 +155,19 @@
     </div>
   </div>
 
-  {#if user.id && user.id !== ""}
-    <div class="row">
-      <div class="col-2" />
-      <div class="col-7" />
-      <div class="col-3">
-        <ul id="checkbox-headers">
-          <li>Public</li>
-          {#if route !== "pending"}
-            <li>Complete</li>
-            <li>Check</li>
-          {:else}
-            <li>Pending</li>
-          {/if}
-        </ul>
-      </div>
-    </div>
-  {/if}
-
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
-      {#if (route === "pending" && l.isPending) 
-        || ((showPending && l.isPending) 
-        || (showPublic && l.isPublic) 
-        || (showCompleted && l.isCompleted)
-        || (!showPublic && !showCompleted))}
-      <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
-        <ListingLI id={user.id} listing={l} />
+      {#if (route === "pending" && l.isPending) || (showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted)}
+        <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
+        <ListingLI id={user.id} listing={l} on:checkedChange={(e) => checkBoxArr = e.detail.arr} />
       {/if}
     {/each}
   {:else}
     <p>Error: No listings to show.</p>
   {/if}
 
-  {#if user.id && user.id !== ""}
-    <button on:click={handleClick}>Update Listings</button>
+  {#if user.id && user.id !== "" && (checkBoxArr.length > 0)}
+    <button on:click={handleUpdateBtnClick}>Update Listings</button>
   {/if}
 </div>
 
@@ -206,5 +211,9 @@
 
   button {
     font-size: x-large;
+  }
+
+  button:disabled {
+    opacity: 0.5;
   }
 </style>

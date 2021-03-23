@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -47,6 +48,10 @@ type User struct {
 	Password    string `json:"password"`
 }
 
+type TwilioReq struct {
+	OwnerNumber string `json:"owner"`
+}
+
 func (l User) String() string {
 	r := ""
 	v := reflect.ValueOf(l)
@@ -69,11 +74,11 @@ type Listing struct {
 	Price         int      `json:"price,string"`
 	PropertyType  int      `json:"propertyType,string"` // 0 = landed, 1 = apartment
 	ListingType   int      `json:"listingType,string"`  // 0 = for rent, 1 = for sale
-	Imgs          []string `json:"imgs"`
 	AvailableDate string   `json:"availableDate"`
 	IsPublic      bool     `json:"isPublic,string"`
 	IsCompleted   bool     `json:"isCompleted,string"`
 	IsPending     bool     `json:"isPending,string"`
+	Imgs          []string `json:"imgs"`
 }
 
 func (l Listing) String() string {
@@ -246,6 +251,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//configs before running query
 	ctx := context.Background()
 	client, err := datastore.NewClient(ctx, googleProjectID)
 	if err != nil {
@@ -272,6 +278,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 			Filter("UserID =", userIDParam)
 	}
 
+	//run query, decode listings to obj and store in slice
 	t := client.Run(ctx, query)
 	for {
 		var x Listing
@@ -315,10 +322,64 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 			existingListingsArr = append(existingListingsArr, li)
 		}
 	}
+	listingsResp = existingListingsArr
+
+	//get all images from cloud storage buckets
+	var imgFilledListings []Listing
+	for _, li := range listingsResp {
+		imgArr := li.Imgs
+		if len(imgArr) <= 0 {
+			continue
+		}
+		bkt := li.Imgs[0]
+
+		//cloud storage connection config
+		ctx := context.Background()
+		client, err := storage.NewClient(ctx)
+		if err != nil {
+			//handle
+		}
+		defer client.Close()
+		ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+		defer cancel()
+
+		//list all objects in bucket
+		var objNames []string
+		it := client.Bucket(bkt).Objects(ctx, nil)
+		for {
+			attrs, err := it.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				// return fmt.Errorf("Bucket(%q).Objects: %v", bkt, err)
+			}
+			objNames = append(objNames, attrs.Name)
+		}
+
+		//download all objects, set as new img property for listing (decoded on client side)
+		var imgStrs []string
+		for _, obj := range objNames {
+			rc, err := client.Bucket(bkt).Object(obj).NewReader(ctx)
+			if err != nil {
+				// return nil, fmt.Errorf("Object(%q).NewReader: %v", obj, err)
+			}
+			defer rc.Close()
+
+			imgByteArr, err := ioutil.ReadAll(rc)
+			if err != nil {
+				// return nil, fmt.Errorf("ioutil.ReadAll: %v", err)
+			}
+			imgStrs = append(imgStrs, base64.StdEncoding.EncodeToString(imgByteArr))
+		}
+		li.Imgs = imgStrs
+		imgFilledListings = append(imgFilledListings, li)
+	}
+	listingsResp = imgFilledListings
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(existingListingsArr)
+	json.NewEncoder(w).Encode(listingsResp)
 }
 
 // almost identical logic with create and update (event sourcing)
@@ -483,7 +544,32 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 	addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
 }
 
+func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func main() {
+	accountSid := "ACa59451c872071e8037cf59811057fd21"
+	authToken := "3b6a2f39bb05f5214283ef7bd6db973f"
+	urlStr := "https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
+
+	v := url.Values{}
+	v.Set("To", "+8201020416880")
+	v.Set("From", "+15076160092")
+	v.Set("Body", "Brooklyn's in the house!")
+	rb := *strings.NewReader(v.Encode())
+
+	// Create Client
+	client := &http.Client{}
+
+	req, _ := http.NewRequest("POST", urlStr, &rb)
+	req.SetBasicAuth(accountSid, authToken)
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, _ := client.Do(req)
+	fmt.Println(resp.Status)
+
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
 	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)
@@ -492,6 +578,7 @@ func main() {
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
 	router.Methods("PUT").Path("/listing/{id}").HandlerFunc(updateListingHandler)
+	router.Methods("POST").Path("/twilio").HandlerFunc(getOwnerNumberHandler)
 
 	port := os.Getenv("PORT")
 	fmt.Println("relm-api listening on port " + port)

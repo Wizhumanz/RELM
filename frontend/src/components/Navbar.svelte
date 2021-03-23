@@ -12,6 +12,7 @@
 
   function logout() {
     storeUser.set("");
+    console.log(storeUser)
     goto("/");
   }
 

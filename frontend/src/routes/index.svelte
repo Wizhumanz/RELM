@@ -4,6 +4,8 @@
   import Listings from "./listings/[slug].svelte";
   import axios from "axios";
 
+  let showAlert = "display: none;"
+
   //state of user across whole app
   let user = {
     id: "",
@@ -26,6 +28,8 @@
   };
 
   function getListings(onlyPublic) {
+    console.log("GET listings")
+
     //auth header
     const hds = onlyPublic
       ? {
@@ -59,6 +63,7 @@
           l.isCompleted = l.isCompleted === "true" ? true : false;
         });
         storeUser.set(JSON.stringify(user));
+        console.log(user.listings)
       })
       .catch((error) => console.log(error));
   }
@@ -82,8 +87,11 @@
         getListings(false);
         storeUser.set(JSON.stringify(user));
         goto("/listings/all");
+        document.location.reload()
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {console.log(error)
+        showAlert = "display: block;"
+      });
   }
 
   function register(e) {
@@ -169,6 +177,9 @@
             aria-labelledby="home-tab"
           >
             <!-- Sign In tab -->
+            <div style={showAlert}>
+              <p>Incorrect Login Details</p>
+            </div>
             <form class="form" on:submit|preventDefault={signIn}>
               <div class="mb-3">
                 <label for="emailLogin" class="form-label"> Email</label>
