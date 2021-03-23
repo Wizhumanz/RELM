@@ -92,24 +92,6 @@ func (l Listing) String() string {
 	return r
 }
 
-type newListingPostReq struct {
-	Auth          string      `json:"auth"`
-	UserID        string      `json:"user"`
-	OwnerID       string      `json:"owner"`
-	Name          string      `json:"name"`
-	Address       string      `json:"address"`
-	Postcode      string      `json:"postcode"`
-	Area          string      `json:"area"`
-	Price         json.Number `json:"price"`
-	PropertyType  json.Number `json:"propertyType"` // 0 = landed, 1 = apartment
-	ListingType   json.Number `json:"type"`         // 0 = for rent, 1 = for sale
-	ImgURL        string      `json:"img"`
-	AvailableDate string      `json:"availableDate"`
-	IsPublic      JSONBool    `json:"isPublic"`
-	IsCompleted   JSONBool    `json:"isCompleted"`
-	IsPending     JSONBool    `json:"isPending"`
-}
-
 var googleProjectID = "myika-relm"
 
 // helper funcs
@@ -392,6 +374,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	fmt.Println(newListing)
 
 	authReq := loginReq{
 		Email:    newListing.UserID,
