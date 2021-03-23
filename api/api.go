@@ -527,8 +527,17 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 	addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
 }
 
-func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
+var ownerNumber string
 
+func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
+	var twilioRes TwilioReq
+	err := json.NewDecoder(r.Body).Decode(&twilioRes)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	ownerNumber = twilioRes.OwnerNumber
+	fmt.Println(ownerNumber)
 }
 
 func main() {
@@ -537,7 +546,7 @@ func main() {
 	urlStr := "https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
 
 	v := url.Values{}
-	v.Set("To", "+8201020416880")
+	v.Set("To", ownerNumber)
 	v.Set("From", "+15076160092")
 	v.Set("Body", "Brooklyn's in the house!")
 	rb := *strings.NewReader(v.Encode())
