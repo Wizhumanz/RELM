@@ -45,7 +45,7 @@
     newImage.src = "data:image/jpeg;base64," + listing.imgs[0];
     newImage.style.maxWidth = "100%";
     newImage.style.maxHeight = "auto";
-    document.getElementById("imgDisplay").innerHTML = newImage.outerHTML;
+    document.getElementById(listing.name.split(" ").join("")).innerHTML = newImage.outerHTML;
   });
 
   const addListing = () => {
@@ -140,7 +140,7 @@
 <div class="container-fluid" class:active>
   <div class="row">
     <div class="col-5">
-      <div id="imgDisplay" />
+      <div id={listing.name.split(" ").join("")} />
     </div>
     <div class="col-4">
       <h4>{listing.name}</h4>
