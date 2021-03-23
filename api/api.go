@@ -64,7 +64,7 @@ func (l User) String() string {
 }
 
 type Listing struct {
-	KEY           string   `json:"KEY"`
+	KEY           string   `json:"KEY,omitempty"`
 	UserID        string   `json:"user"`
 	OwnerID       string   `json:"owner"`
 	Name          string   `json:"name"` // immutable once created, used for queries
@@ -374,7 +374,6 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println(newListing)
 
 	authReq := loginReq{
 		Email:    newListing.UserID,
@@ -395,10 +394,20 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 		json.NewEncoder(w).Encode(data)
 		return
 	}
-	newListing.Name = listingToUpdate.Name
+	// if updating, name field not passed in JSON body, so must fill
+	if isPutReq {
+		newListing.Name = listingToUpdate.Name
+	}
 
 	// TODO: fill empty PUT listing fields
 
+	//must have images to POST new listing
+	if !isPutReq && len(newListing.Imgs) <= 0 {
+		data := jsonResponse{Msg: "No images found in body.", Body: "At least one image must be included to create a new listing."}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
 	//save images in new bucket
 	ctx := context.Background()
 	clientStorage, err := storage.NewClient(ctx)
