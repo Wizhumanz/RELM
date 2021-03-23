@@ -64,7 +64,7 @@ func (l User) String() string {
 }
 
 type Listing struct {
-	KEY           string   `json:"KEY"`
+	KEY           string   `json:"KEY,omitempty"`
 	UserID        string   `json:"user"`
 	OwnerID       string   `json:"owner"`
 	Name          string   `json:"name"` // immutable once created, used for queries
@@ -90,24 +90,6 @@ func (l Listing) String() string {
 		r = r + fmt.Sprintf("%s: %v, ", typeOfL.Field(i).Name, v.Field(i).Interface())
 	}
 	return r
-}
-
-type newListingPostReq struct {
-	Auth          string      `json:"auth"`
-	UserID        string      `json:"user"`
-	OwnerID       string      `json:"owner"`
-	Name          string      `json:"name"`
-	Address       string      `json:"address"`
-	Postcode      string      `json:"postcode"`
-	Area          string      `json:"area"`
-	Price         json.Number `json:"price"`
-	PropertyType  json.Number `json:"propertyType"` // 0 = landed, 1 = apartment
-	ListingType   json.Number `json:"type"`         // 0 = for rent, 1 = for sale
-	ImgURL        string      `json:"img"`
-	AvailableDate string      `json:"availableDate"`
-	IsPublic      JSONBool    `json:"isPublic"`
-	IsCompleted   JSONBool    `json:"isCompleted"`
-	IsPending     JSONBool    `json:"isPending"`
 }
 
 var googleProjectID = "myika-relm"
@@ -412,10 +394,20 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 		json.NewEncoder(w).Encode(data)
 		return
 	}
-	newListing.Name = listingToUpdate.Name
+	// if updating, name field not passed in JSON body, so must fill
+	if isPutReq {
+		newListing.Name = listingToUpdate.Name
+	}
 
 	// TODO: fill empty PUT listing fields
 
+	//must have images to POST new listing
+	if !isPutReq && len(newListing.Imgs) <= 0 {
+		data := jsonResponse{Msg: "No images found in body.", Body: "At least one image must be included to create a new listing."}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
 	//save images in new bucket
 	ctx := context.Background()
 	clientStorage, err := storage.NewClient(ctx)
@@ -544,17 +536,16 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 	addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
 }
 
+var ownerNumber string
+
 func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func main() {
 	accountSid := "ACa59451c872071e8037cf59811057fd21"
 	authToken := "3b6a2f39bb05f5214283ef7bd6db973f"
 	urlStr := "https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
+	var twilioRes TwilioReq
 
 	v := url.Values{}
-	v.Set("To", "+8201020416880")
+	v.Set("To", ownerNumber)
 	v.Set("From", "+15076160092")
 	v.Set("Body", "Brooklyn's in the house!")
 	rb := *strings.NewReader(v.Encode())
@@ -569,7 +560,16 @@ func main() {
 
 	resp, _ := client.Do(req)
 	fmt.Println(resp.Status)
+	err := json.NewDecoder(r.Body).Decode(&twilioRes)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	ownerNumber = twilioRes.OwnerNumber
+	fmt.Println(ownerNumber)
+}
 
+func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
 	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)

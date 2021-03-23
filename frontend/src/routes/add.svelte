@@ -91,10 +91,9 @@
       isPending: isPending.toString(),
       imgs: filesStr,
     };
-    console.log(data);
 
     axios
-      .post("https://relm-api.myika.co/listing", data, {
+      .post("http://localhost:8000/listing", data, {
         headers: hds,
       })
       .then((res) => {
@@ -151,21 +150,21 @@
             />
           </div>
           <div class="mb-3">
-            <label for="address" class="form-label">Area</label>
+            <label for="area" class="form-label">Area</label>
             <input
               type="text"
               class="form-control"
-              id="address"
+              id="area"
               placeholder="Teluk Bahang"
               bind:value={area}
             />
           </div>
           <div class="mb-3">
-            <label for="address" class="form-label">Postcode</label>
+            <label for="postcode" class="form-label">Postcode</label>
             <input
               type="text"
               class="form-control"
-              id="address"
+              id="postcode"
               placeholder="10130"
               bind:value={postcode}
             />
