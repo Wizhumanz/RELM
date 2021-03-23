@@ -530,20 +530,10 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 var ownerNumber string
 
 func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
-	var twilioRes TwilioReq
-	err := json.NewDecoder(r.Body).Decode(&twilioRes)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	ownerNumber = twilioRes.OwnerNumber
-	fmt.Println(ownerNumber)
-}
-
-func main() {
 	accountSid := "ACa59451c872071e8037cf59811057fd21"
 	authToken := "3b6a2f39bb05f5214283ef7bd6db973f"
 	urlStr := "https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
+	var twilioRes TwilioReq
 
 	v := url.Values{}
 	v.Set("To", ownerNumber)
@@ -561,7 +551,16 @@ func main() {
 
 	resp, _ := client.Do(req)
 	fmt.Println(resp.Status)
+	err := json.NewDecoder(r.Body).Decode(&twilioRes)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	ownerNumber = twilioRes.OwnerNumber
+	fmt.Println(ownerNumber)
+}
 
+func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
 	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)
