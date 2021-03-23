@@ -4,7 +4,7 @@
   import Listings from "./listings/[slug].svelte";
   import axios from "axios";
 
-  let showAlert = "display: none;"
+  let showAlert = "display: none;";
 
   //state of user across whole app
   let user = {
@@ -28,41 +28,47 @@
   };
 
   function getListings(onlyPublic) {
-    //auth header
-    const hds = onlyPublic
-      ? {
-          // "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-          Expires: "0",
-        }
-      : {
-          // "Content-Type": "application/json",
-          auth: user.password,
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-          Expires: "0",
-        };
+    return new Promise((resolve, reject) => {
+      console.log("Getting all listings");
+      //auth header
+      const hds = onlyPublic
+        ? {
+            // "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+            Expires: "0",
+          }
+        : {
+            // "Content-Type": "application/json",
+            auth: user.password,
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+            Expires: "0",
+          };
 
-    //MUST replace all '+' with '%2B'
-    // let GETUrl = basicURL.split("+").join("%2B");
-    let url = onlyPublic
-      ? "https://relm-api.myika.co/listings?user=agent%40agent.com&isPublic=true"
-      : "https://relm-api.myika.co/listings?user=agent%40agent.com";
-    axios
-      .get(url, {
-        headers: hds,
-      })
-      .then((res) => {
-        user.listings = res.data;
-        user.listings.forEach((l) => {
-          l.isPublic = l.isPublic === "true" ? true : false;
-          l.isPending = l.isPending === "true" ? true : false;
-          l.isCompleted = l.isCompleted === "true" ? true : false;
-        });
-        storeUser.set(JSON.stringify(user));
-      })
-      .catch((error) => console.log(error));
+      //MUST replace all '+' with '%2B'
+      // let GETUrl = basicURL.split("+").join("%2B");
+      let url = onlyPublic
+        ? "https://relm-api.myika.co/listings?user=agent%40agent.com&isPublic=true"
+        : "https://relm-api.myika.co/listings?user=agent%40agent.com";
+      axios
+        .get(url, {
+          headers: hds,
+        })
+        .then((res) => {
+          user.listings = res.data;
+          user.listings.forEach((l) => {
+            l.isPublic = l.isPublic === "true" ? true : false;
+            l.isPending = l.isPending === "true" ? true : false;
+            l.isCompleted = l.isCompleted === "true" ? true : false;
+          });
+
+          console.log(user.listings.length);
+          storeUser.set(JSON.stringify(user));
+          resolve(user.listings);
+        })
+        .catch((error) => console.log(error));
+    });
   }
 
   function signIn(e) {
@@ -81,13 +87,15 @@
       .then((res) => {
         user.id = userLogin.email;
         user.password = userLogin.password;
-        getListings(false);
-        storeUser.set(JSON.stringify(user));
-        goto("/listings/all");
-        document.location.reload()
+        //wait for fetch to complete before needed page reload
+        getListings(false).then((fetchedListings) => {
+          goto("/listings/all");
+          document.location.reload();
+        });
       })
-      .catch((error) => {console.log(error)
-        showAlert = "display: block;"
+      .catch((error) => {
+        console.log(error);
+        showAlert = "display: block;";
       });
   }
 
