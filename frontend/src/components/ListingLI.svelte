@@ -1,6 +1,6 @@
 <script>
   import { resetState, currentPage, storeUser } from "../../store.js";
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import axios from "axios";
 
   const dispatch = createEventDispatcher();
@@ -39,6 +39,12 @@
   currentStatePublic = listing.isPublic;
   currentStateComplete = listing.isCompleted;
   currentStatePending = listing.isPending;
+
+  onMount(async () => {
+    let newImage = document.createElement("img");
+    newImage.src = "data:image/jpeg;base64," + listing.imgs[0];
+    document.getElementById("imgDisplay").innerHTML = newImage.outerHTML;
+  });
 
   const addListing = () => {
     showEdit = false;
@@ -134,7 +140,7 @@
 <div class="container" class:active>
   <div class="row">
     <div class="col-2 d-flex justify-content-center">
-      <h1><i class="bi bi-house-door" /></h1>
+      <div id="imgDisplay" />
     </div>
     <div class="col-7">
       <h4>{listing.name}</h4>
@@ -154,10 +160,8 @@
         <a href={listing.imgsL}>View Images</a>
         <p>Available on: {listing.availableDate}</p>
         <!-- svelte-ignore a11y-missing-attribute -->
-        <a
-          class="editA"
-          disabled={showEdit}
-          on:click={() => (showEdit = true)}>Edit</a
+        <a class="editA" disabled={showEdit} on:click={() => (showEdit = true)}
+          >Edit</a
         >
       {:else}
         <form class="form" on:submit|preventDefault={addListing}>

@@ -28,8 +28,6 @@
   };
 
   function getListings(onlyPublic) {
-    console.log("GET listings")
-
     //auth header
     const hds = onlyPublic
       ? {
@@ -63,7 +61,6 @@
           l.isCompleted = l.isCompleted === "true" ? true : false;
         });
         storeUser.set(JSON.stringify(user));
-        console.log(user.listings)
       })
       .catch((error) => console.log(error));
   }
