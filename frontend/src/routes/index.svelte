@@ -29,7 +29,6 @@
 
   function getListings(onlyPublic) {
     return new Promise((resolve, reject) => {
-      console.log("Getting all listings");
       //auth header
       const hds = onlyPublic
         ? {
@@ -63,7 +62,6 @@
             l.isCompleted = l.isCompleted === "true" ? true : false;
           });
 
-          console.log(user.listings.length);
           storeUser.set(JSON.stringify(user));
           resolve(user.listings);
         })
