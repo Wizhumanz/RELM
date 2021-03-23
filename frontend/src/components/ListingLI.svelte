@@ -153,11 +153,9 @@
             ? listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             : ""}
         </p>
-        <p>Rent/Buy: {listing.rentBuyOption}</p>
         <p>Property Type: {listing.propertyType}</p>
         <p>Listing Type: {listing.listingType}</p>
         <p>Owner: {listing.owner}</p>
-        <a href={listing.imgsL}>View Images</a>
         <p>Available on: {listing.availableDate}</p>
         <!-- svelte-ignore a11y-missing-attribute -->
         <a class="editA" disabled={showEdit} on:click={() => (showEdit = true)}
