@@ -43,6 +43,8 @@
   onMount(async () => {
     let newImage = document.createElement("img");
     newImage.src = "data:image/jpeg;base64," + listing.imgs[0];
+    newImage.style.maxWidth = "100%";
+    newImage.style.maxHeight = "auto";
     document.getElementById("imgDisplay").innerHTML = newImage.outerHTML;
   });
 
@@ -95,7 +97,6 @@
   ) {
     active = true;
     checkBoxArr.push(listing.name);
-    console.log(checkBoxArr);
     dispatch("checkedChange", {
       arr: checkBoxArr,
     });
@@ -110,7 +111,6 @@
     let index = checkBoxArr ? checkBoxArr.indexOf(listing.name) : -1;
     if (index >= 0) {
       checkBoxArr.splice(index);
-      console.log(checkBoxArr);
       dispatch("checkedChange", {
         arr: checkBoxArr,
       });
@@ -137,12 +137,12 @@
   }
 </script>
 
-<div class="container" class:active>
+<div class="container-fluid" class:active>
   <div class="row">
-    <div class="col-2 d-flex justify-content-center">
+    <div class="col-5">
       <div id="imgDisplay" />
     </div>
-    <div class="col-7">
+    <div class="col-4">
       <h4>{listing.name}</h4>
       {#if !showEdit}
         <p>Address: {listing.address}</p>
@@ -266,7 +266,7 @@
 <style type="text/scss">
   @import "../../static/styles/_all";
 
-  div.container {
+  div.container-fluid {
     font-family: $body-font;
     margin: 1.5rem auto;
     text-align: left;
@@ -275,6 +275,12 @@
     p {
       margin: 0;
     }
+  }
+
+  #imgDisplay {
+    overflow: hidden;
+    display:block;
+    margin:auto;
   }
 
   input.form-check-input {

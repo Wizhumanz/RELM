@@ -39,11 +39,9 @@
     };
 
     let checkBoxSet = new Set(checkBoxArr);
-    console.log(checkBoxSet);
     checkBoxArr = checkBoxSet;
 
     checkBoxSet.forEach((n) => {
-      console.log(n);
       let found = user.listings.find((e) => e.name === n);
       if (found && found != "" && found != null) {
         //update listing in DB

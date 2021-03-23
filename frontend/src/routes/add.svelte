@@ -91,7 +91,6 @@
       isPending: isPending.toString(),
       imgs: filesStr,
     };
-    console.log(data);
 
     axios
       .post("https://relm-api.myika.co/listing", data, {
