@@ -74,7 +74,6 @@
   }
 
   function signIn(e) {
-
     loading = true
 
     const hds = {
@@ -94,10 +93,10 @@
         user.password = userLogin.password;
         //wait for fetch to complete before needed page reload
         getListings(false).then((fetchedListings) => {
+          loading = false
           goto("/listings/all");
           document.location.reload();
         });
-        loading = false
       })
       .catch((error) => {
         console.log(error);
