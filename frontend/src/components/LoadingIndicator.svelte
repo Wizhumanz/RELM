@@ -3,9 +3,9 @@
   let text = "";
 
   async function loop() {
-    if (text.length === 3) text = "";
-    text += ".";
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    if (text.length === 8) text = "";
+    text += " .";
+    await new Promise((resolve) => setTimeout(resolve, 250));
     loop();
   }
 
@@ -15,13 +15,15 @@
 </script>
 
 <div class="LoadingIndicator">
-  {text}
+  <h1 class="loader">{text}</h1>
 </div>
 
-<style>
+<style type="text/scss">
+  @import "../../static/styles/_all";
+
   .LoadingIndicator {
     display: flex;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.4);
     justify-content: center;
     align-items: center;
     text-align: center;
@@ -34,5 +36,10 @@
     font-size: 60px;
     height: 100%;
     overflow: hidden;
+  }
+
+  .loader {
+    color: $cream;
+    background-color: rgba(0, 0, 0, 0);
   }
 </style>

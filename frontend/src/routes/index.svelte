@@ -6,7 +6,7 @@
   import LoadingIndicator from '../components/LoadingIndicator.svelte'
   
   //For loading sign
-  let loading = false
+  let loading = true
 
   let showAlert = "display: none;";
 
@@ -74,7 +74,6 @@
   }
 
   function signIn(e) {
-
     loading = true
 
     const hds = {
@@ -94,10 +93,10 @@
         user.password = userLogin.password;
         //wait for fetch to complete before needed page reload
         getListings(false).then((fetchedListings) => {
+          loading = false
           goto("/listings/all");
           document.location.reload();
         });
-        loading = false
       })
       .catch((error) => {
         console.log(error);
