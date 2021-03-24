@@ -2,9 +2,11 @@
   import axios from "axios";
   import { onMount } from "svelte";
   import { storeUser } from "../../store.js";
-  import LoadingIndicator from '../components/LoadingIndicator.svelte'
+  import LoadingIndicator from "../components/LoadingIndicator.svelte";
 
-  let loading = false
+  let loading = false;
+
+  let showAlert = "display: none;";
 
   let user = {};
   storeUser.subscribe((newValue) => {
@@ -71,7 +73,7 @@
   function addListing() {
     uploadImgs(); //converts images to base64 strings
 
-    loading = true
+    loading = true;
 
     const hds = {
       "Cache-Control": "no-cache",
@@ -102,8 +104,31 @@
         headers: hds,
       })
       .then((res) => {
-        loading = false
+        loading = false;
+        showAlert = "display: block;";
         console.log(res.status + " -- " + JSON.stringify(res.data));
+
+        now = new Date(),
+          month,
+          day,
+          year;
+        files;
+        filesStr = [];
+        owner = "";
+        name = "";
+        address = "";
+        postcode = "";
+        area = "";
+        price = 1000;
+        propertyType;
+        listingType;
+        dateString;
+        isPublic = false;
+        isCompleted = false;
+        isPending = false;
+
+        setTimeout(() => {showAlert = "display: none;"}, 3000)
+
       })
       .catch((error) => console.log(error.response));
   }
@@ -111,7 +136,7 @@
 
 <!--Loading Sign-->
 {#if loading}
-<LoadingIndicator/>
+  <LoadingIndicator />
 {/if}
 
 <div class="container">
@@ -216,28 +241,42 @@
             </select>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input addCheckbox" id="publicCheck"
-              type="checkbox" value="" bind:checked={isPublic}>
-            <label class="form-check-label" for="publicCheck">
-              Public
-            </label>
+            <input
+              class="form-check-input addCheckbox"
+              id="publicCheck"
+              type="checkbox"
+              value=""
+              bind:checked={isPublic}
+            />
+            <label class="form-check-label" for="publicCheck"> Public </label>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input addCheckbox" id="completedCheck"
-              type="checkbox" value="" bind:checked={isCompleted}>
+            <input
+              class="form-check-input addCheckbox"
+              id="completedCheck"
+              type="checkbox"
+              value=""
+              bind:checked={isCompleted}
+            />
             <label class="form-check-label" for="completedCheck">
               Completed
             </label>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input addCheckbox" id="pendingCheck"
-              type="checkbox" value="" bind:checked={isPending}>
-            <label class="form-check-label" for="pendingCheck">
-              Pending
-            </label>
+            <input
+              class="form-check-input addCheckbox"
+              id="pendingCheck"
+              type="checkbox"
+              value=""
+              bind:checked={isPending}
+            />
+            <label class="form-check-label" for="pendingCheck"> Pending </label>
           </div>
           <div>
             <button type="submit">Add</button>
+          </div>
+          <div style={showAlert}>
+            <p>Listing Added</p>
           </div>
         </form>
       </div>
