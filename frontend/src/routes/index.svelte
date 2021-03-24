@@ -6,7 +6,7 @@
   import LoadingIndicator from '../components/LoadingIndicator.svelte'
   
   //For loading sign
-  let loading = true
+  let loading = false
 
   let showAlert = "display: none;";
 
