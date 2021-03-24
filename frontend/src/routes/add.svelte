@@ -2,6 +2,9 @@
   import axios from "axios";
   import { onMount } from "svelte";
   import { storeUser } from "../../store.js";
+  import LoadingIndicator from '../components/LoadingIndicator.svelte'
+
+  let loading = false
 
   let user = {};
   storeUser.subscribe((newValue) => {
@@ -68,6 +71,8 @@
   function addListing() {
     uploadImgs(); //converts images to base64 strings
 
+    loading = true
+
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
@@ -97,11 +102,17 @@
         headers: hds,
       })
       .then((res) => {
+        loading = false
         console.log(res.status + " -- " + JSON.stringify(res.data));
       })
       .catch((error) => console.log(error.response));
   }
 </script>
+
+<!--Loading Sign-->
+{#if loading}
+<LoadingIndicator/>
+{/if}
 
 <div class="container">
   <h1 id="head">Add Listing</h1>
