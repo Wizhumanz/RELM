@@ -153,8 +153,8 @@
             ? listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             : ""}
         </p>
-        <p>Property Type: {listing.propertyType}</p>
-        <p>Listing Type: {listing.listingType}</p>
+        <p>Property Type: {listing.propertyType? "Apartment" : "Landed"}</p>
+        <p>Listing Type: {listing.listingType? "For Sale" : "For Rent"}</p>
         <p>Owner: {listing.owner}</p>
         <p>Available on: {listing.availableDate}</p>
         <!-- svelte-ignore a11y-missing-attribute -->
