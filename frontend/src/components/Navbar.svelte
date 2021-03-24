@@ -2,11 +2,11 @@
   import { storeUser } from "../../store.js";
   import { goto } from "@sapper/app";
 
-  var id = storeUser.id;
+  var id = storeUser ? storeUser.id : null;
   // console.log(storeUser)
   storeUser.subscribe((newValue) => {
     if (newValue) {
-      id = JSON.parse(newValue).id;
+      id = JSON.parse(newValue) ? JSON.parse(newValue).id : null;
     }
   });
 
