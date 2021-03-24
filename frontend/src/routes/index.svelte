@@ -3,6 +3,10 @@
   import { storeUser } from "../../store.js";
   import Listings from "./listings/[slug].svelte";
   import axios from "axios";
+  import LoadingIndicator from '../components/LoadingIndicator.svelte'
+  
+  //For loading sign
+  let loading = false
 
   let showAlert = "display: none;";
 
@@ -70,6 +74,9 @@
   }
 
   function signIn(e) {
+
+    loading = true
+
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
@@ -90,6 +97,7 @@
           goto("/listings/all");
           document.location.reload();
         });
+        loading = false
       })
       .catch((error) => {
         console.log(error);
@@ -131,6 +139,11 @@
     getListings(true);
   }
 </script>
+
+
+{#if loading}
+  <LoadingIndicator/>
+{/if}
 
 <main>
   <div class="container">
