@@ -32,6 +32,7 @@
   };
 
   function getListings(onlyPublic) {
+    loading = true
     return new Promise((resolve, reject) => {
       //auth header
       const hds = onlyPublic
@@ -65,7 +66,7 @@
             l.isPending = l.isPending === "true" ? true : false;
             l.isCompleted = l.isCompleted === "true" ? true : false;
           });
-
+          loading = false
           storeUser.set(JSON.stringify(user));
           resolve(user.listings);
         })
