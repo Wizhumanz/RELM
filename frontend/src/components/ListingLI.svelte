@@ -158,9 +158,9 @@
         <p>Owner: {listing.owner}</p>
         <p>Available on: {listing.availableDate}</p>
         <!-- svelte-ignore a11y-missing-attribute -->
-        <a class="editA" disabled={showEdit} on:click={() => (showEdit = true)}
-          >Edit</a
-        >
+        {#if id && id !== ""}
+        <a class="editA" disabled={showEdit} on:click={() => (showEdit = true)}>Edit</a>
+        {/if}
       {:else}
         <form class="form" on:submit|preventDefault={addListing}>
           <label for="address">Address:</label>

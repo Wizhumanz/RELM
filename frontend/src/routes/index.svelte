@@ -95,7 +95,7 @@
         getListings(false).then((fetchedListings) => {
           loading = false
           goto("/listings/all");
-          document.location.reload();
+          //document.location.reload();
         });
       })
       .catch((error) => {
