@@ -34,6 +34,13 @@
   let isCompleted = false;
   let isPending = false;
 
+  let ownerInfo = {
+    name: "",
+    email: "",
+    phone: "",
+    type: "Owner"
+  }
+
   onMount(() => {
     (month = "" + (now.getMonth() + 1)),
       (day = "" + now.getDate()),
@@ -109,9 +116,23 @@
         isPending: isPending.toString(),
         imgs: filesStr,
       };
+      ownerInfo.email = owner
+      axios
+        .post("http://localhost:8000/user", ownerInfo, {
+          headers: hds,
+        })
+        .then((res) => {
+          console.log(res.status + " -- " + JSON.stringify(res.data));
+          ownerInfo = {
+            name: "",
+            email: "",
+            phone: ""
+          }
+        })
+        .catch((error) => console.log(error.response))
 
       axios
-        .post("https://relm-api.myika.co/listing", data, {
+        .post("http://localhost:8000/listing", data, {
           headers: hds,
         })
         .then((res) => {
@@ -166,130 +187,156 @@
         </form>
         <form class="form" on:submit|preventDefault={addListing}>
           <div class="mb-3">
-            <label for="owner" class="form-label">Owner</label>
+            <label for="ownerName" class="form-label">Owner Name</label>
             <input
               type="text"
               class="form-control"
-              id="owner"
-              placeholder="owner@owner.com"
-              bind:value={owner}
+              id="ownerName"
+              placeholder="Rahul"
+              bind:value={ownerInfo.name}
             />
-          </div>
-          <div class="mb-3">
-            <label for="name" class="form-label">Name</label>
-            <input
-              type="text"
-              class="form-control"
-              id="name"
-              placeholder="Premium Condo"
-              bind:value={name}
-            />
-          </div>
-          <div class="mb-3">
-            <label for="address" class="form-label">Address</label>
-            <input
-              type="text"
-              class="form-control"
-              id="address"
-              placeholder="38-A Skyhome, Jalan Tanjung Tokong"
-              bind:value={address}
-            />
-          </div>
-          <div class="mb-3">
-            <label for="area" class="form-label">Area</label>
-            <input
-              type="text"
-              class="form-control"
-              id="area"
-              placeholder="Teluk Bahang"
-              bind:value={area}
-            />
-          </div>
-          <div class="mb-3">
-            <label for="postcode" class="form-label">Postcode</label>
-            <input
-              type="text"
-              class="form-control"
-              id="postcode"
-              placeholder="10130"
-              bind:value={postcode}
-            />
-          </div>
-          <div class="mb-3">
-            <label for="availableDate" class="form-label">Available Date</label>
-            <input id="availableDate" type="date" bind:value={dateString} />
-          </div>
-          <div class="mb-3">
-            <label for="price" class="form-label">Price</label>
-            <input
-              type="number"
-              class="form-control"
-              id="price"
-              bind:value={price}
-            />
-          </div>
-          <div class="mb-3">
-            <label for="listingType" class="form-label">Listing Type</label>
-            <select
-              id="listingType"
-              class="form-select"
-              bind:value={listingType}
-            >
-              <option value="0">For Rent</option>
-              <option value="1">For Sale</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="propertyType" class="form-label">Property Type</label>
-            <select
-              id="propertyType"
-              class="form-select"
-              bind:value={propertyType}
-            >
-              <option value="0">Landed</option>
-              <option value="1">Apartment</option>
-            </select>
-          </div>
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input addCheckbox"
-              id="publicCheck"
-              type="checkbox"
-              value=""
-              bind:checked={isPublic}
-            />
-            <label class="form-check-label" for="publicCheck">Public</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input addCheckbox"
-              id="completedCheck"
-              type="checkbox"
-              value=""
-              bind:checked={isCompleted}
-            />
-            <label class="form-check-label" for="completedCheck">
-              Completed
-            </label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input addCheckbox"
-              id="pendingCheck"
-              type="checkbox"
-              value=""
-              bind:checked={isPending}
-            />
-            <label class="form-check-label" for="pendingCheck">Pending</label>
-          </div>
-          <div>
-            <button type="submit">Add</button>
-          </div>
-          <div style={showAlert}>
-            <p>Listing Added</p>
-          </div>
-          <div style={fileSizeAlert}>
-            <p>Image size too large. Each image must be under 200KB.</p>
+            <div class="mb-3">
+              <label for="ownerEmail" class="form-label">Owner Email</label>
+              <input
+                type="text"
+                class="form-control"
+                id="ownerEmail"
+                placeholder="owner@owner.com"
+                bind:value={owner}
+              />
+              <div class="mb-3">
+                <label for="ownerPhone" class="form-label">Owner Phone</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="ownerPhone"
+                  placeholder="01247788745"
+                  bind:value={ownerInfo.phone}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="name" class="form-label">Property Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="name"
+                  placeholder="Premium Condo"
+                  bind:value={name}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="address" class="form-label">Address</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="address"
+                  placeholder="38-A Skyhome, Jalan Tanjung Tokong"
+                  bind:value={address}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="area" class="form-label">Area</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="area"
+                  placeholder="Teluk Bahang"
+                  bind:value={area}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="postcode" class="form-label">Postcode</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="postcode"
+                  placeholder="10130"
+                  bind:value={postcode}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="availableDate" class="form-label"
+                  >Available Date</label
+                >
+                <input id="availableDate" type="date" bind:value={dateString} />
+              </div>
+              <div class="mb-3">
+                <label for="price" class="form-label">Price</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="price"
+                  bind:value={price}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="listingType" class="form-label">Listing Type</label>
+                <select
+                  id="listingType"
+                  class="form-select"
+                  bind:value={listingType}
+                >
+                  <option value="0">For Rent</option>
+                  <option value="1">For Sale</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="propertyType" class="form-label"
+                  >Property Type</label
+                >
+                <select
+                  id="propertyType"
+                  class="form-select"
+                  bind:value={propertyType}
+                >
+                  <option value="0">Landed</option>
+                  <option value="1">Apartment</option>
+                </select>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input addCheckbox"
+                  id="publicCheck"
+                  type="checkbox"
+                  value=""
+                  bind:checked={isPublic}
+                />
+                <label class="form-check-label" for="publicCheck">Public</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input addCheckbox"
+                  id="completedCheck"
+                  type="checkbox"
+                  value=""
+                  bind:checked={isCompleted}
+                />
+                <label class="form-check-label" for="completedCheck">
+                  Completed
+                </label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input addCheckbox"
+                  id="pendingCheck"
+                  type="checkbox"
+                  value=""
+                  bind:checked={isPending}
+                />
+                <label class="form-check-label" for="pendingCheck"
+                  >Pending</label
+                >
+              </div>
+              <div>
+                <button type="submit">Add</button>
+              </div>
+              <div style={showAlert}>
+                <p>Listing Added</p>
+              </div>
+              <div style={fileSizeAlert}>
+                <p>Image size too large. Each image must be under 200KB.</p>
+              </div>
+            </div>
           </div>
         </form>
       </div>

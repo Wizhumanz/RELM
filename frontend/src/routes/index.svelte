@@ -54,8 +54,8 @@
       //MUST replace all '+' with '%2B'
       // let GETUrl = basicURL.split("+").join("%2B");
       let url = onlyPublic
-        ? "https://relm-api.myika.co/listings?user=agent%40agent.com&isPublic=true"
-        : "https://relm-api.myika.co/listings?user=agent%40agent.com";
+        ? "https://relm-api.myika.co/listings?user=" + userLogin.email.replaceAll("@","%40") + "&isPublic=true"
+        : "https://relm-api.myika.co/listings?user=" + userLogin.email.replaceAll("@","%40");
       axios
         .get(url, {
           headers: hds,
