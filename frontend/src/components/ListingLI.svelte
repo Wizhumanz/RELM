@@ -160,7 +160,22 @@
         </p>
         <p>Property Type: {listing.propertyType ? "Apartment" : "Landed"}</p>
         <p>Listing Type: {listing.listingType ? "For Sale" : "For Rent"}</p>
-        <p>Owner: {listing.owner}</p>
+        <p>
+          Owner: {listing.owner}
+          <a
+            data-bs-toggle="collapse"
+            href="#ownerInfo"
+            role="button"
+            aria-expanded="false"
+            aria-controls="collapseExample"
+          >
+            Show info
+          </a>
+        </p>
+        <div class="collapse" id="ownerInfo">
+          <p>Name: Simon the Bread Blender</p>
+          <p>Number: 011-777-8304</p>
+        </div>
         <p>Available on: {listing.availableDate}</p>
         <!-- svelte-ignore a11y-missing-attribute -->
         {#if id && id !== ""}
