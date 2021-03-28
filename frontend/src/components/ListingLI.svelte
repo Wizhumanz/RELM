@@ -135,15 +135,24 @@
     }
   }
 
-  function checkAvailability() {
+  async function checkAvailability() {
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
       Expires: "0",
       auth: "agent",
     };
-
-    let data = { owner: listing.owner };
+    getOwnerInfo(user.id)
+    setTimeout( 
+    function () {let data = {
+      owner: listing.owner, 
+      message: `Hi ${listing.owner}, this is ${owner.name}.` +
+      ` Just wanted to ask you if your property at ${listing.address} is still available?` + 
+      ` Please text, WhatsApp, or call me at ${owner.phone} to reply.` + 
+      " Notification sent automatically from relm.myika.co."
+      };
+      console.log(data.message)}
+      ,500)
     axios
       .post("https://relm-api.myika.co/twilio", data, {
         headers: hds,
