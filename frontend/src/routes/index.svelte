@@ -32,7 +32,7 @@
     password: "",
   };
 
-  function getListings(onlyPublic) {
+  function getListings(onlyPublic, startID) {
     loading = true;
     return new Promise((resolve, reject) => {
       //auth header
@@ -56,6 +56,7 @@
       let url = onlyPublic
         ? "https://relm-api.myika.co/listings?user=agent%40agent.com&isPublic=true"
         : "https://relm-api.myika.co/listings?user=agent%40agent.com";
+      url = startID && startID != "" ? url + "&startID=" + startID : url;
       axios
         .get(url, {
           headers: hds,
@@ -98,10 +99,24 @@
         user.id = userLogin.email;
         user.password = userLogin.password;
         //wait for fetch to complete before needed page reload
-        getListings(false).then((fetchedListings) => {
+        getListings(false, null).then((fetchedListings) => {
           loading = false;
           goto("/listings/all");
           //document.location.reload();
+
+          //lazy load rest of images in background
+          let imgFetchKey = "";
+          Array.from(fetchedListings).forEach((l) => {
+            if (l.imgs[0].length < 25) {
+              imgFetchKey = l.KEY;
+              return;
+            }
+          });
+          if (imgFetchKey != "") {
+            getListings(false, imgFetchKey).then((all) => {
+              console.log(all);
+            });
+          }
         });
       })
       .catch((error) => {
@@ -142,7 +157,7 @@
       goto("/listings/all");
     }
   } else {
-    getListings(true);
+    getListings(true, null);
   }
 </script>
 

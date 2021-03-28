@@ -5,26 +5,35 @@
 
   const dispatch = createEventDispatcher();
 
-  export let id;
-  export let listing;
+  let route;
+  currentPage.subscribe((newValue) => {
+    if (newValue) {
+      route = newValue;
+    }
+  });
+
   let user = {};
   storeUser.subscribe((newValue) => {
     if (newValue) {
       user = JSON.parse(newValue);
     }
   });
-  let showEdit = false;
-  let route;
-  let currentStatePublic;
-  let currentStateComplete;
-  let currentStatePending;
-  export var checkBoxArr = [];
-  let active = false;
+
   let owner = {
     name: "",
     email: "",
     phone: "",
   };
+
+  export let id;
+  export let listing;
+  export var checkBoxArr = [];
+  let showEdit = false;
+  let showDownloadingIcon = false;
+  let currentStatePublic;
+  let currentStateComplete;
+  let currentStatePending;
+  let active = false;
 
   resetState.subscribe((newValue) => {
     if (newValue !== false) {
@@ -35,24 +44,23 @@
     }
   });
 
-  currentPage.subscribe((newValue) => {
-    if (newValue) {
-      route = newValue;
-    }
-  });
-
   currentStatePublic = listing.isPublic;
   currentStateComplete = listing.isCompleted;
   currentStatePending = listing.isPending;
 
   onMount(async () => {
     if (listing.imgs && listing.imgs.length > 0) {
-      let newImage = document.createElement("img");
-      newImage.src = "data:image/jpeg;base64," + listing.imgs[0];
-      newImage.style.maxWidth = "100%";
-      newImage.style.maxHeight = "auto";
-      document.getElementById(listing.name.split(" ").join("")).innerHTML =
-        newImage.outerHTML;
+      //only set image src if it's the actual img base64 string
+      if (listing.imgs[0].length > 35) {
+        let newImage = document.createElement("img");
+        newImage.src = "data:image/jpeg;base64," + listing.imgs[0];
+        newImage.style.maxWidth = "100%";
+        newImage.style.maxHeight = "auto";
+        document.getElementById(listing.name.split(" ").join("")).innerHTML =
+          newImage.outerHTML;
+      } else {
+        showDownloadingIcon = true;
+      }
     }
   });
 
@@ -176,7 +184,11 @@
 <div class="container-fluid" class:active>
   <div class="row">
     <div class="col-5">
-      <div id={listing.name ? listing.name.split(" ").join("") : ""} />
+      <div id={listing.name ? listing.name.split(" ").join("") : ""}>
+        {#if showDownloadingIcon}
+          <h1><i class="bi bi-cloud-arrow-down" /></h1>
+        {/if}
+      </div>
     </div>
     <div class="col-4">
       <h4>{listing.name}</h4>
@@ -336,6 +348,15 @@
     overflow: hidden;
     display: block;
     margin: auto;
+  }
+
+  i {
+    animation: blinker 500ms cubic infinite;
+  }
+  @keyframes blinker {
+    50% {
+      opacity: 0;
+    }
   }
 
   input.form-check-input {
