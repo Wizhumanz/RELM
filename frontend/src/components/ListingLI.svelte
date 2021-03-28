@@ -20,6 +20,11 @@
   let currentStatePending;
   export var checkBoxArr = [];
   let active = false;
+  let owner = {
+    name: "",
+    email: "",
+    phone: ""
+  }
 
   resetState.subscribe((newValue) => {
     if (newValue !== false) {
@@ -140,6 +145,28 @@
       })
       .catch((error) => console.log(error.response));
   }
+
+  function getOwnerInfo(ownerEmail) {
+    const hds = {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+      auth: "agent",
+    }
+    console.log(ownerEmail)
+    axios
+      .get("http://localhost:8000/owner?owner=" + ownerEmail.replaceAll("@", "%40"), {
+        headers: hds,
+      })
+      .then((res) => {
+        console.log(res.status + " -- " + JSON.stringify(res.data));
+        console.log(res.data)
+        owner.name = res.data.name
+        owner.email = res.data.email
+        owner.phone = res.data.phone
+      })
+      .catch((error) => console.log(error.response));
+  }
 </script>
 
 <div class="container-fluid" class:active>
@@ -161,20 +188,22 @@
         <p>Property Type: {listing.propertyType ? "Apartment" : "Landed"}</p>
         <p>Listing Type: {listing.listingType ? "For Sale" : "For Rent"}</p>
         <p>
-          Owner: {listing.owner}
+          Owner: 
           <a
             data-bs-toggle="collapse"
             href="#ownerInfo"
             role="button"
             aria-expanded="false"
             aria-controls="collapseExample"
+            on:click|once={getOwnerInfo(listing.owner)}
           >
             Show info
           </a>
         </p>
         <div class="collapse" id="ownerInfo">
-          <p>Name: Simon the Bread Blender</p>
-          <p>Number: 011-777-8304</p>
+          <p>{owner.name}</p>
+          <p>{owner.email}</p>
+          <p>{owner.phone}</p>
         </div>
         <p>Available on: {listing.availableDate}</p>
         <!-- svelte-ignore a11y-missing-attribute -->
