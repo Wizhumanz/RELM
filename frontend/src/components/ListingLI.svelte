@@ -351,12 +351,7 @@
   }
 
   i {
-    animation: blinker 500ms cubic infinite;
-  }
-  @keyframes blinker {
-    50% {
-      opacity: 0;
-    }
+    margin: 1.5rem;
   }
 
   input.form-check-input {
