@@ -46,6 +46,7 @@ type User struct {
 	Email       string `json:"email"`
 	AccountType string `json:"type"`
 	Password    string `json:"password"`
+	PhoneNumber string `json:"phone"`
 }
 
 type TwilioReq struct {
@@ -135,11 +136,10 @@ func deleteElement(sli []Listing, del Listing) []Listing {
 
 // route handlers
 func getUserHandler(w http.ResponseWriter, r *http.Request) {
-
+	fmt.Println("working")
 	user := r.URL.Query().Get("owner")
 	if user == "" {
 		//Handle error.
-
 	}
 
 	var userWithEmail User
@@ -151,6 +151,9 @@ func getUserHandler(w http.ResponseWriter, r *http.Request) {
 		// Handle error.
 	}
 
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(userWithEmail)
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
