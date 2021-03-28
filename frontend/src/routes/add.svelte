@@ -90,81 +90,81 @@
 
     //converts images to base64 strings
     uploadImgs(),
-      setTimeout(function () {
-        if (loading) {
-          const hds = {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-            Expires: "0",
-            auth: user.password,
-          };
-          //Don't change any of these properties
-          let data = {
-            user: user.id, //get user.id from store.js
-            owner: owner,
-            name: name, //name of listings are immutable
-            address: address,
-            postcode: postcode,
-            area: area,
-            price: price.toString(),
-            propertyType: propertyType.toString(),
-            listingType: listingType.toString(),
-            availableDate: dateString.toString(),
-            isPublic: isPublic.toString(),
-            isCompleted: isCompleted.toString(),
-            isPending: isPending.toString(),
-            imgs: filesStr,
-          };
-          ownerInfo.email = owner;
-          axios
-            .post("https://relm-api.myika.co/user", ownerInfo, {
-              headers: hds,
-            })
-            .then((res) => {
-              console.log(res.status + " -- " + JSON.stringify(res.data));
-              ownerInfo = {
-                name: "",
-                email: "",
-                phone: "",
-              };
-            })
-            .catch((error) => console.log(error.response));
+    setTimeout(function () {
+      if (loading) {
+        const hds = {
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+          Expires: "0",
+          auth: user.password,
+        };
+        //Don't change any of these properties
+        let data = {
+          user: user.id, //get user.id from store.js
+          owner: owner,
+          name: name, //name of listings are immutable
+          address: address,
+          postcode: postcode,
+          area: area,
+          price: price.toString(),
+          propertyType: propertyType.toString(),
+          listingType: listingType.toString(),
+          availableDate: dateString.toString(),
+          isPublic: isPublic.toString(),
+          isCompleted: isCompleted.toString(),
+          isPending: isPending.toString(),
+          imgs: filesStr,
+        };
+        ownerInfo.email = owner;
+        axios
+          .post("https://relm-api.myika.co/user", ownerInfo, {
+            headers: hds,
+          })
+          .then((res) => {
+            console.log(res.status + " -- " + JSON.stringify(res.data));
+            ownerInfo = {
+              name: "",
+              email: "",
+              phone: "",
+            };
+          })
+          .catch((error) => console.log(error.response));
 
-          axios
-            .post("https://relm-api.myika.co/listing", data, {
-              headers: hds,
-            })
-            .then((res) => {
-              loading = false;
-              showAlert = "display: block;";
-              console.log(res.status + " -- " + JSON.stringify(res.data));
-              user.listings = [...user.listings, data];
-              console.log(user);
-              storeUser.set(JSON.stringify(user));
+        axios
+          .post("https://relm-api.myika.co/listing", data, {
+            headers: hds,
+          })
+          .then((res) => {
+            loading = false;
+            showAlert = "display: block;";
+            console.log(res.status + " -- " + JSON.stringify(res.data));
+            user.listings = [...user.listings, data];
+            console.log(user);
+            storeUser.set(JSON.stringify(user));
 
-              (now = new Date()), month, day, year;
-              files = "";
-              filesStr = [];
-              owner = "";
-              name = "";
-              address = "";
-              postcode = "";
-              area = "";
-              price = 1000;
-              propertyType;
-              listingType;
-              dateString;
-              isPublic = false;
-              isCompleted = false;
-              isPending = false;
+            (now = new Date()), month, day, year;
+            files = "";
+            filesStr = [];
+            owner = "";
+            name = "";
+            address = "";
+            postcode = "";
+            area = "";
+            price = 1000;
+            propertyType;
+            listingType;
+            dateString;
+            isPublic = false;
+            isCompleted = false;
+            isPending = false;
 
-              setTimeout(() => {
-                showAlert = "display: none;";
-              }, 7000);
-            })
-            .catch((error) => console.log(error.response));
+            setTimeout(() => {
+              showAlert = "display: none;";
+            }, 7000);
+          })
+          .catch((error) => console.log(error.response));
         }
-      }, 500);
+      }, 1000);
   }
 </script>
 
