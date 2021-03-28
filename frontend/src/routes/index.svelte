@@ -252,13 +252,18 @@
               </div>
               <div class="mb-3">
                 <label for="phone" class="form-label">Phone</label>
-                <input
-                  type="tel"
-                  pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
-                  class="form-control"
-                  id="phone"
-                  bind:value={userRegister.phone}
-                />
+                <ul id="phone">
+                  <li>+60-</li>
+                  <li>
+                    <input
+                      type="tel"
+                      pattern="[0-9]{(3, 4)}-[0-9]{4}"
+                      class="form-control"
+                      id="phone"
+                      bind:value={userRegister.phone}
+                    />
+                  </li>
+                </ul>
               </div>
               <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
@@ -320,6 +325,13 @@
 
   form {
     margin-top: 1rem;
+  }
+
+  #phone {
+    text-align: left;
+    li {
+      display: inline-block;
+    }
   }
 
   input {
