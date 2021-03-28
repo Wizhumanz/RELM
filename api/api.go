@@ -134,6 +134,24 @@ func deleteElement(sli []Listing, del Listing) []Listing {
 }
 
 // route handlers
+func getUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	user := r.URL.Query().Get("owner")
+	if user == "" {
+		//Handle error.
+
+	}
+
+	var userWithEmail User
+	query := datastore.NewQuery("User").
+		Filter("Email =", user)
+	t := client.Run(ctx, query)
+	_, error := t.Next(&userWithEmail)
+	if error != nil {
+		// Handle error.
+	}
+
+}
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	var data jsonResponse
@@ -586,6 +604,7 @@ func main() {
 	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)
 	router.Methods("POST").Path("/user").HandlerFunc(createNewUserHandler)
 	router.Methods("POST").Path("/owner").HandlerFunc(createNewUserHandler)
+	router.Methods("GET").Path("/owner").HandlerFunc(getUserHandler)
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
 	router.Methods("PUT").Path("/listing/{id}").HandlerFunc(updateListingHandler)
