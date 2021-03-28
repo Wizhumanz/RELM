@@ -260,6 +260,13 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		listingsResp = append(listingsResp, x)
 	}
 
+	//if no listings, return empty array
+	if len(listingsResp) == 0 {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(listingsResp)
+	}
+
 	//sum up event sourcing for listings
 	var existingListingsArr []Listing
 	for _, li := range listingsResp {
@@ -290,7 +297,10 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	listingsResp = existingListingsArr
 
 	//only get images for some listings
-	imgFetchListings := listingsResp[:4]
+	var imgFetchListings []Listing
+	if len(listingsResp) > 0 {
+		imgFetchListings = listingsResp[:4]
+	}
 
 	//cloud storage connection config
 	storageClient, _ := storage.NewClient(ctx)
