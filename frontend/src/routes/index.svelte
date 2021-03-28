@@ -53,9 +53,12 @@
 
       //MUST replace all '+' with '%2B'
       // let GETUrl = basicURL.split("+").join("%2B");
+      //let changedEndpoint = user.id.replaceAll("@","%40")
+      let changedEndpoint = "agent%40agent.com"
+      console.log(changedEndpoint)
       let url = onlyPublic
-        ? "https://relm-api.myika.co/listings?user=" + userLogin.email.replaceAll("@","%40") + "&isPublic=true"
-        : "https://relm-api.myika.co/listings?user=" + userLogin.email.replaceAll("@","%40");
+        ? "https://relm-api.myika.co/listings?user=" + changedEndpoint + "&isPublic=true"
+        : "https://relm-api.myika.co/listings?user=" + changedEndpoint;
       axios
         .get(url, {
           headers: hds,
@@ -129,6 +132,9 @@
         //TODO: further user flow for new registered user
         // storeUser.set(JSON.stringify(user));
         // goto("/listings/all");
+        user.id = userRegister.email
+        user.password = userRegister.password
+        storeUser.set(JSON.stringify(user));
         console.log(res.status + " -- " + res.data);
         goto("/listings/all");
       })

@@ -97,7 +97,7 @@
         "Cache-Control": "no-cache",
         Pragma: "no-cache",
         Expires: "0",
-        auth: "agent",
+        auth: user.password,
       };
       //Don't change any of these properties
       let data = {
