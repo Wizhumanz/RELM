@@ -52,7 +52,7 @@
 
       console.log(Math.round(file.size / 1024));
 
-      if (Math.round(file.size / 1024) > 300) {
+      if (Math.round(file.size / 1024) > 200) {
         fileSizeAlert = "display: block;";
         setTimeout(() => {
           fileSizeAlert = "display: none;";
@@ -258,7 +258,7 @@
               value=""
               bind:checked={isPublic}
             />
-            <label class="form-check-label" for="publicCheck"> Public </label>
+            <label class="form-check-label" for="publicCheck">Public</label>
           </div>
           <div class="form-check form-check-inline">
             <input
@@ -280,7 +280,7 @@
               value=""
               bind:checked={isPending}
             />
-            <label class="form-check-label" for="pendingCheck"> Pending </label>
+            <label class="form-check-label" for="pendingCheck">Pending</label>
           </div>
           <div>
             <button type="submit">Add</button>
@@ -289,7 +289,7 @@
             <p>Listing Added</p>
           </div>
           <div style={fileSizeAlert}>
-            <p>Image size too large. Each image size should be under 300KB.</p>
+            <p>Image size too large. Each image must be under 200KB.</p>
           </div>
         </form>
       </div>
