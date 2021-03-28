@@ -1,19 +1,19 @@
 <script>
+  import { goto } from "@sapper/app";
   import axios from "axios";
-  import { onMount } from "svelte";
   import { storeUser } from "../../store.js";
   import LoadingIndicator from "../components/LoadingIndicator.svelte";
 
-  let loading = false;
-
-  let showAlert = "display: none;";
-  let fileSizeAlert = "display: none;";
   let user = {};
   storeUser.subscribe((newValue) => {
     if (newValue) {
       user = JSON.parse(newValue);
     }
   });
+
+  let loading = false;
+  let showAlert = "display: none;";
+  let fileSizeAlert = "display: none;";
 
   let now = new Date(),
     month,

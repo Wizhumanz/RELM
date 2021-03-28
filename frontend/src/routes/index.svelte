@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from "svelte";
   import { goto } from "@sapper/app";
   import { storeUser } from "../../store.js";
   import Listings from "./listings/[slug].svelte";
@@ -16,6 +17,25 @@
     password: "",
     listings: [],
   };
+
+  onMount(() => {
+    //if user already logged in, go straight to all listings
+    user = storeUser;
+    if (user.listings && user.listings.length > 0) {
+      console.log("Using store listings");
+      if (typeof window !== "undefined") {
+        console.log(user);
+        goto("/listings/all");
+      }
+    } else {
+      console.log("Getting fresh listings");
+      getListings(true, null).then((res) => {
+        res.forEach((r) => {
+          console.log(r.KEY + "-" + r.imgs[0].substring(0, 40));
+        });
+      });
+    }
+  });
 
   //only for user login
   let userLogin = {
@@ -155,17 +175,6 @@
         goto("/listings/all");
       })
       .catch((error) => console.log(error));
-  }
-
-  //if user already logged in, go straight to all listings
-  user = storeUser;
-  if (user.listings && user.listings.length > 0) {
-    if (typeof window !== "undefined") {
-      goto("/listings/all");
-      console.log(user);
-    }
-  } else {
-    getListings(true, null).then((res) => console.log(res));
   }
 </script>
 

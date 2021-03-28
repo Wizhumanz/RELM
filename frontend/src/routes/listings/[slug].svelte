@@ -1,5 +1,5 @@
 <script>
-  import { stores } from "@sapper/app";
+  import { stores, goto } from "@sapper/app";
   import ListingLI from "../../components/ListingLI.svelte";
   import { storeUser, resetState, currentPage } from "../../../store.js";
   import LoadingIndicator from "../../components/LoadingIndicator.svelte";
@@ -14,14 +14,13 @@
 
   let user = {};
 
-  let loading = false;
-
   storeUser.subscribe((newValue) => {
     if (newValue) {
       user = JSON.parse(newValue);
     }
   });
 
+  let loading = false;
   let showPublic = false;
   let showCompleted = false;
   let showPending = false;

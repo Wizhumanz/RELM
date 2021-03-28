@@ -11,6 +11,7 @@ storeUser.subscribe(value => {
     //   storeListings.push(l);
     // });
     // user.listings = storeListings;
+    console.log(value)
     localStorage.setItem("user", value); //value already stringified before setting to store
   }
 });
