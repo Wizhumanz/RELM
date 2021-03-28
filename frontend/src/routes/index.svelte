@@ -3,10 +3,10 @@
   import { storeUser } from "../../store.js";
   import Listings from "./listings/[slug].svelte";
   import axios from "axios";
-  import LoadingIndicator from '../components/LoadingIndicator.svelte'
-  
+  import LoadingIndicator from "../components/LoadingIndicator.svelte";
+
   //For loading sign
-  let loading = false
+  let loading = false;
 
   let showAlert = "display: none;";
 
@@ -32,7 +32,7 @@
   };
 
   function getListings(onlyPublic) {
-    loading = true
+    loading = true;
     return new Promise((resolve, reject) => {
       //auth header
       const hds = onlyPublic
@@ -61,21 +61,25 @@
         })
         .then((res) => {
           user.listings = res.data;
-          user.listings.forEach((l) => {
-            l.isPublic = l.isPublic === "true" ? true : false;
-            l.isPending = l.isPending === "true" ? true : false;
-            l.isCompleted = l.isCompleted === "true" ? true : false;
-          });
-          loading = false
-          storeUser.set(JSON.stringify(user));
-          resolve(user.listings);
+          if (user.listings.length > 0) {
+            Array.from(user.listings).forEach((l) => {
+              if (l.name) {
+                l.isPublic = l.isPublic === "true" ? true : false;
+                l.isPending = l.isPending === "true" ? true : false;
+                l.isCompleted = l.isCompleted === "true" ? true : false;
+              }
+            });
+            storeUser.set(JSON.stringify(user));
+            resolve(user.listings);
+          }
+          loading = false;
         })
         .catch((error) => console.log(error));
     });
   }
 
   function signIn(e) {
-    loading = true
+    loading = true;
 
     const hds = {
       "Cache-Control": "no-cache",
@@ -94,7 +98,7 @@
         user.password = userLogin.password;
         //wait for fetch to complete before needed page reload
         getListings(false).then((fetchedListings) => {
-          loading = false
+          loading = false;
           goto("/listings/all");
           //document.location.reload();
         });
@@ -140,9 +144,8 @@
   }
 </script>
 
-
 {#if loading}
-  <LoadingIndicator/>
+  <LoadingIndicator />
 {/if}
 
 <main>
