@@ -46,6 +46,7 @@ type User struct {
 	Email       string `json:"email"`
 	AccountType string `json:"type"`
 	Password    string `json:"password"`
+	PhoneNumber string `json:"phone"`
 }
 
 type TwilioReq struct {
@@ -134,6 +135,26 @@ func deleteElement(sli []Listing, del Listing) []Listing {
 }
 
 // route handlers
+func getUserHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("working")
+	user := r.URL.Query().Get("owner")
+	if user == "" {
+		//Handle error.
+	}
+
+	var userWithEmail User
+	query := datastore.NewQuery("User").
+		Filter("Email =", user)
+	t := client.Run(ctx, query)
+	_, error := t.Next(&userWithEmail)
+	if error != nil {
+		// Handle error.
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(userWithEmail)
+}
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	var data jsonResponse
@@ -592,6 +613,7 @@ func main() {
 	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)
 	router.Methods("POST").Path("/user").HandlerFunc(createNewUserHandler)
 	router.Methods("POST").Path("/owner").HandlerFunc(createNewUserHandler)
+	router.Methods("GET").Path("/owner").HandlerFunc(getUserHandler)
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
 	router.Methods("PUT").Path("/listing/{id}").HandlerFunc(updateListingHandler)

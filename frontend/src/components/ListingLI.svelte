@@ -212,8 +212,6 @@
               <option value="1">For Sale</option>
             </select>
           </div>
-          <label for="owner">Owner: </label>
-          <input type="text" id="owner" bind:value={listing.owner} /><br />
           <label for="date">Available on: </label>
           <input type="text" id="date" bind:value={listing.availableDate} /><br
           />
