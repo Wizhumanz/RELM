@@ -142,17 +142,18 @@
       Expires: "0",
       auth: "agent",
     };
-    getOwnerInfo(user.id)
-    setTimeout( 
-    function () {let data = {
-      owner: listing.owner, 
-      message: `Hi ${listing.owner}, this is ${owner.name}.` +
-      ` Just wanted to ask you if your property at ${listing.address} is still available?` + 
-      ` Please text, WhatsApp, or call me at ${owner.phone} to reply.` + 
-      " Notification sent automatically from relm.myika.co."
+    getOwnerInfo(user.id);
+    setTimeout(function () {
+      let data = {
+        owner: listing.owner,
+        message:
+          `Hi ${listing.owner}, this is ${owner.name}.` +
+          ` Just wanted to ask you if your property at ${listing.address} is still available?` +
+          ` Please text, WhatsApp, or call me at ${owner.phone} to reply.` +
+          " Notification sent automatically from relm.myika.co.",
       };
-      console.log(data.message)}
-      ,500)
+      console.log(data.message);
+    }, 500);
     axios
       .post("https://relm-api.myika.co/twilio", data, {
         headers: hds,
@@ -170,7 +171,6 @@
       Expires: "0",
       auth: "agent",
     };
-    console.log(ownerEmail);
     axios
       .get(
         "https://relm-api.myika.co/owner?owner=" +

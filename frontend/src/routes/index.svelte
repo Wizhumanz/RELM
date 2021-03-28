@@ -103,25 +103,26 @@
       .then((res) => {
         user.id = userLogin.email;
         user.password = userLogin.password;
-        //wait for fetch to complete before needed page reload
         getListings(false, null).then((fetchedListings) => {
-          loading = false;
-          goto("/listings/all");
           //document.location.reload();
 
           //lazy load rest of images in background
           let imgFetchKey = "";
           Array.from(fetchedListings).forEach((l) => {
-            if (l.imgs[0].length < 25) {
+            console.log(l.imgs[0].length);
+            if (l.imgs[0].length < 40 && imgFetchKey === "") {
               imgFetchKey = l.KEY;
-              return;
             }
           });
           if (imgFetchKey != "") {
             getListings(false, imgFetchKey).then((all) => {
-              console.log(all);
+              console.log(user);
+              // document.location.reload();
             });
           }
+
+          loading = false;
+          goto("/listings/all");
         });
       })
       .catch((error) => {
