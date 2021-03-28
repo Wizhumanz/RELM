@@ -134,7 +134,19 @@ func deleteElement(sli []Listing, del Listing) []Listing {
 	return rSli
 }
 
+type checkerFunc func(Listing) bool
+
+func GetIndex(s []Listing, chk checkerFunc) int {
+	for i, li := range s {
+		if chk(li) {
+			return i
+		}
+	}
+	return 0
+}
+
 // route handlers
+
 func getUserHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("working")
 	user := r.URL.Query().Get("owner")
@@ -319,7 +331,15 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 
 	//only get images for some listings
 	var imgFetchListings []Listing
-	if len(listingsResp) > 0 {
+	var startAtID string //lazy loading
+	if len(listingsResp) > 0 && len(r.URL.Query()["startID"]) > 0 {
+		//start fetching images from last ID passed by client
+		startAtID = r.URL.Query()["startID"][0]
+		indexOfStartID := GetIndex(listingsResp, func(l Listing) bool {
+			return l.KEY == startAtID
+		})
+		imgFetchListings = listingsResp[indexOfStartID:]
+	} else if len(listingsResp) > 0 {
 		respLen := len(listingsResp)
 		if respLen > 4 {
 			respLen = 4
@@ -390,11 +410,19 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		li.Imgs = imgStrs
 		imgFilledListings = append(imgFilledListings, li)
 	}
-	//add img strs to response arr
+	//build resp array
 	var finalResp []Listing
-	for i, li := range listingsResp {
-		if (i < len(imgFilledListings)) && (imgFilledListings[i].KEY == li.KEY) {
-			finalResp = append(finalResp, imgFilledListings[i])
+	for _, li := range listingsResp {
+		//determine if current listing just got filled with imgs
+		filledListing := Listing{}
+		for _, f := range imgFilledListings {
+			if f.KEY == li.KEY {
+				filledListing = f
+			}
+		}
+		//return filled img listings
+		if filledListing.Name != "" {
+			finalResp = append(finalResp, filledListing)
 		} else {
 			finalResp = append(finalResp, li)
 		}
