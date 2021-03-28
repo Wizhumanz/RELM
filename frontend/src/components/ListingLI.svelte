@@ -231,6 +231,10 @@
             <p>{owner.email}</p>
             <p>{owner.phone}</p>
           </div>
+          <div>
+            <p>{listing.isPublic}</p>
+            <p>{listing.isCompleted}</p>
+          </div>
         {/if}
         <p>Available on: {listing.availableDate}</p>
         <!-- svelte-ignore a11y-missing-attribute -->
@@ -329,6 +333,7 @@
               value="option2"
               bind:checked={listing.isPending}
             />
+            <p>Pending</p>
           </div>
         {/if}
       {:else}
