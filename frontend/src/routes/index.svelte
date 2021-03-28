@@ -54,8 +54,7 @@
       //MUST replace all '+' with '%2B'
       // let GETUrl = basicURL.split("+").join("%2B");
       //let changedEndpoint = user.id.replaceAll("@","%40")
-      let changedEndpoint = "agent%40agent.com";
-      console.log(changedEndpoint);
+      let changedEndpoint = "agent%40agent.com"; //TODO: change to dynamic
       let url = onlyPublic
         ? "https://relm-api.myika.co/listings?user=" +
           changedEndpoint +
@@ -109,14 +108,12 @@
           //lazy load rest of images in background
           let imgFetchKey = "";
           Array.from(fetchedListings).forEach((l) => {
-            console.log(l.imgs[0].length);
             if (l.imgs[0].length < 40 && imgFetchKey === "") {
               imgFetchKey = l.KEY;
             }
           });
           if (imgFetchKey != "") {
             getListings(false, imgFetchKey).then((all) => {
-              console.log(user);
               // document.location.reload();
             });
           }

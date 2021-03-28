@@ -37,8 +37,8 @@
     name: "",
     email: "",
     phone: "",
-    type: "Owner"
-  }
+    type: "Owner",
+  };
 
   onMount(() => {
     (month = "" + (now.getMonth() + 1)),
@@ -55,8 +55,6 @@
     files = document.querySelector("[type=file]").files;
     for (let i = 0; i < files.length; i++) {
       let file = files[i];
-
-      console.log(Math.round(file.size / 1024));
 
       if (Math.round(file.size / 1024) > 200) {
         fileSizeAlert = "display: block;";
@@ -135,34 +133,33 @@
       //     headers: hds,
       //   })
       //   .then((res) => {
-          loading = false;
-          showAlert = "display: block;";
-          //console.log(res.status + " -- " + JSON.stringify(res.data));
-          user.listings = [...user.listings, data]
-          console.log(user)
-          storeUser.set(JSON.stringify(user));
+      loading = false;
+      showAlert = "display: block;";
+      //console.log(res.status + " -- " + JSON.stringify(res.data));
+      user.listings = [...user.listings, data];
+      storeUser.set(JSON.stringify(user));
 
-          (now = new Date()), month, day, year;
-          files = "";
-          filesStr = [];
-          owner = "";
-          name = "";
-          address = "";
-          postcode = "";
-          area = "";
-          price = 1000;
-          propertyType;
-          listingType;
-          dateString;
-          isPublic = false;
-          isCompleted = false;
-          isPending = false;
+      (now = new Date()), month, day, year;
+      files = "";
+      filesStr = [];
+      owner = "";
+      name = "";
+      address = "";
+      postcode = "";
+      area = "";
+      price = 1000;
+      propertyType;
+      listingType;
+      dateString;
+      isPublic = false;
+      isCompleted = false;
+      isPending = false;
 
-          setTimeout(() => {
-            showAlert = "display: none;";
-          }, 7000);
-        // })
-        // .catch((error) => console.log(error.response));
+      setTimeout(() => {
+        showAlert = "display: none;";
+      }, 7000);
+      // })
+      // .catch((error) => console.log(error.response));
     }
   }
 </script>
