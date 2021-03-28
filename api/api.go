@@ -299,7 +299,13 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	//only get images for some listings
 	var imgFetchListings []Listing
 	if len(listingsResp) > 0 {
-		imgFetchListings = listingsResp[:4]
+		respLen := len(listingsResp)
+		if respLen > 4 {
+			respLen = 4
+			imgFetchListings = listingsResp[:respLen]
+		} else {
+			imgFetchListings = listingsResp
+		}
 	}
 
 	//cloud storage connection config
@@ -366,7 +372,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	//add img strs to response arr
 	var finalResp []Listing
 	for i, li := range listingsResp {
-		if (i < (len(imgFilledListings) - 1)) && imgFilledListings[i].Name == li.Name {
+		if (i < len(imgFilledListings)) && (imgFilledListings[i].KEY == li.KEY) {
 			finalResp = append(finalResp, imgFilledListings[i])
 		} else {
 			finalResp = append(finalResp, li)
