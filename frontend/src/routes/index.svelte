@@ -110,6 +110,7 @@
       .catch((error) => {
         console.log(error);
         showAlert = "display: block;";
+        loading = false;
       });
   }
 
