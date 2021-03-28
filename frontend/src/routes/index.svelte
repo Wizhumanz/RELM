@@ -162,9 +162,10 @@
   if (user.listings && user.listings.length > 0) {
     if (typeof window !== "undefined") {
       goto("/listings/all");
+      console.log(user);
     }
   } else {
-    getListings(true, null);
+    getListings(true, null).then((res) => console.log(res));
   }
 </script>
 
