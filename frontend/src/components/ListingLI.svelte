@@ -41,11 +41,14 @@
   currentStatePending = listing.isPending;
 
   onMount(async () => {
-    let newImage = document.createElement("img");
-    newImage.src = "data:image/jpeg;base64," + listing.imgs[0];
-    newImage.style.maxWidth = "100%";
-    newImage.style.maxHeight = "auto";
-    document.getElementById(listing.name.split(" ").join("")).innerHTML = newImage.outerHTML;
+    if (listing.imgs && listing.imgs.length > 0) {
+      let newImage = document.createElement("img");
+      newImage.src = "data:image/jpeg;base64," + listing.imgs[0];
+      newImage.style.maxWidth = "100%";
+      newImage.style.maxHeight = "auto";
+      document.getElementById(listing.name.split(" ").join("")).innerHTML =
+        newImage.outerHTML;
+    }
   });
 
   const addListing = () => {
@@ -76,13 +79,15 @@
 
         // console.log("Before" + JSON.stringify(user.listings))
         let storeListings = [];
-        user.listings.forEach((l) => {
-          if (l.name == listing.name) {
-            storeListings.push(listing);
-          } else {
-            storeListings.push(l);
-          }
-        });
+        if (user.listings.length > 0) {
+          Array.from(user.listings).forEach((l) => {
+            if (l.name == listing.name) {
+              storeListings.push(listing);
+            } else {
+              storeListings.push(l);
+            }
+          });
+        }
         user.listings = storeListings;
         storeUser.set(JSON.stringify(user));
       })
@@ -140,7 +145,7 @@
 <div class="container-fluid" class:active>
   <div class="row">
     <div class="col-5">
-      <div id={listing.name.split(" ").join("")} />
+      <div id={listing.name ? listing.name.split(" ").join("") : ""} />
     </div>
     <div class="col-4">
       <h4>{listing.name}</h4>
@@ -153,13 +158,17 @@
             ? listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             : ""}
         </p>
-        <p>Property Type: {listing.propertyType? "Apartment" : "Landed"}</p>
-        <p>Listing Type: {listing.listingType? "For Sale" : "For Rent"}</p>
+        <p>Property Type: {listing.propertyType ? "Apartment" : "Landed"}</p>
+        <p>Listing Type: {listing.listingType ? "For Sale" : "For Rent"}</p>
         <p>Owner: {listing.owner}</p>
         <p>Available on: {listing.availableDate}</p>
         <!-- svelte-ignore a11y-missing-attribute -->
         {#if id && id !== ""}
-        <a class="editA" disabled={showEdit} on:click={() => (showEdit = true)}>Edit</a>
+          <a
+            class="editA"
+            disabled={showEdit}
+            on:click={() => (showEdit = true)}>Edit</a
+          >
         {/if}
       {:else}
         <form class="form" on:submit|preventDefault={addListing}>
@@ -277,8 +286,8 @@
 
   #imgDisplay {
     overflow: hidden;
-    display:block;
-    margin:auto;
+    display: block;
+    margin: auto;
   }
 
   input.form-check-input {
