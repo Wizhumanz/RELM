@@ -33,7 +33,6 @@
   let isPublic = false;
   let isCompleted = false;
   let isPending = false;
-
   let ownerInfo = {
     name: "",
     email: "",
@@ -116,32 +115,35 @@
         isPending: isPending.toString(),
         imgs: filesStr,
       };
-      ownerInfo.email = owner
-      axios
-        .post("http://localhost:8000/user", ownerInfo, {
-          headers: hds,
-        })
-        .then((res) => {
-          console.log(res.status + " -- " + JSON.stringify(res.data));
-          ownerInfo = {
-            name: "",
-            email: "",
-            phone: ""
-          }
-        })
-        .catch((error) => console.log(error.response))
+      // ownerInfo.email = owner
+      // axios
+      //   .post("http://localhost:8000/user", ownerInfo, {
+      //     headers: hds,
+      //   })
+      //   .then((res) => {
+      //     console.log(res.status + " -- " + JSON.stringify(res.data));
+      //     ownerInfo = {
+      //       name: "",
+      //       email: "",
+      //       phone: ""
+      //     }
+      //   })
+      //   .catch((error) => console.log(error.response))
 
-      axios
-        .post("http://localhost:8000/listing", data, {
-          headers: hds,
-        })
-        .then((res) => {
+      // axios
+      //   .post("http://localhost:8000/listing", data, {
+      //     headers: hds,
+      //   })
+      //   .then((res) => {
           loading = false;
           showAlert = "display: block;";
-          console.log(res.status + " -- " + JSON.stringify(res.data));
+          //console.log(res.status + " -- " + JSON.stringify(res.data));
+          user.listings = [...user.listings, data]
+          console.log(user)
+          storeUser.set(JSON.stringify(user));
 
           (now = new Date()), month, day, year;
-          files;
+          files = "";
           filesStr = [];
           owner = "";
           name = "";
@@ -159,8 +161,8 @@
           setTimeout(() => {
             showAlert = "display: none;";
           }, 7000);
-        })
-        .catch((error) => console.log(error.response));
+        // })
+        // .catch((error) => console.log(error.response));
     }
   }
 </script>
