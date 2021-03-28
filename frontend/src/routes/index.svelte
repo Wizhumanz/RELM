@@ -235,8 +235,8 @@
               <div class="mb-3">
                 <label for="accountType" class="form-label"> Type</label>
                 <select id="accountType" bind:value={userRegister.type}>
-                  <option value="Owner">Owner</option>
                   <option value="Agent">Agent</option>
+                  <option value="Owner">Owner</option>
                   <!-- <option value="Tenant">Tenant</option> -->
                 </select>
               </div>
