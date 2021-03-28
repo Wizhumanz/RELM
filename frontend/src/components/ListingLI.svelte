@@ -153,16 +153,14 @@
             ? listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             : ""}
         </p>
-        <p>Rent/Buy: {listing.rentBuyOption}</p>
-        <p>Property Type: {listing.propertyType}</p>
-        <p>Listing Type: {listing.listingType}</p>
+        <p>Property Type: {listing.propertyType? "Apartment" : "Landed"}</p>
+        <p>Listing Type: {listing.listingType? "For Sale" : "For Rent"}</p>
         <p>Owner: {listing.owner}</p>
-        <a href={listing.imgsL}>View Images</a>
         <p>Available on: {listing.availableDate}</p>
         <!-- svelte-ignore a11y-missing-attribute -->
-        <a class="editA" disabled={showEdit} on:click={() => (showEdit = true)}
-          >Edit</a
-        >
+        {#if id && id !== ""}
+        <a class="editA" disabled={showEdit} on:click={() => (showEdit = true)}>Edit</a>
+        {/if}
       {:else}
         <form class="form" on:submit|preventDefault={addListing}>
           <label for="address">Address:</label>

@@ -2,6 +2,7 @@
   import { stores } from "@sapper/app";
   import ListingLI from "../../components/ListingLI.svelte";
   import { storeUser, resetState, currentPage } from "../../../store.js";
+  import LoadingIndicator from '../../components/LoadingIndicator.svelte'
   const { page } = stores();
   import axios from "axios";
   var route;
@@ -12,6 +13,8 @@
   });
 
   let user = {};
+
+  let loading = false
 
   storeUser.subscribe((newValue) => {
     if (newValue) {
@@ -31,6 +34,7 @@
     //user.IsPending = user.isPending.toString()
     resetState.set(true);
 
+    loading = true
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
@@ -64,6 +68,7 @@
               }
             )
             .then((res) => {
+              loading = false
               console.log(res.status + " -- " + JSON.stringify(res.data));
             })
             .catch((error) => console.log(error.response));
@@ -72,6 +77,11 @@
     });
   }
 </script>
+
+<!--Loading Sign-->
+{#if loading}
+<LoadingIndicator/>
+{/if}
 
 <div class="container">
   {#if route == "all"}
@@ -168,6 +178,7 @@
     <button on:click={handleUpdateBtnClick}>Update Listings</button>
   {/if}
 </div>
+
 
 <style type="text/scss">
   @import "../../../static/styles/_all";

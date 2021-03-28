@@ -3,6 +3,10 @@
   import { storeUser } from "../../store.js";
   import Listings from "./listings/[slug].svelte";
   import axios from "axios";
+  import LoadingIndicator from '../components/LoadingIndicator.svelte'
+  
+  //For loading sign
+  let loading = false
 
   let showAlert = "display: none;";
 
@@ -28,6 +32,7 @@
   };
 
   function getListings(onlyPublic) {
+    loading = true
     return new Promise((resolve, reject) => {
       //auth header
       const hds = onlyPublic
@@ -61,7 +66,7 @@
             l.isPending = l.isPending === "true" ? true : false;
             l.isCompleted = l.isCompleted === "true" ? true : false;
           });
-
+          loading = false
           storeUser.set(JSON.stringify(user));
           resolve(user.listings);
         })
@@ -70,6 +75,8 @@
   }
 
   function signIn(e) {
+    loading = true
+
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
@@ -87,8 +94,9 @@
         user.password = userLogin.password;
         //wait for fetch to complete before needed page reload
         getListings(false).then((fetchedListings) => {
+          loading = false
           goto("/listings/all");
-          document.location.reload();
+          //document.location.reload();
         });
       })
       .catch((error) => {
@@ -131,6 +139,11 @@
     getListings(true);
   }
 </script>
+
+
+{#if loading}
+  <LoadingIndicator/>
+{/if}
 
 <main>
   <div class="container">

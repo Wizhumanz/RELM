@@ -1,53 +1,53 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width,initial-scale=1.0">
-	<meta name="theme-color" content="#333333">
-	<title>Listings Manager</title>
-	
-	%sapper.base%
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="theme-color" content="#333333">
+  <title>Listings Manager</title>
 
-	<link rel='icon' type='image/png' href='/favicon.png'>
-	<link rel='stylesheet' href='/build/bundle.css'>
+  %sapper.base%
 
-	<!-- Bootstrap 5 -->
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
-		integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
-	<!-- Google Fonts -->
-	<link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Alata&display=swap" rel="stylesheet">
-	<!-- Bootstrap icons -->
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css" />
-	<script defer src='/build/bundle.js'></script>
+  <link rel='icon' type='image/png' href='/favicon.png'>
+  <link rel='stylesheet' href='/build/bundle.css'>
 
-	<!-- Sapper creates a <script> tag containing `src/client.js`
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+  <!-- Bootstrap icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css" />
+  <script defer src='/build/bundle.js'></script>
+
+  <!-- Sapper creates a <script> tag containing `src/client.js`
 	     and anything else it needs to hydrate the app and
 	     initialise the router -->
-	%sapper.scripts%
+  %sapper.scripts%
 
-	<!-- Sapper generates a <style> tag containing critical CSS
+  <!-- Sapper generates a <style> tag containing critical CSS
 	     for the current page. CSS for the rest of the app is
 	     lazily loaded when it precaches secondary pages -->
-	%sapper.styles%
+  %sapper.styles%
 
-	<!-- This contains the contents of the <svelte:head> component, if
+  <!-- This contains the contents of the <svelte:head> component, if
 	     the current page has one -->
-	%sapper.head%
+  %sapper.head%
 </head>
+
 <body>
-	<!-- The application will be rendered inside this element,
+  <!-- The application will be rendered inside this element,
 	     because `src/client.js` references it -->
-	<div id="sapper">%sapper.html%</div>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
-		integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
-		crossorigin="anonymous"></script>
+  <div id="sapper">%sapper.html%</div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+    crossorigin="anonymous"></script>
 </body>
 
 <style>
-	* {
-		background-color: #fffff0;
-		color: black;
-	}
+  * {
+    background-color: #fffff0;
+    color: black;
+  }
 </style>
+
 </html>

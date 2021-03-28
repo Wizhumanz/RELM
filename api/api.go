@@ -93,6 +93,8 @@ func (l Listing) String() string {
 }
 
 var googleProjectID = "myika-relm"
+var client *datastore.Client
+var ctx context.Context
 
 // helper funcs
 
@@ -108,12 +110,6 @@ func CheckPasswordHash(password, hash string) bool {
 
 func authenticateUser(req loginReq) bool {
 	// get user with email
-	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, googleProjectID)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
 	var userWithEmail User
 	query := datastore.NewQuery("User").
 		Filter("Email =", req.Email)
@@ -193,12 +189,6 @@ func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 	newUser.Password, _ = HashPassword(newUser.Password)
 
 	// create new listing in DB
-	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, googleProjectID)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
 	kind := "User"
 	name := time.Now().Format("2006-01-02_15:04:05_-0700")
 	newUserKey := datastore.NameKey(kind, name, nil)
@@ -231,13 +221,6 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
 		return
-	}
-
-	//configs before running query
-	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, googleProjectID)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
 	}
 
 	var query *datastore.Query
@@ -306,8 +289,16 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	listingsResp = existingListingsArr
 
-	//get all images from cloud storage buckets
-	var imgFilledListings []Listing
+	//only get images for some listings
+	listingsResp = listingsResp[:4]
+
+	//cloud storage connection config
+	storageClient, _ := storage.NewClient(ctx)
+	defer storageClient.Close()
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+	//get images from cloud storage buckets
+	var imgFilledListings []Listing = []Listing{}
 	for _, li := range listingsResp {
 		imgArr := li.Imgs
 		if len(imgArr) <= 0 {
@@ -315,19 +306,9 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		bkt := li.Imgs[0]
 
-		//cloud storage connection config
-		ctx := context.Background()
-		client, err := storage.NewClient(ctx)
-		if err != nil {
-			//handle
-		}
-		defer client.Close()
-		ctx, cancel := context.WithTimeout(ctx, time.Second*10)
-		defer cancel()
-
 		//list all objects in bucket
-		var objNames []string
-		it := client.Bucket(bkt).Objects(ctx, nil)
+		var objNames []string = []string{}
+		it := storageClient.Bucket(bkt).Objects(ctx, nil)
 		for {
 			attrs, err := it.Next()
 			if err == iterator.Done {
@@ -336,24 +317,39 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				// return fmt.Errorf("Bucket(%q).Objects: %v", bkt, err)
 			}
-			objNames = append(objNames, attrs.Name)
+			if attrs != nil {
+				objNames = append(objNames, attrs.Name)
+			} else {
+				break
+			}
 		}
 
-		//download all objects, set as new img property for listing (decoded on client side)
+		//download first img, set as new img property for listing (decoded on client side)
 		var imgStrs []string
-		for _, obj := range objNames {
-			rc, err := client.Bucket(bkt).Object(obj).NewReader(ctx)
-			if err != nil {
-				// return nil, fmt.Errorf("Object(%q).NewReader: %v", obj, err)
-			}
+		if len(objNames) > 0 {
+			obj := objNames[0]
+			rc, _ := storageClient.Bucket(bkt).Object(obj).NewReader(ctx)
 			defer rc.Close()
 
-			imgByteArr, err := ioutil.ReadAll(rc)
-			if err != nil {
-				// return nil, fmt.Errorf("ioutil.ReadAll: %v", err)
-			}
+			imgByteArr, _ := ioutil.ReadAll(rc)
 			imgStrs = append(imgStrs, base64.StdEncoding.EncodeToString(imgByteArr))
 		}
+
+		// old GET all
+		// for _, obj := range objNames {
+		// 	rc, err := client.Bucket(bkt).Object(obj).NewReader(ctx)
+		// 	if err != nil {
+		// 		// return nil, fmt.Errorf("Object(%q).NewReader: %v", obj, err)
+		// 	}
+		// 	defer rc.Close()
+
+		// 	imgByteArr, err := ioutil.ReadAll(rc)
+		// 	if err != nil {
+		// 		// return nil, fmt.Errorf("ioutil.ReadAll: %v", err)
+		// 	}
+		// 	imgStrs = append(imgStrs, base64.StdEncoding.EncodeToString(imgByteArr))
+		// }
+
 		li.Imgs = imgStrs
 		imgFilledListings = append(imgFilledListings, li)
 	}
@@ -453,15 +449,10 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 	}
 
 	// create new listing in DB
-	clientAdd, err := datastore.NewClient(ctx, googleProjectID)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
 	kind := "Listing"
 	newListingKey := datastore.NameKey(kind, newListingName, nil)
 
-	if _, err := clientAdd.Put(ctx, newListingKey, &newListing); err != nil {
+	if _, err := client.Put(ctx, newListingKey, &newListing); err != nil {
 		log.Fatalf("Failed to save Listing: %v", err)
 	}
 
@@ -499,12 +490,6 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//get listing with ID
-	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, googleProjectID)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
 	query := datastore.NewQuery("Listing").
 		Filter("Name =", putID)
 	t := client.Run(ctx, query)
@@ -540,23 +525,26 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 	addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
 }
 
-var ownerNumber string
-
 func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
 	accountSid := "ACa59451c872071e8037cf59811057fd21"
 	authToken := "3b6a2f39bb05f5214283ef7bd6db973f"
 	urlStr := "https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
-	var twilioRes TwilioReq
+	var twilioReq TwilioReq
+
+	err := json.NewDecoder(r.Body).Decode(&twilioReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	v := url.Values{}
-	v.Set("To", ownerNumber)
+	v.Set("To", twilioReq.OwnerNumber)
 	v.Set("From", "+15076160092")
 	v.Set("Body", "Brooklyn's in the house!")
 	rb := *strings.NewReader(v.Encode())
 
 	// Create Client
 	client := &http.Client{}
-
 	req, _ := http.NewRequest("POST", urlStr, &rb)
 	req.SetBasicAuth(accountSid, authToken)
 	req.Header.Add("Accept", "application/json")
@@ -564,16 +552,17 @@ func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp, _ := client.Do(req)
 	fmt.Println(resp.Status)
-	err := json.NewDecoder(r.Body).Decode(&twilioRes)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	ownerNumber = twilioRes.OwnerNumber
-	fmt.Println(ownerNumber)
 }
 
 func main() {
+	//init
+	ctx = context.Background()
+	var err error
+	client, err = datastore.NewClient(ctx, googleProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
 	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)

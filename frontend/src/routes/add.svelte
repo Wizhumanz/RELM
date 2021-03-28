@@ -2,7 +2,12 @@
   import axios from "axios";
   import { onMount } from "svelte";
   import { storeUser } from "../../store.js";
+  import LoadingIndicator from "../components/LoadingIndicator.svelte";
 
+  let loading = false;
+
+  let showAlert = "display: none;";
+  let fileSizeAlert = "display: none;";
   let user = {};
   storeUser.subscribe((newValue) => {
     if (newValue) {
@@ -44,6 +49,17 @@
     files = document.querySelector("[type=file]").files;
     for (let i = 0; i < files.length; i++) {
       let file = files[i];
+
+      console.log(Math.round(file.size / 1024));
+
+      if (Math.round(file.size / 1024) > 300) {
+        fileSizeAlert = "display: block;";
+        setTimeout(() => {
+          fileSizeAlert = "display: none;";
+        }, 7000);
+        loading = false;
+      }
+
       //convert to base64 encoded string (pushed to filesStr)
       encodeImageFileAsURL(file);
     }
@@ -66,42 +82,72 @@
   }
 
   function addListing() {
+    loading = true;
+
     uploadImgs(); //converts images to base64 strings
+    if (loading) {
+      const hds = {
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+        Expires: "0",
+        auth: "agent",
+      };
+      //Don't change any of these properties
+      let data = {
+        user: user.id, //get user.id from store.js
+        owner: owner,
+        name: name, //name of listings are immutable
+        address: address,
+        postcode: postcode,
+        area: area,
+        price: price.toString(),
+        propertyType: propertyType.toString(),
+        listingType: listingType.toString(),
+        availableDate: dateString.toString(),
+        isPublic: isPublic.toString(),
+        isCompleted: isCompleted.toString(),
+        isPending: isPending.toString(),
+        imgs: filesStr,
+      };
 
-    const hds = {
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
-      auth: "agent",
-    };
-    //Don't change any of these properties
-    let data = {
-      user: user.id, //get user.id from store.js
-      owner: owner,
-      name: name, //name of listings are immutable
-      address: address,
-      postcode: postcode,
-      area: area,
-      price: price.toString(),
-      propertyType: propertyType.toString(),
-      listingType: listingType.toString(),
-      availableDate: dateString.toString(),
-      isPublic: isPublic.toString(),
-      isCompleted: isCompleted.toString(),
-      isPending: isPending.toString(),
-      imgs: filesStr,
-    };
+      axios
+        .post("https://relm-api.myika.co/listing", data, {
+          headers: hds,
+        })
+        .then((res) => {
+          loading = false;
+          showAlert = "display: block;";
+          console.log(res.status + " -- " + JSON.stringify(res.data));
 
-    axios
-      .post("https://relm-api.myika.co/listing", data, {
-        headers: hds,
-      })
-      .then((res) => {
-        console.log(res.status + " -- " + JSON.stringify(res.data));
-      })
-      .catch((error) => console.log(error.response));
+          (now = new Date()), month, day, year;
+          files;
+          filesStr = [];
+          owner = "";
+          name = "";
+          address = "";
+          postcode = "";
+          area = "";
+          price = 1000;
+          propertyType;
+          listingType;
+          dateString;
+          isPublic = false;
+          isCompleted = false;
+          isPending = false;
+
+          setTimeout(() => {
+            showAlert = "display: none;";
+          }, 7000);
+        })
+        .catch((error) => console.log(error.response));
+    }
   }
 </script>
+
+<!--Loading Sign-->
+{#if loading}
+  <LoadingIndicator />
+{/if}
 
 <div class="container">
   <h1 id="head">Add Listing</h1>
@@ -205,28 +251,45 @@
             </select>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input addCheckbox" id="publicCheck"
-              type="checkbox" value="" bind:checked={isPublic}>
-            <label class="form-check-label" for="publicCheck">
-              Public
-            </label>
+            <input
+              class="form-check-input addCheckbox"
+              id="publicCheck"
+              type="checkbox"
+              value=""
+              bind:checked={isPublic}
+            />
+            <label class="form-check-label" for="publicCheck"> Public </label>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input addCheckbox" id="completedCheck"
-              type="checkbox" value="" bind:checked={isCompleted}>
+            <input
+              class="form-check-input addCheckbox"
+              id="completedCheck"
+              type="checkbox"
+              value=""
+              bind:checked={isCompleted}
+            />
             <label class="form-check-label" for="completedCheck">
               Completed
             </label>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input addCheckbox" id="pendingCheck"
-              type="checkbox" value="" bind:checked={isPending}>
-            <label class="form-check-label" for="pendingCheck">
-              Pending
-            </label>
+            <input
+              class="form-check-input addCheckbox"
+              id="pendingCheck"
+              type="checkbox"
+              value=""
+              bind:checked={isPending}
+            />
+            <label class="form-check-label" for="pendingCheck"> Pending </label>
           </div>
           <div>
             <button type="submit">Add</button>
+          </div>
+          <div style={showAlert}>
+            <p>Listing Added</p>
+          </div>
+          <div style={fileSizeAlert}>
+            <p>Image size too large. Each image size should be under 300KB.</p>
           </div>
         </form>
       </div>

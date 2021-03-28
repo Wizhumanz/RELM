@@ -1,12 +1,15 @@
-//vars
+@import url("https://fonts.googleapis.com/css2?family=Alata&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Volkhov&display=swap");
+
+// vars
 
 $ivory: #fffff0;
 $cream: #fffdd0;
 $blood: #8a0000;
 $blue: #000058;
 
-$title-font: "Abril Fatface", cursive;
-$body-font: 'Alata', sans-serif;
+$title-font: "Volkhov", cursive;
+$body-font: "Alata", sans-serif;
 
 // BS5
 $grid-breakpoints: (
