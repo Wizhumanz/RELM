@@ -26,6 +26,7 @@
   //only for user register
   let userRegister = {
     email: "",
+    phone: null,
     name: "",
     type: "Owner",
     password: "",
@@ -240,7 +241,7 @@
                 </select>
               </div>
               <div class="mb-3">
-                <label for="email" class="form-label"> Name</label>
+                <label for="email" class="form-label">Name</label>
                 <input
                   type="text"
                   class="form-control"
@@ -250,7 +251,17 @@
                 />
               </div>
               <div class="mb-3">
-                <label for="email" class="form-label"> Email</label>
+                <label for="phone" class="form-label">Phone</label>
+                <input
+                  type="tel"
+                  pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                  class="form-control"
+                  id="phone"
+                  bind:value={userRegister.phone}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
                 <input
                   type="email"
                   class="form-control"
