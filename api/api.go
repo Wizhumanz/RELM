@@ -612,7 +612,6 @@ func main() {
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
 	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)
 	router.Methods("POST").Path("/user").HandlerFunc(createNewUserHandler)
-	router.Methods("POST").Path("/owner").HandlerFunc(createNewUserHandler)
 	router.Methods("GET").Path("/owner").HandlerFunc(getUserHandler)
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)

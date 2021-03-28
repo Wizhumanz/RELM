@@ -187,6 +187,7 @@
         </p>
         <p>Property Type: {listing.propertyType ? "Apartment" : "Landed"}</p>
         <p>Listing Type: {listing.listingType ? "For Sale" : "For Rent"}</p>
+        {#if id && id !== ""}
         <p>
           Owner: 
           <a
@@ -205,6 +206,7 @@
           <p>{owner.email}</p>
           <p>{owner.phone}</p>
         </div>
+        {/if}
         <p>Available on: {listing.availableDate}</p>
         <!-- svelte-ignore a11y-missing-attribute -->
         {#if id && id !== ""}

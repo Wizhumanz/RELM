@@ -26,7 +26,7 @@
   //only for user register
   let userRegister = {
     email: "",
-    phone: null,
+    phone: "",
     name: "",
     type: "Owner",
     password: "",
@@ -116,20 +116,21 @@
       Pragma: "no-cache",
       Expires: "0",
     };
-
     axios
-      .post("https://relm-api.myika.co/user", {
+      .post("http://localhost:8000/user", {
         headers: hds,
         name: userRegister.name,
         email: userRegister.email,
         type: userRegister.type,
         password: userRegister.password,
+        phone: userRegister.phone,
       })
       .then((res) => {
         //TODO: further user flow for new registered user
         // storeUser.set(JSON.stringify(user));
         // goto("/listings/all");
         console.log(res.status + " -- " + res.data);
+        goto("/listings/all");
       })
       .catch((error) => console.log(error));
   }
@@ -257,7 +258,6 @@
                   <li>
                     <input
                       type="tel"
-                      pattern="[0-9]{(3, 4)}-[0-9]{4}"
                       class="form-control"
                       id="phone"
                       bind:value={userRegister.phone}
