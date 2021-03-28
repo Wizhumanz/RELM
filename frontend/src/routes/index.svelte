@@ -117,7 +117,7 @@
       Expires: "0",
     };
     axios
-      .post("http://localhost:8000/user", {
+      .post("https://relm-api.myika.co/user", {
         headers: hds,
         name: userRegister.name,
         email: userRegister.email,
