@@ -237,7 +237,7 @@
                 <select id="accountType" bind:value={userRegister.type}>
                   <option value="Owner">Owner</option>
                   <option value="Agent">Agent</option>
-                  <option value="Tenant">Tenant</option>
+                  <!-- <option value="Tenant">Tenant</option> -->
                 </select>
               </div>
               <div class="mb-3">
