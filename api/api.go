@@ -134,7 +134,19 @@ func deleteElement(sli []Listing, del Listing) []Listing {
 	return rSli
 }
 
+type checkerFunc func(Listing) bool
+
+func GetIndex(s []Listing, chk checkerFunc) int {
+	for i, li := range s {
+		if chk(li) {
+			return i
+		}
+	}
+	return 0
+}
+
 // route handlers
+
 func getUserHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("working")
 	user := r.URL.Query().Get("owner")
@@ -319,7 +331,15 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 
 	//only get images for some listings
 	var imgFetchListings []Listing
-	if len(listingsResp) > 0 {
+	var lastListingID string //lazy loading
+	if len(listingsResp) > 0 && len(r.URL.Query()["lastID"]) > 0 {
+		//start fetching images from last ID passed by client
+		lastListingID = r.URL.Query()["lastID"][0]
+		indexOfLastID := GetIndex(listingsResp, func(l Listing) bool {
+			return l.KEY == lastListingID
+		})
+		imgFetchListings = listingsResp[indexOfLastID:]
+	} else if len(listingsResp) > 0 {
 		respLen := len(listingsResp)
 		if respLen > 4 {
 			respLen = 4
