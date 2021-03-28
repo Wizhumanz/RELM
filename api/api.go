@@ -290,7 +290,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	listingsResp = existingListingsArr
 
 	//only get images for some listings
-	listingsResp = listingsResp[:4]
+	imgFetchListings := listingsResp[:4]
 
 	//cloud storage connection config
 	storageClient, _ := storage.NewClient(ctx)
@@ -299,7 +299,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	//get images from cloud storage buckets
 	var imgFilledListings []Listing = []Listing{}
-	for _, li := range listingsResp {
+	for _, li := range imgFetchListings {
 		imgArr := li.Imgs
 		if len(imgArr) <= 0 {
 			continue
@@ -353,11 +353,19 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		li.Imgs = imgStrs
 		imgFilledListings = append(imgFilledListings, li)
 	}
-	listingsResp = imgFilledListings
+	//add img strs to response arr
+	var finalResp []Listing
+	for i, li := range listingsResp {
+		if (i < (len(imgFilledListings) - 1)) && imgFilledListings[i].Name == li.Name {
+			finalResp = append(finalResp, imgFilledListings[i])
+		} else {
+			finalResp = append(finalResp, li)
+		}
+	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(listingsResp)
+	json.NewEncoder(w).Encode(finalResp)
 }
 
 // almost identical logic with create and update (event sourcing)
