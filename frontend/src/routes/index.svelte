@@ -28,6 +28,7 @@
     } else {
       getListings(true, null).then((res) => {
         user.listings = res;
+        user.listings.reverse();
         // NOTE: only save public listings to store.js to trigger update in other components
         storeUser.set(JSON.stringify(user));
         // res.forEach((r) => {
@@ -56,6 +57,7 @@
 
   function saveUser(data) {
     user.listings = data;
+    user.listings.reverse();
     if (user.listings.length > 0) {
       Array.from(user.listings).forEach((l) => {
         if (l.KEY) {
