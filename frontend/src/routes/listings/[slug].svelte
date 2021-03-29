@@ -75,6 +75,14 @@
       }
     });
   }
+
+  $: if (route === "all") {
+    showPublic = false;
+    showPending = false;
+  } else if (route === "pending") {
+    showPublic = false;
+    showCompleted = false;
+  }
 </script>
 
 <!--Loading Sign-->
@@ -164,8 +172,15 @@
 
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
-      {#if (route === "pending" && l.isPending) || (showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted)}
-        <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
+      {#if (showPublic && l.isPublic && showCompleted && l.isCompleted) || (showPending && l.isPending && showPublic && l.isPublic)}
+        <ListingLI
+          id={user.id}
+          listing={l}
+          on:checkedChange={(e) => {
+            checkBoxArr = e.detail.arr;
+          }}
+        />
+      {:else if !(showPublic && showCompleted) && !(showPublic && showPending) && ((showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted && !showPending))}
         <ListingLI
           id={user.id}
           listing={l}
