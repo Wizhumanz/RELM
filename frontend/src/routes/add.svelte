@@ -135,11 +135,37 @@
               headers: hds,
             })
             .then((res) => {
+              console.log(res);
+
               loading = false;
               showAlert = "display: block;";
 
               //save new listing to local state
-              user.listings = [...user.listings, JSON.stringify(res.data.body)];
+              let localImgs = [];
+              Array.from(filesStr).forEach((imgStr) => {
+                if (imgStr != "") {
+                  //change img string for display on /listings
+                  localImgs.push(imgStr.substring(imgStr.indexOf(",") + 1));
+                }
+              });
+
+              let newListing = {
+                user: user.id, //get user.id from store.js
+                owner: owner,
+                name: name, //name of listings are immutable
+                address: address,
+                postcode: postcode,
+                area: area,
+                price: price.toString(),
+                propertyType: propertyType.toString(),
+                listingType: listingType.toString(),
+                availableDate: dateString.toString(),
+                isPublic: isPublic.toString(),
+                isCompleted: isCompleted.toString(),
+                isPending: isPending.toString(),
+                imgs: localImgs,
+              };
+              user.listings = [...user.listings, newListing];
               storeUser.set(JSON.stringify(user));
               console.log(user);
 
