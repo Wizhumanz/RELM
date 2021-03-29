@@ -13,7 +13,7 @@
   function logout() {
     storeUser.set("");
     goto("/");
-    document.location.reload();
+    // document.location.reload();
   }
 
   //css

@@ -22,16 +22,18 @@
     //if user already logged in, go straight to all listings
     user = storeUser;
     if (user.listings && user.listings.length > 0) {
-      console.log("Using store listings");
       if (typeof window !== "undefined") {
-        console.log(user);
         goto("/listings/all");
       }
     } else {
-      console.log("Getting fresh listings");
       getListings(true, null).then((res) => {
+        user.listings = res;
+        // NOTE: only save public listings to store.js to trigger update in other components
+        storeUser.set(JSON.stringify(user));
         res.forEach((r) => {
-          console.log(r.KEY + "-" + r.imgs[0].substring(0, 40));
+          console.log(
+            "PUBLIC GET: " + r.KEY + "-" + r.imgs[0].substring(0, 40)
+          );
         });
       });
     }
@@ -52,8 +54,21 @@
     password: "",
   };
 
+  function saveUser(data) {
+    user.listings = data;
+    if (user.listings.length > 0) {
+      Array.from(user.listings).forEach((l) => {
+        if (l.KEY) {
+          l.isPublic = l.isPublic === "true" ? true : false;
+          l.isPending = l.isPending === "true" ? true : false;
+          l.isCompleted = l.isCompleted === "true" ? true : false;
+        }
+      });
+      storeUser.set(JSON.stringify(user));
+    }
+  }
+
   function getListings(onlyPublic, startID) {
-    loading = true;
     return new Promise((resolve, reject) => {
       //auth header
       const hds = onlyPublic
@@ -86,19 +101,9 @@
           headers: hds,
         })
         .then((res) => {
-          user.listings = res.data;
-          if (user.listings.length > 0) {
-            Array.from(user.listings).forEach((l) => {
-              if (l.name) {
-                l.isPublic = l.isPublic === "true" ? true : false;
-                l.isPending = l.isPending === "true" ? true : false;
-                l.isCompleted = l.isCompleted === "true" ? true : false;
-              }
-            });
-            storeUser.set(JSON.stringify(user));
-            resolve(user.listings);
+          if (res.data) {
+            resolve(res.data);
           }
-          loading = false;
         })
         .catch((error) => console.log(error));
     });
@@ -123,7 +128,8 @@
         user.id = userLogin.email;
         user.password = userLogin.password;
         getListings(false, null).then((fetchedListings) => {
-          //document.location.reload();
+          //save GET to local state + storage
+          saveUser(fetchedListings);
 
           //lazy load rest of images in background
           let imgFetchKey = "";
@@ -134,7 +140,8 @@
           });
           if (imgFetchKey != "") {
             getListings(false, imgFetchKey).then((all) => {
-              // document.location.reload();
+              saveUser(all);
+              document.location.reload();
             });
           }
 
@@ -165,9 +172,6 @@
         phone: userRegister.phone,
       })
       .then((res) => {
-        //TODO: further user flow for new registered user
-        // storeUser.set(JSON.stringify(user));
-        // goto("/listings/all");
         user.id = userRegister.email;
         user.password = userRegister.password;
         storeUser.set(JSON.stringify(user));

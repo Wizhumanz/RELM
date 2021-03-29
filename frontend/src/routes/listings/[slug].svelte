@@ -174,7 +174,7 @@
       {/if}
     {/each}
   {:else}
-    <p>Error: No listings to show.</p>
+    <p>Loading...</p>
   {/if}
 
   {#if user.id && user.id !== "" && checkBoxArr.length > 0}

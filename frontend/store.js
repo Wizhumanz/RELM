@@ -1,9 +1,11 @@
 import { writable } from 'svelte/store'
 
-var user = typeof window !== 'undefined' ? localStorage.getItem("user") : "";
+var user = (typeof window !== 'undefined') && (localStorage.getItem("user"))
+  ? localStorage.getItem("user")
+  : "";
 export var storeUser = writable(user)
 storeUser.subscribe(value => {
-  if (typeof window !== 'undefined' && user && user.listings) {
+  if (typeof window !== 'undefined') {
     // strip images
     // let storeListings = [];
     // value.listings.forEach((l) => {
@@ -11,7 +13,6 @@ storeUser.subscribe(value => {
     //   storeListings.push(l);
     // });
     // user.listings = storeListings;
-    console.log(value)
     localStorage.setItem("user", value); //value already stringified before setting to store
   }
 });
