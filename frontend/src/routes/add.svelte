@@ -169,7 +169,10 @@
               storeUser.set(JSON.stringify(user));
               console.log(user);
 
+              //reset inputs
               (now = new Date()), month, day, year;
+              files = document.querySelector("[type=file]");
+              files.value = null;
               files = "";
               filesStr = [];
               owner = "";
