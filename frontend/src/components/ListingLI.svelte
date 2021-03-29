@@ -245,7 +245,7 @@
         <!-- svelte-ignore a11y-missing-attribute -->
         {#if id && id !== ""}
           <a
-            class="editA"
+            class="smallLink"
             disabled={showEdit}
             on:click={() => (showEdit = true)}>Edit</a
           >
@@ -325,10 +325,16 @@
           </div>
 
           <div class="form-check form-check-inline">
-            <button id="inlineCheckbox3" on:click={checkAvailability}>
-              Check Availability
-            </button>
+            <button on:click={checkAvailability}>Check Availability</button>
           </div>
+          <!-- svelte-ignore a11y-missing-attribute -->
+          <a class="smallLink" on:click={() => console.log("iProperty")}
+            >Publish on iProperty</a
+          >
+          <!-- svelte-ignore a11y-missing-attribute -->
+          <a class="smallLink" on:click={() => console.log("PropertyGuru")}
+            >Publish on PropertyGuru</a
+          >
         {:else}
           <div class="form-check form-check-inline">
             <input
@@ -381,11 +387,12 @@
     margin: 1rem auto;
   }
 
-  .editA {
+  .smallLink {
     height: fit-content;
     color: $blue;
     font-style: italic;
     margin-top: 0.5rem;
+    display: block;
   }
 
   a {
