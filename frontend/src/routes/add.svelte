@@ -135,8 +135,6 @@
               headers: hds,
             })
             .then((res) => {
-              console.log(res);
-
               loading = false;
               showAlert = "display: block;";
 
@@ -167,7 +165,6 @@
               };
               user.listings = [...user.listings, newListing];
               storeUser.set(JSON.stringify(user));
-              console.log(user);
 
               //reset inputs
               (now = new Date()), month, day, year;

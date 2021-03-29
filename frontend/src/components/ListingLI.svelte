@@ -152,7 +152,6 @@
           ` Please text, WhatsApp, or call me at ${owner.phone} to reply.` +
           " Notification sent automatically from relm.myika.co.",
       };
-      console.log(data.message);
     }, 500);
     axios
       .post("https://relm-api.myika.co/twilio", data, {
@@ -181,7 +180,6 @@
       )
       .then((res) => {
         console.log(res.status + " -- " + JSON.stringify(res.data));
-        console.log(res.data);
         owner.name = res.data.name;
         owner.email = res.data.email;
         owner.phone = res.data.phone;
