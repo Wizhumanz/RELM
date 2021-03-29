@@ -30,11 +30,11 @@
         user.listings = res;
         // NOTE: only save public listings to store.js to trigger update in other components
         storeUser.set(JSON.stringify(user));
-        res.forEach((r) => {
-          console.log(
-            "PUBLIC GET: " + r.KEY + "-" + r.imgs[0].substring(0, 40)
-          );
-        });
+        // res.forEach((r) => {
+        //   console.log(
+        //     "PUBLIC GET: " + r.KEY + "-" + r.imgs[0].substring(0, 40)
+        //   );
+        // });
       });
     }
   });
