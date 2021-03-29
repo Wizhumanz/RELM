@@ -13,7 +13,7 @@
   });
 
   let user = {};
-
+  let boolLogic = true
   let loading = false;
 
   storeUser.subscribe((newValue) => {
@@ -75,6 +75,14 @@
         }, 5000);
       }
     });
+  }
+
+  $: if (route === "all") {
+    showPublic = false
+    showPending = false
+  } else if (route === "pending") {
+    showPublic = false
+    showCompleted = false
   }
 </script>
 
@@ -165,25 +173,16 @@
 
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
-      {#if (showPublic && showCompleted)}
-      <ListingLI
-          id={user.id}
-          listing={l}
-          on:checkedChange={(e) => (checkBoxArr = e.detail.arr)}
-        />
+      {#if ((showPublic && l.isPublic) && (showCompleted && l.isCompleted)) || 
+      ((showPending && l.isPending) && (showPublic && l.isPublic))}
+        <ListingLI id={user.id} listing={l} on:checkedChange={(e) => {checkBoxArr = e.detail.arr}}/>
 
-      {:else if (route === "pending" && l.isPending) || 
-      (showPending && l.isPending) || 
+      {:else if (!(showPublic && showCompleted)) && (!(showPublic && showPending)) && 
+      ((showPending && l.isPending) || 
       (showPublic && l.isPublic) || 
       (showCompleted && l.isCompleted) || 
-      (!showPublic && !showCompleted) || 
-      (showPublic && showCompleted)}
-        <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
-        <ListingLI
-          id={user.id}
-          listing={l}
-          on:checkedChange={(e) => (checkBoxArr = e.detail.arr)}
-        />
+      (!showPublic && !showCompleted && !showPending))}
+        <ListingLI id={user.id} listing={l} on:checkedChange={(e) => (checkBoxArr = e.detail.arr)}/>
       {/if}
     {/each}
   {:else}
