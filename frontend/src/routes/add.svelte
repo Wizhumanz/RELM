@@ -1,19 +1,20 @@
 <script>
-  import axios from "axios";
   import { onMount } from "svelte";
+  import { goto } from "@sapper/app";
+  import axios from "axios";
   import { storeUser } from "../../store.js";
   import LoadingIndicator from "../components/LoadingIndicator.svelte";
 
-  let loading = false;
-
-  let showAlert = "display: none;";
-  let fileSizeAlert = "display: none;";
   let user = {};
   storeUser.subscribe((newValue) => {
     if (newValue) {
       user = JSON.parse(newValue);
     }
   });
+
+  let loading = false;
+  let showAlert = "display: none;";
+  let fileSizeAlert = "display: none;";
 
   let now = new Date(),
     month,
@@ -33,6 +34,12 @@
   let isPublic = false;
   let isCompleted = false;
   let isPending = false;
+  let ownerInfo = {
+    name: "",
+    email: "",
+    phone: "",
+    type: "Owner",
+  };
 
   onMount(() => {
     (month = "" + (now.getMonth() + 1)),
@@ -49,8 +56,6 @@
     files = document.querySelector("[type=file]").files;
     for (let i = 0; i < files.length; i++) {
       let file = files[i];
-
-      console.log(Math.round(file.size / 1024));
 
       if (Math.round(file.size / 1024) > 200) {
         fileSizeAlert = "display: block;";
@@ -84,63 +89,109 @@
   function addListing() {
     loading = true;
 
-    uploadImgs(); //converts images to base64 strings
-    if (loading) {
-      const hds = {
-        "Cache-Control": "no-cache",
-        Pragma: "no-cache",
-        Expires: "0",
-        auth: "agent",
-      };
-      //Don't change any of these properties
-      let data = {
-        user: user.id, //get user.id from store.js
-        owner: owner,
-        name: name, //name of listings are immutable
-        address: address,
-        postcode: postcode,
-        area: area,
-        price: price.toString(),
-        propertyType: propertyType.toString(),
-        listingType: listingType.toString(),
-        availableDate: dateString.toString(),
-        isPublic: isPublic.toString(),
-        isCompleted: isCompleted.toString(),
-        isPending: isPending.toString(),
-        imgs: filesStr,
-      };
+    //converts images to base64 strings
+    uploadImgs(),
+      setTimeout(function () {
+        if (loading) {
+          const hds = {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+            Expires: "0",
+            auth: user.password,
+          };
+          //Don't change any of these properties
+          let data = {
+            user: user.id, //get user.id from store.js
+            owner: owner,
+            name: name, //name of listings are immutable
+            address: address,
+            postcode: postcode,
+            area: area,
+            price: price.toString(),
+            propertyType: propertyType.toString(),
+            listingType: listingType.toString(),
+            availableDate: dateString.toString(),
+            isPublic: isPublic.toString(),
+            isCompleted: isCompleted.toString(),
+            isPending: isPending.toString(),
+            imgs: filesStr,
+          };
+          ownerInfo.email = owner;
+          axios
+            .post("https://relm-api.myika.co/user", ownerInfo, {
+              headers: hds,
+            })
+            .then((res) => {
+              ownerInfo = {
+                name: "",
+                email: "",
+                phone: "",
+              };
+            })
+            .catch((error) => console.log(error.response));
 
-      axios
-        .post("https://relm-api.myika.co/listing", data, {
-          headers: hds,
-        })
-        .then((res) => {
-          loading = false;
-          showAlert = "display: block;";
-          console.log(res.status + " -- " + JSON.stringify(res.data));
+          axios
+            .post("https://relm-api.myika.co/listing", data, {
+              headers: hds,
+            })
+            .then((res) => {
+              loading = false;
+              showAlert = "display: block;";
 
-          (now = new Date()), month, day, year;
-          files;
-          filesStr = [];
-          owner = "";
-          name = "";
-          address = "";
-          postcode = "";
-          area = "";
-          price = 1000;
-          propertyType;
-          listingType;
-          dateString;
-          isPublic = false;
-          isCompleted = false;
-          isPending = false;
+              //save new listing to local state
+              let localImgs = [];
+              Array.from(filesStr).forEach((imgStr) => {
+                if (imgStr != "") {
+                  //change img string for display on /listings
+                  localImgs.push(imgStr.substring(imgStr.indexOf(",") + 1));
+                }
+              });
 
-          setTimeout(() => {
-            showAlert = "display: none;";
-          }, 7000);
-        })
-        .catch((error) => console.log(error.response));
-    }
+              let newListing = {
+                user: user.id, //get user.id from store.js
+                owner: owner,
+                name: name, //name of listings are immutable
+                address: address,
+                postcode: postcode,
+                area: area,
+                price: price.toString(),
+                propertyType: propertyType.toString(),
+                listingType: listingType.toString(),
+                availableDate: dateString.toString(),
+                isPublic: isPublic.toString(),
+                isCompleted: isCompleted.toString(),
+                isPending: isPending.toString(),
+                imgs: localImgs,
+              };
+              user.listings = [...user.listings, newListing];
+              storeUser.set(JSON.stringify(user));
+
+              //reset inputs
+              (now = new Date()), month, day, year;
+              files = document.querySelector("[type=file]");
+              files.value = null;
+              files = "";
+              filesStr = [];
+              owner = "";
+              name = "";
+              address = "";
+              postcode = "";
+              area = "";
+              price = 1000;
+              propertyType;
+              listingType;
+              dateString;
+              isPublic = false;
+              isCompleted = false;
+              isPending = false;
+
+              setTimeout(() => {
+                showAlert = "display: none;";
+              }, 7000);
+            })
+            .catch((error) => console.log(error.response));
+        }
+      }, 1000);
   }
 </script>
 
@@ -150,7 +201,10 @@
 {/if}
 
 <div class="container">
-  <h1 id="head">Add Listing</h1>
+  <div id="head">
+    <h1>Add Listing</h1>
+    <p>All fields are required.</p>
+  </div>
 
   <div class="row">
     <div class="col-sm col-md-3">
@@ -162,134 +216,179 @@
         <!-- <div id="imgDisplay"></div> -->
         <form method="post" enctype="multipart/form-data">
           <label for="fileUpload" class="form-label">Upload Images</label>
-          <input id="fileUpload" type="file" name="files[]" multiple />
+          <input
+            id="fileUpload"
+            type="file"
+            name="files[]"
+            multiple
+            required="required"
+          />
         </form>
         <form class="form" on:submit|preventDefault={addListing}>
           <div class="mb-3">
-            <label for="owner" class="form-label">Owner</label>
+            <label for="ownerName" class="form-label">Owner Name</label>
             <input
+              required="required"
               type="text"
               class="form-control"
-              id="owner"
-              placeholder="owner@owner.com"
-              bind:value={owner}
+              id="ownerName"
+              placeholder="Rahul"
+              bind:value={ownerInfo.name}
             />
-          </div>
-          <div class="mb-3">
-            <label for="name" class="form-label">Name</label>
-            <input
-              type="text"
-              class="form-control"
-              id="name"
-              placeholder="Premium Condo"
-              bind:value={name}
-            />
-          </div>
-          <div class="mb-3">
-            <label for="address" class="form-label">Address</label>
-            <input
-              type="text"
-              class="form-control"
-              id="address"
-              placeholder="38-A Skyhome, Jalan Tanjung Tokong"
-              bind:value={address}
-            />
-          </div>
-          <div class="mb-3">
-            <label for="area" class="form-label">Area</label>
-            <input
-              type="text"
-              class="form-control"
-              id="area"
-              placeholder="Teluk Bahang"
-              bind:value={area}
-            />
-          </div>
-          <div class="mb-3">
-            <label for="postcode" class="form-label">Postcode</label>
-            <input
-              type="text"
-              class="form-control"
-              id="postcode"
-              placeholder="10130"
-              bind:value={postcode}
-            />
-          </div>
-          <div class="mb-3">
-            <label for="availableDate" class="form-label">Available Date</label>
-            <input id="availableDate" type="date" bind:value={dateString} />
-          </div>
-          <div class="mb-3">
-            <label for="price" class="form-label">Price</label>
-            <input
-              type="number"
-              class="form-control"
-              id="price"
-              bind:value={price}
-            />
-          </div>
-          <div class="mb-3">
-            <label for="listingType" class="form-label">Listing Type</label>
-            <select
-              id="listingType"
-              class="form-select"
-              bind:value={listingType}
-            >
-              <option value="0">For Rent</option>
-              <option value="1">For Sale</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="propertyType" class="form-label">Property Type</label>
-            <select
-              id="propertyType"
-              class="form-select"
-              bind:value={propertyType}
-            >
-              <option value="0">Landed</option>
-              <option value="1">Apartment</option>
-            </select>
-          </div>
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input addCheckbox"
-              id="publicCheck"
-              type="checkbox"
-              value=""
-              bind:checked={isPublic}
-            />
-            <label class="form-check-label" for="publicCheck">Public</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input addCheckbox"
-              id="completedCheck"
-              type="checkbox"
-              value=""
-              bind:checked={isCompleted}
-            />
-            <label class="form-check-label" for="completedCheck">
-              Completed
-            </label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input addCheckbox"
-              id="pendingCheck"
-              type="checkbox"
-              value=""
-              bind:checked={isPending}
-            />
-            <label class="form-check-label" for="pendingCheck">Pending</label>
-          </div>
-          <div>
-            <button type="submit">Add</button>
-          </div>
-          <div style={showAlert}>
-            <p>Listing Added</p>
-          </div>
-          <div style={fileSizeAlert}>
-            <p>Image size too large. Each image must be under 200KB.</p>
+            <div class="mb-3">
+              <label for="ownerEmail" class="form-label">Owner Email</label>
+              <input
+                required="required"
+                type="text"
+                class="form-control"
+                id="ownerEmail"
+                placeholder="owner@owner.com"
+                bind:value={owner}
+              />
+              <div class="mb-3">
+                <label for="ownerPhone" class="form-label">Owner Phone</label>
+                <input
+                  required="required"
+                  type="text"
+                  class="form-control"
+                  id="ownerPhone"
+                  placeholder="01247788745"
+                  bind:value={ownerInfo.phone}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="name" class="form-label">Property Name</label>
+                <input
+                  required="required"
+                  type="text"
+                  class="form-control"
+                  id="name"
+                  placeholder="Premium Condo"
+                  bind:value={name}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="address" class="form-label">Address</label>
+                <input
+                  required="required"
+                  type="text"
+                  class="form-control"
+                  id="address"
+                  placeholder="38-A Skyhome, Jalan Tanjung Tokong"
+                  bind:value={address}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="area" class="form-label">Area</label>
+                <input
+                  required="required"
+                  type="text"
+                  class="form-control"
+                  id="area"
+                  placeholder="Teluk Bahang"
+                  bind:value={area}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="postcode" class="form-label">Postcode</label>
+                <input
+                  required="required"
+                  type="text"
+                  class="form-control"
+                  id="postcode"
+                  placeholder="10130"
+                  bind:value={postcode}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="availableDate" class="form-label"
+                  >Available Date</label
+                >
+                <input
+                  required="required"
+                  id="availableDate"
+                  type="date"
+                  bind:value={dateString}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="price" class="form-label">Price</label>
+                <input
+                  required="required"
+                  type="number"
+                  class="form-control"
+                  id="price"
+                  bind:value={price}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="listingType" class="form-label">Listing Type</label>
+                <select
+                  id="listingType"
+                  class="form-select"
+                  bind:value={listingType}
+                >
+                  <option value="0">For Rent</option>
+                  <option value="1">For Sale</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="propertyType" class="form-label"
+                  >Property Type</label
+                >
+                <select
+                  id="propertyType"
+                  class="form-select"
+                  bind:value={propertyType}
+                >
+                  <option value="0">Landed</option>
+                  <option value="1">Apartment</option>
+                </select>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input addCheckbox"
+                  id="publicCheck"
+                  type="checkbox"
+                  value=""
+                  bind:checked={isPublic}
+                />
+                <label class="form-check-label" for="publicCheck">Public</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input addCheckbox"
+                  id="completedCheck"
+                  type="checkbox"
+                  value=""
+                  bind:checked={isCompleted}
+                />
+                <label class="form-check-label" for="completedCheck">
+                  Completed
+                </label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input addCheckbox"
+                  id="pendingCheck"
+                  type="checkbox"
+                  value=""
+                  bind:checked={isPending}
+                />
+                <label class="form-check-label" for="pendingCheck"
+                  >Pending</label
+                >
+              </div>
+              <div>
+                <button type="submit">Add</button>
+              </div>
+              <div style={showAlert}>
+                <p>Listing added!</p>
+              </div>
+              <div style={fileSizeAlert}>
+                <p>Image size too large. Each image must be under 200KB.</p>
+              </div>
+            </div>
           </div>
         </form>
       </div>
@@ -307,6 +406,9 @@
 
   #head {
     margin-bottom: 2rem;
+    p {
+      color: $blood;
+    }
   }
 
   #manual-add-box {

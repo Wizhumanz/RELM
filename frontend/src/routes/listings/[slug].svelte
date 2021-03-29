@@ -1,8 +1,8 @@
 <script>
-  import { stores } from "@sapper/app";
+  import { stores, goto } from "@sapper/app";
   import ListingLI from "../../components/ListingLI.svelte";
   import { storeUser, resetState, currentPage } from "../../../store.js";
-  import LoadingIndicator from '../../components/LoadingIndicator.svelte'
+  import LoadingIndicator from "../../components/LoadingIndicator.svelte";
   const { page } = stores();
   import axios from "axios";
   var route;
@@ -14,14 +14,13 @@
 
   let user = {};
 
-  let loading = false
-
   storeUser.subscribe((newValue) => {
     if (newValue) {
       user = JSON.parse(newValue);
     }
   });
 
+  let loading = false;
   let showPublic = false;
   let showCompleted = false;
   let showPending = false;
@@ -34,7 +33,7 @@
     //user.IsPending = user.isPending.toString()
     resetState.set(true);
 
-    loading = true
+    loading = true;
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
@@ -68,7 +67,7 @@
               }
             )
             .then((res) => {
-              loading = false
+              loading = false;
               console.log(res.status + " -- " + JSON.stringify(res.data));
             })
             .catch((error) => console.log(error.response));
@@ -76,11 +75,19 @@
       }
     });
   }
+
+  $: if (route === "all") {
+    showPublic = false;
+    showPending = false;
+  } else if (route === "pending") {
+    showPublic = false;
+    showCompleted = false;
+  }
 </script>
 
 <!--Loading Sign-->
 {#if loading}
-<LoadingIndicator/>
+  <LoadingIndicator />
 {/if}
 
 <div class="container">
@@ -165,20 +172,30 @@
 
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
-      {#if (route === "pending" && l.isPending) || (showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted)}
-        <!-- {#if (route === "pending" && l.isPending === "true") || true} -->
-        <ListingLI id={user.id} listing={l} on:checkedChange={(e) => checkBoxArr = e.detail.arr} />
+      {#if (showPublic && l.isPublic && showCompleted && l.isCompleted) || (showPending && l.isPending && showPublic && l.isPublic)}
+        <ListingLI
+          id={user.id}
+          listing={l}
+          on:checkedChange={(e) => {
+            checkBoxArr = e.detail.arr;
+          }}
+        />
+      {:else if !(showPublic && showCompleted) && !(showPublic && showPending) && ((showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted && !showPending))}
+        <ListingLI
+          id={user.id}
+          listing={l}
+          on:checkedChange={(e) => (checkBoxArr = e.detail.arr)}
+        />
       {/if}
     {/each}
   {:else}
-    <p>Error: No listings to show.</p>
+    <p>Loading...</p>
   {/if}
 
-  {#if user.id && user.id !== "" && (checkBoxArr.length > 0)}
+  {#if user.id && user.id !== "" && checkBoxArr.length > 0}
     <button on:click={handleUpdateBtnClick}>Update Listings</button>
   {/if}
 </div>
-
 
 <style type="text/scss">
   @import "../../../static/styles/_all";

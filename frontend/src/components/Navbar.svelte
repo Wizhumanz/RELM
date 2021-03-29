@@ -13,7 +13,7 @@
   function logout() {
     storeUser.set("");
     goto("/");
-    document.location.reload();
+    // document.location.reload();
   }
 
   //css
@@ -26,7 +26,7 @@
 
 <nav class="navbar navbar-expand-sm sticky-top navbar-light" id="the-nav">
   <div class="container-fluid">
-    <a class="navbar-brand" href="/">RELM</a>
+    <a class="navbar-brand" href="/">R E L M</a>
     <button
       class="navbar-toggler"
       type="button"
@@ -121,8 +121,9 @@
 
   a.navbar-brand {
     font-size: 1.5rem;
+    font-family: $body-font;
     padding: 0;
-    margin: 1rem 2rem;
+    margin: 1rem 1.5rem;
 
     @media only screen and (max-width: 767px) {
       margin: 0.75rem 1rem;

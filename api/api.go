@@ -599,6 +599,7 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
+
 	accountSid := "ACa59451c872071e8037cf59811057fd21"
 	authToken := "3b6a2f39bb05f5214283ef7bd6db973f"
 	urlStr := "https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
@@ -640,7 +641,6 @@ func main() {
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
 	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)
 	router.Methods("POST").Path("/user").HandlerFunc(createNewUserHandler)
-	router.Methods("POST").Path("/owner").HandlerFunc(createNewUserHandler)
 	router.Methods("GET").Path("/owner").HandlerFunc(getUserHandler)
 	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)

@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from "svelte";
   import { goto } from "@sapper/app";
   import { storeUser } from "../../store.js";
   import Listings from "./listings/[slug].svelte";
@@ -17,6 +18,28 @@
     listings: [],
   };
 
+  onMount(() => {
+    //if user already logged in, go straight to all listings
+    user = storeUser;
+    if (user.listings && user.listings.length > 0) {
+      if (typeof window !== "undefined") {
+        goto("/listings/all");
+      }
+    } else {
+      getListings(true, null).then((res) => {
+        user.listings = res;
+        user.listings.reverse();
+        // NOTE: only save public listings to store.js to trigger update in other components
+        storeUser.set(JSON.stringify(user));
+        // res.forEach((r) => {
+        //   console.log(
+        //     "PUBLIC GET: " + r.KEY + "-" + r.imgs[0].substring(0, 40)
+        //   );
+        // });
+      });
+    }
+  });
+
   //only for user login
   let userLogin = {
     email: "",
@@ -26,14 +49,28 @@
   //only for user register
   let userRegister = {
     email: "",
-    phone: null,
+    phone: "",
     name: "",
     type: "Owner",
     password: "",
   };
 
-  function getListings(onlyPublic) {
-    loading = true;
+  function saveUser(data) {
+    user.listings = data;
+    user.listings.reverse();
+    if (user.listings.length > 0) {
+      Array.from(user.listings).forEach((l) => {
+        if (l.KEY) {
+          l.isPublic = l.isPublic === "true" ? true : false;
+          l.isPending = l.isPending === "true" ? true : false;
+          l.isCompleted = l.isCompleted === "true" ? true : false;
+        }
+      });
+      storeUser.set(JSON.stringify(user));
+    }
+  }
+
+  function getListings(onlyPublic, startID) {
     return new Promise((resolve, reject) => {
       //auth header
       const hds = onlyPublic
@@ -53,27 +90,22 @@
 
       //MUST replace all '+' with '%2B'
       // let GETUrl = basicURL.split("+").join("%2B");
+      //let changedEndpoint = user.id.replaceAll("@","%40")
+      let changedEndpoint = "agent%40agent.com"; //TODO: change to dynamic
       let url = onlyPublic
-        ? "https://relm-api.myika.co/listings?user=agent%40agent.com&isPublic=true"
-        : "https://relm-api.myika.co/listings?user=agent%40agent.com";
+        ? "https://relm-api.myika.co/listings?user=" +
+          changedEndpoint +
+          "&isPublic=true"
+        : "https://relm-api.myika.co/listings?user=" + changedEndpoint;
+      url = startID && startID != "" ? url + "&startID=" + startID : url;
       axios
         .get(url, {
           headers: hds,
         })
         .then((res) => {
-          user.listings = res.data;
-          if (user.listings.length > 0) {
-            Array.from(user.listings).forEach((l) => {
-              if (l.name) {
-                l.isPublic = l.isPublic === "true" ? true : false;
-                l.isPending = l.isPending === "true" ? true : false;
-                l.isCompleted = l.isCompleted === "true" ? true : false;
-              }
-            });
-            storeUser.set(JSON.stringify(user));
-            resolve(user.listings);
+          if (res.data) {
+            resolve(res.data);
           }
-          loading = false;
         })
         .catch((error) => console.log(error));
     });
@@ -97,16 +129,32 @@
       .then((res) => {
         user.id = userLogin.email;
         user.password = userLogin.password;
-        //wait for fetch to complete before needed page reload
-        getListings(false).then((fetchedListings) => {
+        getListings(false, null).then((fetchedListings) => {
+          //save GET to local state + storage
+          saveUser(fetchedListings);
+
+          //lazy load rest of images in background
+          let imgFetchKey = "";
+          Array.from(fetchedListings).forEach((l) => {
+            if (l.imgs[0].length < 40 && imgFetchKey === "") {
+              imgFetchKey = l.KEY;
+            }
+          });
+          if (imgFetchKey != "") {
+            getListings(false, imgFetchKey).then((all) => {
+              saveUser(all);
+              document.location.reload();
+            });
+          }
+
           loading = false;
           goto("/listings/all");
-          //document.location.reload();
         });
       })
       .catch((error) => {
         console.log(error);
         showAlert = "display: block;";
+        loading = false;
       });
   }
 
@@ -116,7 +164,6 @@
       Pragma: "no-cache",
       Expires: "0",
     };
-
     axios
       .post("https://relm-api.myika.co/user", {
         headers: hds,
@@ -124,24 +171,16 @@
         email: userRegister.email,
         type: userRegister.type,
         password: userRegister.password,
+        phone: userRegister.phone,
       })
       .then((res) => {
-        //TODO: further user flow for new registered user
-        // storeUser.set(JSON.stringify(user));
-        // goto("/listings/all");
+        user.id = userRegister.email;
+        user.password = userRegister.password;
+        storeUser.set(JSON.stringify(user));
         console.log(res.status + " -- " + res.data);
+        goto("/listings/all");
       })
       .catch((error) => console.log(error));
-  }
-
-  //if user already logged in, go straight to all listings
-  user = storeUser;
-  if (user.listings && user.listings.length > 0) {
-    if (typeof window !== "undefined") {
-      goto("/listings/all");
-    }
-  } else {
-    getListings(true);
   }
 </script>
 
@@ -257,7 +296,6 @@
                   <li>
                     <input
                       type="tel"
-                      pattern="[0-9]{(3, 4)}-[0-9]{4}"
                       class="form-control"
                       id="phone"
                       bind:value={userRegister.phone}

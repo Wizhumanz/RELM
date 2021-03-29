@@ -5,26 +5,35 @@
 
   const dispatch = createEventDispatcher();
 
-  export let id;
-  export let listing;
+  let route;
+  currentPage.subscribe((newValue) => {
+    if (newValue) {
+      route = newValue;
+    }
+  });
+
   let user = {};
   storeUser.subscribe((newValue) => {
     if (newValue) {
       user = JSON.parse(newValue);
     }
   });
-  let showEdit = false;
-  let route;
-  let currentStatePublic;
-  let currentStateComplete;
-  let currentStatePending;
-  export var checkBoxArr = [];
-  let active = false;
+
   let owner = {
     name: "",
     email: "",
-    phone: ""
-  }
+    phone: "",
+  };
+
+  export let id;
+  export let listing;
+  export var checkBoxArr = [];
+  let showEdit = false;
+  let showDownloadingIcon = false;
+  let currentStatePublic;
+  let currentStateComplete;
+  let currentStatePending;
+  let active = false;
 
   resetState.subscribe((newValue) => {
     if (newValue !== false) {
@@ -35,24 +44,23 @@
     }
   });
 
-  currentPage.subscribe((newValue) => {
-    if (newValue) {
-      route = newValue;
-    }
-  });
-
   currentStatePublic = listing.isPublic;
   currentStateComplete = listing.isCompleted;
   currentStatePending = listing.isPending;
 
   onMount(async () => {
     if (listing.imgs && listing.imgs.length > 0) {
-      let newImage = document.createElement("img");
-      newImage.src = "data:image/jpeg;base64," + listing.imgs[0];
-      newImage.style.maxWidth = "100%";
-      newImage.style.maxHeight = "auto";
-      document.getElementById(listing.name.split(" ").join("")).innerHTML =
-        newImage.outerHTML;
+      //only set image src if it's the actual img base64 string
+      if (listing.imgs[0].length > 35) {
+        let newImage = document.createElement("img");
+        newImage.src = "data:image/jpeg;base64," + listing.imgs[0];
+        newImage.style.maxWidth = "100%";
+        newImage.style.maxHeight = "auto";
+        document.getElementById(listing.name.split(" ").join("")).innerHTML =
+          newImage.outerHTML;
+      } else {
+        showDownloadingIcon = true;
+      }
     }
   });
 
@@ -127,15 +135,24 @@
     }
   }
 
-  function checkAvailability() {
+  async function checkAvailability() {
     const hds = {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
       Expires: "0",
       auth: "agent",
     };
-
-    let data = { owner: listing.owner };
+    getOwnerInfo(user.id);
+    setTimeout(function () {
+      let data = {
+        owner: listing.owner,
+        message:
+          `Hi ${listing.owner}, this is ${owner.name}.` +
+          ` Just wanted to ask you if your property at ${listing.address} is still available?` +
+          ` Please text, WhatsApp, or call me at ${owner.phone} to reply.` +
+          " Notification sent automatically from relm.myika.co.",
+      };
+    }, 500);
     axios
       .post("https://relm-api.myika.co/twilio", data, {
         headers: hds,
@@ -152,18 +169,20 @@
       Pragma: "no-cache",
       Expires: "0",
       auth: "agent",
-    }
-    console.log(ownerEmail)
+    };
     axios
-      .get("http://localhost:8000/owner?owner=" + ownerEmail.replaceAll("@", "%40"), {
-        headers: hds,
-      })
+      .get(
+        "https://relm-api.myika.co/owner?owner=" +
+          ownerEmail.replaceAll("@", "%40"),
+        {
+          headers: hds,
+        }
+      )
       .then((res) => {
         console.log(res.status + " -- " + JSON.stringify(res.data));
-        console.log(res.data)
-        owner.name = res.data.name
-        owner.email = res.data.email
-        owner.phone = res.data.phone
+        owner.name = res.data.name;
+        owner.email = res.data.email;
+        owner.phone = res.data.phone;
       })
       .catch((error) => console.log(error.response));
   }
@@ -172,7 +191,11 @@
 <div class="container-fluid" class:active>
   <div class="row">
     <div class="col-5">
-      <div id={listing.name ? listing.name.split(" ").join("") : ""} />
+      <div id={listing.name ? listing.name.split(" ").join("") : ""}>
+        {#if showDownloadingIcon}
+          <h1><i class="bi bi-cloud-arrow-down" /></h1>
+        {/if}
+      </div>
     </div>
     <div class="col-4">
       <h4>{listing.name}</h4>
@@ -187,29 +210,42 @@
         </p>
         <p>Property Type: {listing.propertyType ? "Apartment" : "Landed"}</p>
         <p>Listing Type: {listing.listingType ? "For Sale" : "For Rent"}</p>
-        <p>
-          Owner: 
-          <a
-            data-bs-toggle="collapse"
-            href="#ownerInfo"
-            role="button"
-            aria-expanded="false"
-            aria-controls="collapseExample"
-            on:click|once={getOwnerInfo(listing.owner)}
+        {#if id && id !== ""}
+          <p>
+            Owner:
+            <a
+              data-bs-toggle="collapse"
+              href={listing.name
+                ? "#ownerInfo" + listing.name.split(" ").join("")
+                : ""}
+              role="button"
+              aria-expanded="false"
+              aria-controls="collapseExample"
+              on:click|once={getOwnerInfo(listing.owner)}
+            >
+              Show info
+            </a>
+          </p>
+          <div
+            class="collapse indent"
+            id={listing.name
+              ? "ownerInfo" + listing.name.split(" ").join("")
+              : ""}
           >
-            Show info
-          </a>
-        </p>
-        <div class="collapse" id="ownerInfo">
-          <p>{owner.name}</p>
-          <p>{owner.email}</p>
-          <p>{owner.phone}</p>
-        </div>
+            <p>{owner.name}</p>
+            <p>{owner.email}</p>
+            <p>{owner.phone}</p>
+          </div>
+          <div>
+            <p>{listing.isPublic}</p>
+            <p>{listing.isCompleted}</p>
+          </div>
+        {/if}
         <p>Available on: {listing.availableDate}</p>
         <!-- svelte-ignore a11y-missing-attribute -->
         {#if id && id !== ""}
           <a
-            class="editA"
+            class="smallLink"
             disabled={showEdit}
             on:click={() => (showEdit = true)}>Edit</a
           >
@@ -289,10 +325,16 @@
           </div>
 
           <div class="form-check form-check-inline">
-            <button id="inlineCheckbox3" on:click={checkAvailability}>
-              Check Availability
-            </button>
+            <button on:click={checkAvailability}>Check Availability</button>
           </div>
+          <!-- svelte-ignore a11y-missing-attribute -->
+          <a class="smallLink" on:click={() => console.log("iProperty")}
+            >Publish on iProperty</a
+          >
+          <!-- svelte-ignore a11y-missing-attribute -->
+          <a class="smallLink" on:click={() => console.log("PropertyGuru")}
+            >Publish on PropertyGuru</a
+          >
         {:else}
           <div class="form-check form-check-inline">
             <input
@@ -302,6 +344,7 @@
               value="option2"
               bind:checked={listing.isPending}
             />
+            <p>Pending</p>
           </div>
         {/if}
       {:else}
@@ -332,15 +375,24 @@
     margin: auto;
   }
 
+  i {
+    margin: 1.5rem;
+  }
+
+  div.indent {
+    margin-left: 0.5rem;
+  }
+
   input.form-check-input {
     margin: 1rem auto;
   }
 
-  .editA {
+  .smallLink {
     height: fit-content;
     color: $blue;
     font-style: italic;
     margin-top: 0.5rem;
+    display: block;
   }
 
   a {
