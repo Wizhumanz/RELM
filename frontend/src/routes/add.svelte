@@ -201,7 +201,10 @@
 {/if}
 
 <div class="container">
-  <h1 id="head">Add Listing</h1>
+  <div id="head">
+    <h1>Add Listing</h1>
+    <p>All fields are required.</p>
+  </div>
 
   <div class="row">
     <div class="col-sm col-md-3">
@@ -213,12 +216,19 @@
         <!-- <div id="imgDisplay"></div> -->
         <form method="post" enctype="multipart/form-data">
           <label for="fileUpload" class="form-label">Upload Images</label>
-          <input id="fileUpload" type="file" name="files[]" multiple />
+          <input
+            id="fileUpload"
+            type="file"
+            name="files[]"
+            multiple
+            required="required"
+          />
         </form>
         <form class="form" on:submit|preventDefault={addListing}>
           <div class="mb-3">
             <label for="ownerName" class="form-label">Owner Name</label>
             <input
+              required="required"
               type="text"
               class="form-control"
               id="ownerName"
@@ -228,6 +238,7 @@
             <div class="mb-3">
               <label for="ownerEmail" class="form-label">Owner Email</label>
               <input
+                required="required"
                 type="text"
                 class="form-control"
                 id="ownerEmail"
@@ -237,6 +248,7 @@
               <div class="mb-3">
                 <label for="ownerPhone" class="form-label">Owner Phone</label>
                 <input
+                  required="required"
                   type="text"
                   class="form-control"
                   id="ownerPhone"
@@ -247,6 +259,7 @@
               <div class="mb-3">
                 <label for="name" class="form-label">Property Name</label>
                 <input
+                  required="required"
                   type="text"
                   class="form-control"
                   id="name"
@@ -257,6 +270,7 @@
               <div class="mb-3">
                 <label for="address" class="form-label">Address</label>
                 <input
+                  required="required"
                   type="text"
                   class="form-control"
                   id="address"
@@ -267,6 +281,7 @@
               <div class="mb-3">
                 <label for="area" class="form-label">Area</label>
                 <input
+                  required="required"
                   type="text"
                   class="form-control"
                   id="area"
@@ -277,6 +292,7 @@
               <div class="mb-3">
                 <label for="postcode" class="form-label">Postcode</label>
                 <input
+                  required="required"
                   type="text"
                   class="form-control"
                   id="postcode"
@@ -288,11 +304,17 @@
                 <label for="availableDate" class="form-label"
                   >Available Date</label
                 >
-                <input id="availableDate" type="date" bind:value={dateString} />
+                <input
+                  required="required"
+                  id="availableDate"
+                  type="date"
+                  bind:value={dateString}
+                />
               </div>
               <div class="mb-3">
                 <label for="price" class="form-label">Price</label>
                 <input
+                  required="required"
                   type="number"
                   class="form-control"
                   id="price"
@@ -384,6 +406,9 @@
 
   #head {
     margin-bottom: 2rem;
+    p {
+      color: $blood;
+    }
   }
 
   #manual-add-box {
