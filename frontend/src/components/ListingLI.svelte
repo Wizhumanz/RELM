@@ -217,7 +217,9 @@
             Owner:
             <a
               data-bs-toggle="collapse"
-              href="#ownerInfo"
+              href={listing.name
+                ? "#ownerInfo" + listing.name.split(" ").join("")
+                : ""}
               role="button"
               aria-expanded="false"
               aria-controls="collapseExample"
@@ -226,7 +228,12 @@
               Show info
             </a>
           </p>
-          <div class="collapse" id="ownerInfo">
+          <div
+            class="collapse indent"
+            id={listing.name
+              ? "ownerInfo" + listing.name.split(" ").join("")
+              : ""}
+          >
             <p>{owner.name}</p>
             <p>{owner.email}</p>
             <p>{owner.phone}</p>
@@ -366,6 +373,10 @@
 
   i {
     margin: 1.5rem;
+  }
+
+  div.indent {
+    margin-left: 0.5rem;
   }
 
   input.form-check-input {
