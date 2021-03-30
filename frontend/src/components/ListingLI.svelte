@@ -188,9 +188,9 @@
   }
 </script>
 
-<div class="container-fluid" class:active>
+<div class="container" class:active>
   <div class="row">
-    <div class="col-5">
+    <div class="col-5" style="background-color:none;">
       <div id={listing.name ? listing.name.split(" ").join("") : ""}>
         {#if showDownloadingIcon}
           <h1><i class="bi bi-cloud-arrow-down" /></h1>
@@ -198,7 +198,7 @@
       </div>
     </div>
     <div class="col-4">
-      <h4>{listing.name}</h4>
+      <h4>{listing.name} {active ? "<UNSAVED>" : ""}</h4>
       {#if !showEdit}
         <p>Address: {listing.address}</p>
         <p>Postcode: {listing.postcode}</p>
@@ -299,7 +299,7 @@
         </form>
       {/if}
     </div>
-    <div class="col-3">
+    <div class="col-3" style="background-color:none;">
       {#if id && id !== ""}
         <div class="form-check form-check-inline">
           <input
@@ -352,20 +352,20 @@
       {/if}
     </div>
   </div>
-  <hr />
 </div>
 
 <style type="text/scss">
   @import "../../static/styles/_all";
 
-  div.container-fluid {
+  div.container {
     font-family: $body-font;
-    margin: 1.5rem auto;
+    padding: 1rem 1rem;
+    margin-bottom: 0.5rem;
     text-align: left;
     border-radius: 3px;
 
     p {
-      margin: 0;
+      margin: 0.25rem;
     }
   }
 
@@ -400,6 +400,6 @@
   }
 
   .active {
-    background-color: red;
+    border: $blood 3px dashed;
   }
 </style>

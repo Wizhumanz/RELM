@@ -193,7 +193,9 @@
   {/if}
 
   {#if user.id && user.id !== "" && checkBoxArr.length > 0}
-    <button on:click={handleUpdateBtnClick}>Update Listings</button>
+    <button id="updateBtn" on:click={handleUpdateBtnClick}
+      >Update Listings</button
+    >
   {/if}
 </div>
 
@@ -235,11 +237,12 @@
     }
   }
 
-  button {
+  #updateBtn {
     font-size: x-large;
+    margin-top: 1rem;
   }
 
-  button:disabled {
+  #updateBtn:disabled {
     opacity: 0.5;
   }
 </style>
