@@ -207,6 +207,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 }
@@ -429,8 +430,9 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(finalResp)
 }
@@ -641,10 +643,10 @@ func main() {
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
-	router.Methods("POST").Path("/login").HandlerFunc(loginHandler)
+	router.Methods("POST", "OPTIONS").Path("/login").HandlerFunc(loginHandler)
 	router.Methods("POST").Path("/user").HandlerFunc(createNewUserHandler)
 	router.Methods("GET").Path("/owner").HandlerFunc(getUserHandler)
-	router.Methods("GET").Path("/listings").HandlerFunc(getAllListingsHandler)
+	router.Methods("GET", "OPTIONS").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
 	router.Methods("PUT").Path("/listing/{id}").HandlerFunc(updateListingHandler)
 	router.Methods("POST").Path("/twilio").HandlerFunc(getOwnerNumberHandler)
