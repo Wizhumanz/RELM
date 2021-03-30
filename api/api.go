@@ -206,6 +206,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusUnauthorized)
 	}
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 }
@@ -428,6 +429,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(finalResp)
