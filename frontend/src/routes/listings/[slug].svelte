@@ -108,48 +108,53 @@
 
   <div id="filters-box">
     <h4>Filter</h4>
-    <div id="filter-options">
-      <h4>Listing Types</h4>
 
-      <div class="form-check">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          value=""
-          id="flexCheckPublic"
-          bind:checked={showPublic}
-        />
-        <label class="form-check-label" for="flexCheckPublic"> Public </label>
+    {#if route !== undefined}
+      <div id="filter-options">
+        <h4>Listing Types</h4>
+
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            value=""
+            id="flexCheckPublic"
+            bind:checked={showPublic}
+          />
+          <label class="form-check-label" for="flexCheckPublic"> Public </label>
+        </div>
+
+        {#if route !== "pending"}
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value=""
+              id="flexCheckCompleted"
+              bind:checked={showCompleted}
+            />
+            <label class="form-check-label" for="flexCheckCompleted">
+              Completed
+            </label>
+          </div>
+        {:else}
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value=""
+              id="flexCheckPending"
+              bind:checked={showPending}
+            />
+            <label class="form-check-label" for="flexCheckPending">
+              Pending
+            </label>
+          </div>
+        {/if}
       </div>
-
-      {#if route !== "pending"}
-        <div class="form-check">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            value=""
-            id="flexCheckCompleted"
-            bind:checked={showCompleted}
-          />
-          <label class="form-check-label" for="flexCheckCompleted">
-            Completed
-          </label>
-        </div>
-      {:else}
-        <div class="form-check">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            value=""
-            id="flexCheckPending"
-            bind:checked={showPending}
-          />
-          <label class="form-check-label" for="flexCheckPending">
-            Pending
-          </label>
-        </div>
-      {/if}
-
+    {/if}
+  
+    <div id="filter-options">
       <h4>Property Types</h4>
       <div class="form-check">
         <input
