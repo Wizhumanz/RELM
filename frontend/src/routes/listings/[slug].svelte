@@ -24,8 +24,8 @@
   let showPublic = false;
   let showCompleted = false;
   let showPending = false;
-  let showApartments = true;
-  let showLanded = true;
+  let showApartments = false;
+  let showLanded = false;
 
   function handleUpdateBtnClick() {
     //user.IsPublic = user.isPublic.toString()
@@ -82,6 +82,13 @@
   } else if (route === "pending") {
     showPublic = false;
     showCompleted = false;
+  }
+
+  function uncheckLandedHandler() {
+    showLanded = false;
+  }
+  function uncheckApartmentHandler() {
+    showApartments = false;
   }
 </script>
 
@@ -151,6 +158,7 @@
           value=""
           id="flexCheckApartments"
           bind:checked={showApartments}
+          on:click={uncheckLandedHandler}
         />
         <label class="form-check-label" for="flexCheckApartments">
           Apartments
@@ -163,6 +171,7 @@
           value=""
           id="flexCheckLanded"
           bind:checked={showLanded}
+          on:click={uncheckApartmentHandler}
         />
         <label class="form-check-label" for="flexCheckLanded"> Landed </label>
       </div>
@@ -173,19 +182,61 @@
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
       {#if (showPublic && l.isPublic && showCompleted && l.isCompleted) || (showPending && l.isPending && showPublic && l.isPublic)}
-        <ListingLI
-          id={user.id}
-          listing={l}
-          on:checkedChange={(e) => {
-            checkBoxArr = e.detail.arr;
-          }}
-        />
+        {#if showApartments && l.propertyType == "1"}
+          <ListingLI
+            id={user.id}
+            listing={l}
+            on:checkedChange={(e) => {
+              checkBoxArr = e.detail.arr;
+            }}
+          />
+        {:else if showLanded && l.propertyType == "0"}
+          <ListingLI
+            id={user.id}
+            listing={l}
+            on:checkedChange={(e) => {
+              checkBoxArr = e.detail.arr;
+            }}
+          />
+        {/if}
+
+        {#if !showApartments && !showLanded}
+          <ListingLI
+            id={user.id}
+            listing={l}
+            on:checkedChange={(e) => {
+              checkBoxArr = e.detail.arr;
+            }}
+          />
+        {/if}
       {:else if !(showPublic && showCompleted) && !(showPublic && showPending) && ((showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted && !showPending))}
-        <ListingLI
-          id={user.id}
-          listing={l}
-          on:checkedChange={(e) => (checkBoxArr = e.detail.arr)}
-        />
+        {#if showApartments && l.propertyType == "1"}
+          <ListingLI
+            id={user.id}
+            listing={l}
+            on:checkedChange={(e) => {
+              checkBoxArr = e.detail.arr;
+            }}
+          />
+        {:else if showLanded && l.propertyType == "0"}
+          <ListingLI
+            id={user.id}
+            listing={l}
+            on:checkedChange={(e) => {
+              checkBoxArr = e.detail.arr;
+            }}
+          />
+        {/if}
+
+        {#if !showApartments && !showLanded}
+          <ListingLI
+            id={user.id}
+            listing={l}
+            on:checkedChange={(e) => {
+              checkBoxArr = e.detail.arr;
+            }}
+          />
+        {/if}
       {/if}
     {/each}
   {:else}
