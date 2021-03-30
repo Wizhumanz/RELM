@@ -229,8 +229,10 @@
       {#if l.area
         .toLowerCase()
         .includes(
-          searchInput
-        ) || l.address.toLowerCase().includes(searchInput) || searchInput == ""}
+          searchInput.toLowerCase()
+        ) || l.address
+          .toLowerCase()
+          .includes(searchInput.toLowerCase()) || searchInput == ""}
         {#if (showPublic && l.isPublic && showCompleted && l.isCompleted) || (showPending && l.isPending && showPublic && l.isPublic)}
           {#if showApartments && l.propertyType == "1"}
             <ListingLI
