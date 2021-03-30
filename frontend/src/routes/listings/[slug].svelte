@@ -109,79 +109,99 @@
   <div id="filters-box">
     <h4>Filter</h4>
 
-    {#if route !== undefined}
-      <div id="filter-options">
-        <h4>Listing Types</h4>
+    <div class="row">
+      <div class="col-sm-12 col-md-7">
+        {#if route !== undefined}
+          <div id="filter-options">
+            <h4>Listing Types</h4>
 
-        <div class="form-check">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            value=""
-            id="flexCheckPublic"
-            bind:checked={showPublic}
-          />
-          <label class="form-check-label" for="flexCheckPublic"> Public </label>
-        </div>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                value=""
+                id="flexCheckPublic"
+                bind:checked={showPublic}
+              />
+              <label class="form-check-label" for="flexCheckPublic">
+                Public
+              </label>
+            </div>
 
-        {#if route !== "pending"}
-          <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              value=""
-              id="flexCheckCompleted"
-              bind:checked={showCompleted}
-            />
-            <label class="form-check-label" for="flexCheckCompleted">
-              Completed
-            </label>
-          </div>
-        {:else}
-          <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              value=""
-              id="flexCheckPending"
-              bind:checked={showPending}
-            />
-            <label class="form-check-label" for="flexCheckPending">
-              Pending
-            </label>
+            {#if route !== "pending"}
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value=""
+                  id="flexCheckCompleted"
+                  bind:checked={showCompleted}
+                />
+                <label class="form-check-label" for="flexCheckCompleted">
+                  Completed
+                </label>
+              </div>
+            {:else}
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value=""
+                  id="flexCheckPending"
+                  bind:checked={showPending}
+                />
+                <label class="form-check-label" for="flexCheckPending">
+                  Pending
+                </label>
+              </div>
+            {/if}
           </div>
         {/if}
+        <div id="filter-options">
+          <h4>Property Types</h4>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value=""
+              id="flexCheckApartments"
+              bind:checked={showApartments}
+              on:click={uncheckLandedHandler}
+            />
+            <label class="form-check-label" for="flexCheckApartments">
+              Apartments
+            </label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value=""
+              id="flexCheckLanded"
+              bind:checked={showLanded}
+              on:click={uncheckApartmentHandler}
+            />
+            <label class="form-check-label" for="flexCheckLanded">
+              Landed
+            </label>
+          </div>
+        </div>
       </div>
-    {/if}
-  
-    <div id="filter-options">
-      <h4>Property Types</h4>
-      <div class="form-check">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          value=""
-          id="flexCheckApartments"
-          bind:checked={showApartments}
-          on:click={uncheckLandedHandler}
-        />
-        <label class="form-check-label" for="flexCheckApartments">
-          Apartments
-        </label>
+      <div class="col-sm-12 col-md-5">
+        <form class="d-flex">
+          <input
+            class="searchBar"
+            type="search"
+            placeholder="Search"
+            aria-label="Search"
+          />
+          <button class="btn btn-outline-success" type="submit"
+            ><i class="bi bi-search" /></button
+          >
+        </form>
       </div>
-      <div class="form-check">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          value=""
-          id="flexCheckLanded"
-          bind:checked={showLanded}
-          on:click={uncheckApartmentHandler}
-        />
-        <label class="form-check-label" for="flexCheckLanded"> Landed </label>
-      </div>
-      <hr />
     </div>
+    <hr />
   </div>
 
   {#if user.listings && user.listings.length > 0}
@@ -278,6 +298,11 @@
 
   #filter-options {
     padding: 0.5rem 1rem 1rem 1rem;
+  }
+
+  .searchBar {
+    border: $blood 1px dashed;
+    border-radius: 5px;
   }
 
   h4 {
