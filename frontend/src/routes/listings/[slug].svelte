@@ -27,6 +27,8 @@
   let showPending = false;
   let showApartments = false;
   let showLanded = false;
+  let minPrice
+  let maxPrice
 
   function handleUpdateBtnClick() {
     //user.IsPublic = user.isPublic.toString()
@@ -91,6 +93,8 @@
   function uncheckApartmentHandler() {
     showApartments = false;
   }
+
+  $: console.log(minPrice)
 </script>
 
 <!--Loading Sign-->
@@ -207,6 +211,7 @@
               class="filterInput"
               id="ownerName"
               placeholder="1000"
+              bind:value={minPrice}
             />
           </li>
           <li><p>-</p></li>
@@ -216,6 +221,7 @@
               class="filterInput"
               id="ownerName"
               placeholder="5000"
+              bind:value={maxPrice}
             />
           </li>
         </ul>
@@ -226,68 +232,70 @@
 
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
-      {#if l.area
-        .toLowerCase()
-        .includes(
-          searchInput.toLowerCase()
-        ) || l.address
+      {#if (l.price <= maxPrice && l.price >= minPrice) || (minPrice == null && maxPrice == null)}
+        {#if l.area
           .toLowerCase()
-          .includes(searchInput.toLowerCase()) || searchInput == ""}
-        {#if (showPublic && l.isPublic && showCompleted && l.isCompleted) || (showPending && l.isPending && showPublic && l.isPublic)}
-          {#if showApartments && l.propertyType == "1"}
-            <ListingLI
-              id={user.id}
-              listing={l}
-              on:checkedChange={(e) => {
-                checkBoxArr = e.detail.arr;
-              }}
-            />
-          {:else if showLanded && l.propertyType == "0"}
-            <ListingLI
-              id={user.id}
-              listing={l}
-              on:checkedChange={(e) => {
-                checkBoxArr = e.detail.arr;
-              }}
-            />
-          {/if}
+          .includes(
+            searchInput.toLowerCase()
+          ) || l.address
+            .toLowerCase()
+            .includes(searchInput.toLowerCase()) || searchInput == ""}
+          {#if (showPublic && l.isPublic && showCompleted && l.isCompleted) || (showPending && l.isPending && showPublic && l.isPublic)}
+            {#if showApartments && l.propertyType == "1"}
+              <ListingLI
+                id={user.id}
+                listing={l}
+                on:checkedChange={(e) => {
+                  checkBoxArr = e.detail.arr;
+                }}
+              />
+            {:else if showLanded && l.propertyType == "0"}
+              <ListingLI
+                id={user.id}
+                listing={l}
+                on:checkedChange={(e) => {
+                  checkBoxArr = e.detail.arr;
+                }}
+              />
+            {/if}
 
-          {#if !showApartments && !showLanded}
-            <ListingLI
-              id={user.id}
-              listing={l}
-              on:checkedChange={(e) => {
-                checkBoxArr = e.detail.arr;
-              }}
-            />
-          {/if}
-        {:else if !(showPublic && showCompleted) && !(showPublic && showPending) && ((showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted && !showPending))}
-          {#if showApartments && l.propertyType == "1"}
-            <ListingLI
-              id={user.id}
-              listing={l}
-              on:checkedChange={(e) => {
-                checkBoxArr = e.detail.arr;
-              }}
-            />
-          {:else if showLanded && l.propertyType == "0"}
-            <ListingLI
-              id={user.id}
-              listing={l}
-              on:checkedChange={(e) => {
-                checkBoxArr = e.detail.arr;
-              }}
-            />
-          {/if}
+            {#if !showApartments && !showLanded}
+              <ListingLI
+                id={user.id}
+                listing={l}
+                on:checkedChange={(e) => {
+                  checkBoxArr = e.detail.arr;
+                }}
+              />
+            {/if}
+          {:else if !(showPublic && showCompleted) && !(showPublic && showPending) && ((showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted && !showPending))}
+            {#if showApartments && l.propertyType == "1"}
+              <ListingLI
+                id={user.id}
+                listing={l}
+                on:checkedChange={(e) => {
+                  checkBoxArr = e.detail.arr;
+                }}
+              />
+            {:else if showLanded && l.propertyType == "0"}
+              <ListingLI
+                id={user.id}
+                listing={l}
+                on:checkedChange={(e) => {
+                  checkBoxArr = e.detail.arr;
+                }}
+              />
+            {/if}
 
-          {#if !showApartments && !showLanded}
-            <ListingLI
-              id={user.id}
-              listing={l}
-              on:checkedChange={(e) => {
-                checkBoxArr = e.detail.arr;
-              }}
-            />
+            {#if !showApartments && !showLanded}
+              <ListingLI
+                id={user.id}
+                listing={l}
+                on:checkedChange={(e) => {
+                  checkBoxArr = e.detail.arr;
+                }}
+              />
+            {/if}
           {/if}
         {/if}
       {/if}
