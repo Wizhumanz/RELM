@@ -145,10 +145,20 @@ func GetIndex(s []Listing, chk checkerFunc) int {
 	return 0
 }
 
+func setupCORS(w *http.ResponseWriter, req *http.Request) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
 // route handlers
 
 func getUserHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("working")
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
 	user := r.URL.Query().Get("owner")
 	if user == "" {
 		//Handle error.
@@ -169,6 +179,11 @@ func getUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
 	var data jsonResponse
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method != "GET" {
@@ -184,6 +199,11 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
 	var newLoginReq loginReq
 	// decode data
 	err := json.NewDecoder(r.Body).Decode(&newLoginReq)
@@ -213,6 +233,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
 	var newUser User
 	// decode data
 	err := json.NewDecoder(r.Body).Decode(&newUser)
@@ -243,6 +268,16 @@ func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
 	listingsResp := make([]Listing, 0)
 
 	authReq := loginReq{
@@ -544,6 +579,11 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 }
 
 func updateListingHandler(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
 	//check if listing already exists to update
 	putID, unescapeErr := url.QueryUnescape(mux.Vars(r)["id"]) //is actually Listing.Name, not __key__ in Datastore
 	if unescapeErr != nil {
@@ -599,10 +639,19 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
 	addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
 }
 
 func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
 
 	accountSid := "ACa59451c872071e8037cf59811057fd21"
 	authToken := "3b6a2f39bb05f5214283ef7bd6db973f"
@@ -642,14 +691,14 @@ func main() {
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
-	router.Methods("GET").Path("/").HandlerFunc(indexHandler)
+	router.Methods("GET", "OPTIONS").Path("/").HandlerFunc(indexHandler)
 	router.Methods("POST", "OPTIONS").Path("/login").HandlerFunc(loginHandler)
-	router.Methods("POST").Path("/user").HandlerFunc(createNewUserHandler)
-	router.Methods("GET").Path("/owner").HandlerFunc(getUserHandler)
+	router.Methods("POST", "OPTIONS").Path("/user").HandlerFunc(createNewUserHandler)
+	router.Methods("GET", "OPTIONS").Path("/owner").HandlerFunc(getUserHandler)
 	router.Methods("GET", "OPTIONS").Path("/listings").HandlerFunc(getAllListingsHandler)
-	router.Methods("POST").Path("/listing").HandlerFunc(createNewListingHandler)
-	router.Methods("PUT").Path("/listing/{id}").HandlerFunc(updateListingHandler)
-	router.Methods("POST").Path("/twilio").HandlerFunc(getOwnerNumberHandler)
+	router.Methods("POST", "OPTIONS").Path("/listing").HandlerFunc(createNewListingHandler)
+	router.Methods("PUT", "OPTIONS").Path("/listing/{id}").HandlerFunc(updateListingHandler)
+	router.Methods("POST", "OPTIONS").Path("/twilio").HandlerFunc(getOwnerNumberHandler)
 
 	port := os.Getenv("PORT")
 	fmt.Println("relm-api listening on port " + port)
