@@ -145,6 +145,12 @@ func GetIndex(s []Listing, chk checkerFunc) int {
 	return 0
 }
 
+func setupCORS(w *http.ResponseWriter, req *http.Request) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
 // route handlers
 
 func getUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -184,6 +190,11 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
 	var newLoginReq loginReq
 	// decode data
 	err := json.NewDecoder(r.Body).Decode(&newLoginReq)
@@ -243,6 +254,11 @@ func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
 	listingsResp := make([]Listing, 0)
 
 	authReq := loginReq{
