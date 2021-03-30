@@ -13,7 +13,9 @@
   function logout() {
     storeUser.set("");
     goto("/");
-    // document.location.reload();
+    if (document) {
+      document.location.reload();
+    }
   }
 
   //css
