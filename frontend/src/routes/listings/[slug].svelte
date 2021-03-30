@@ -13,7 +13,7 @@
   });
 
   let user = {};
-
+  let searchInput = ""
   storeUser.subscribe((newValue) => {
     if (newValue) {
       user = JSON.parse(newValue);
@@ -194,10 +194,8 @@
             type="search"
             placeholder="Search"
             aria-label="Search"
+            bind:value={searchInput}
           />
-          <button class="btn btn-outline-success" type="submit"
-            ><i class="bi bi-search" /></button
-          >
         </form>
       </div>
     </div>
@@ -206,6 +204,7 @@
 
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
+    {#if l.area.toLowerCase().includes(searchInput) || l.address.toLowerCase().includes(searchInput) || searchInput == ""}
       {#if (showPublic && l.isPublic && showCompleted && l.isCompleted) || (showPending && l.isPending && showPublic && l.isPublic)}
         {#if showApartments && l.propertyType == "1"}
           <ListingLI
@@ -263,6 +262,7 @@
           />
         {/if}
       {/if}
+    {/if}
     {/each}
   {:else}
     <p>Loading...</p>
