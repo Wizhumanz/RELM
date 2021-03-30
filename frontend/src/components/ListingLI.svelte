@@ -210,8 +210,8 @@
             ? listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             : ""}
         </p>
-        <p>Property Type: {listing.propertyType ? "Apartment" : "Landed"}</p>
-        <p>Listing Type: {listing.listingType ? "For Sale" : "For Rent"}</p>
+        <p>Property Type: {(listing.propertyType === "1") ? "Apartment" : "Landed"}</p>
+        <p>Listing Type: {(listing.listingType === "1") ? "For Sale" : "For Rent"}</p>
         {#if id && id !== ""}
           <p>
             Owner:
@@ -230,10 +230,6 @@
             <p>{owner.name}</p>
             <p>{owner.email}</p>
             <p>{owner.phone}</p>
-          </div>
-          <div>
-            <p>{listing.isPublic}</p>
-            <p>{listing.isCompleted}</p>
           </div>
         {/if}
         <p>Available on: {listing.availableDate}</p>
