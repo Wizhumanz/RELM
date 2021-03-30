@@ -204,7 +204,7 @@
 
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
-    {#if l.area.toLowerCase().includes(searchInput) || l.address.toLowerCase().includes(searchInput) || searchInput == ""}
+    {#if l.area.toLowerCase().includes(searchInput.toLowerCase()) || l.address.toLowerCase().includes(searchInput.toLowerCase()) || searchInput == ""}
       {#if (showPublic && l.isPublic && showCompleted && l.isCompleted) || (showPending && l.isPending && showPublic && l.isPublic)}
         {#if showApartments && l.propertyType == "1"}
           <ListingLI
