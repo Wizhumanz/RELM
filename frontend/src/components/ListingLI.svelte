@@ -188,9 +188,9 @@
   }
 </script>
 
-<div class="container-fluid" class:active>
+<div class="container" class:active>
   <div class="row">
-    <div class="col-5">
+    <div class="col-5" style="background-color:none;">
       <div id={listing.name ? listing.name.split(" ").join("") : ""}>
         {#if showDownloadingIcon}
           <h1><i class="bi bi-cloud-arrow-down" /></h1>
@@ -198,7 +198,7 @@
       </div>
     </div>
     <div class="col-4">
-      <h4>{listing.name}</h4>
+      <h4>{listing.name} {active ? "<UNSAVED>" : ""}</h4>
       {#if !showEdit}
         <p>Address: {listing.address}</p>
         <p>Postcode: {listing.postcode}</p>
@@ -208,8 +208,8 @@
             ? listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             : ""}
         </p>
-        <p>Property Type: {listing.propertyType ? "Apartment" : "Landed"}</p>
-        <p>Listing Type: {listing.listingType ? "For Sale" : "For Rent"}</p>
+        <p>Property Type: {(listing.propertyType === "1") ? "Apartment" : "Landed"}</p>
+        <p>Listing Type: {(listing.listingType === "1") ? "For Sale" : "For Rent"}</p>
         {#if id && id !== ""}
           <p>
             Owner:
@@ -235,10 +235,6 @@
             <p>{owner.name}</p>
             <p>{owner.email}</p>
             <p>{owner.phone}</p>
-          </div>
-          <div>
-            <p>{listing.isPublic}</p>
-            <p>{listing.isCompleted}</p>
           </div>
         {/if}
         <p>Available on: {listing.availableDate}</p>
@@ -299,7 +295,7 @@
         </form>
       {/if}
     </div>
-    <div class="col-3">
+    <div class="col-3" style="background-color:none;">
       {#if id && id !== ""}
         <div class="form-check form-check-inline">
           <input
@@ -352,20 +348,20 @@
       {/if}
     </div>
   </div>
-  <hr />
 </div>
 
 <style type="text/scss">
   @import "../../static/styles/_all";
 
-  div.container-fluid {
+  div.container {
     font-family: $body-font;
-    margin: 1.5rem auto;
+    padding: 1rem 1rem;
+    margin-bottom: 0.5rem;
     text-align: left;
     border-radius: 3px;
 
     p {
-      margin: 0;
+      margin: 0.25rem;
     }
   }
 
@@ -400,6 +396,6 @@
   }
 
   .active {
-    background-color: red;
+    border: $blood 3px dashed;
   }
 </style>
