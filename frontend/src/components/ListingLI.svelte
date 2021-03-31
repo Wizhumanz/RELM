@@ -72,9 +72,6 @@
     listingSubstitute.isPending = listing.isPending.toString();
     listingSubstitute.isCompleted = listing.isCompleted.toString();
     const hds = {
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
       auth: "agent",
     };
     axios
@@ -137,9 +134,6 @@
 
   async function checkAvailability() {
     const hds = {
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
       auth: "agent",
     };
     getOwnerInfo(user.id);
@@ -165,9 +159,6 @@
 
   function getOwnerInfo(ownerEmail) {
     const hds = {
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
       auth: "agent",
     };
     axios
