@@ -192,7 +192,7 @@
   <div class="container">
     <div class="row">
       <div class="col-sm col-md-7" id="info-col">
-        <h1 class="brand section-head">RELM</h1>
+        <h1 class="brand section-head">R E L M</h1>
         <p>
           <strong>R</strong>eal <strong>E</strong>state
           <strong>L</strong>isting <strong>M</strong>anager.
@@ -337,6 +337,10 @@
 
 <style type="text/scss">
   @import "../../static/styles/_all";
+
+  .brand {
+    font-family: $body-font;
+  }
 
   #info-col {
     text-align: center;

@@ -5,6 +5,7 @@
   import LoadingIndicator from "../../components/LoadingIndicator.svelte";
   const { page } = stores();
   import axios from "axios";
+  import Add from "../add.svelte";
   var route;
   var checkBoxArr = [];
   page.subscribe(({ path, params, query }) => {
@@ -13,7 +14,7 @@
   });
 
   let user = {};
-
+  let searchInput = "";
   storeUser.subscribe((newValue) => {
     if (newValue) {
       user = JSON.parse(newValue);
@@ -189,16 +190,35 @@
       </div>
       <div class="col-sm-12 col-md-5">
         <form class="d-flex">
+          <h4 class="block">Area/ Address Search</h4>
           <input
-            class="searchBar"
+            class="filterInput block"
             type="search"
-            placeholder="Search"
+            placeholder="e.g. Pulau Tikus"
             aria-label="Search"
+            bind:value={searchInput}
           />
-          <button class="btn btn-outline-success" type="submit"
-            ><i class="bi bi-search" /></button
-          >
         </form>
+        <h4>Price</h4>
+        <ul id="priceFilterInputs">
+          <li>
+            <input
+              type="number"
+              class="filterInput"
+              id="ownerName"
+              placeholder="1000"
+            />
+          </li>
+          <li><p>-</p></li>
+          <li>
+            <input
+              type="number"
+              class="filterInput"
+              id="ownerName"
+              placeholder="5000"
+            />
+          </li>
+        </ul>
       </div>
     </div>
     <hr />
@@ -206,61 +226,69 @@
 
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
-      {#if (showPublic && l.isPublic && showCompleted && l.isCompleted) || (showPending && l.isPending && showPublic && l.isPublic)}
-        {#if showApartments && l.propertyType == "1"}
-          <ListingLI
-            id={user.id}
-            listing={l}
-            on:checkedChange={(e) => {
-              checkBoxArr = e.detail.arr;
-            }}
-          />
-        {:else if showLanded && l.propertyType == "0"}
-          <ListingLI
-            id={user.id}
-            listing={l}
-            on:checkedChange={(e) => {
-              checkBoxArr = e.detail.arr;
-            }}
-          />
-        {/if}
+      {#if l.area
+        .toLowerCase()
+        .includes(
+          searchInput.toLowerCase()
+        ) || l.address
+          .toLowerCase()
+          .includes(searchInput.toLowerCase()) || searchInput == ""}
+        {#if (showPublic && l.isPublic && showCompleted && l.isCompleted) || (showPending && l.isPending && showPublic && l.isPublic)}
+          {#if showApartments && l.propertyType == "1"}
+            <ListingLI
+              id={user.id}
+              listing={l}
+              on:checkedChange={(e) => {
+                checkBoxArr = e.detail.arr;
+              }}
+            />
+          {:else if showLanded && l.propertyType == "0"}
+            <ListingLI
+              id={user.id}
+              listing={l}
+              on:checkedChange={(e) => {
+                checkBoxArr = e.detail.arr;
+              }}
+            />
+          {/if}
 
-        {#if !showApartments && !showLanded}
-          <ListingLI
-            id={user.id}
-            listing={l}
-            on:checkedChange={(e) => {
-              checkBoxArr = e.detail.arr;
-            }}
-          />
-        {/if}
-      {:else if !(showPublic && showCompleted) && !(showPublic && showPending) && ((showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted && !showPending))}
-        {#if showApartments && l.propertyType == "1"}
-          <ListingLI
-            id={user.id}
-            listing={l}
-            on:checkedChange={(e) => {
-              checkBoxArr = e.detail.arr;
-            }}
-          />
-        {:else if showLanded && l.propertyType == "0"}
-          <ListingLI
-            id={user.id}
-            listing={l}
-            on:checkedChange={(e) => {
-              checkBoxArr = e.detail.arr;
-            }}
-          />
-        {/if}
+          {#if !showApartments && !showLanded}
+            <ListingLI
+              id={user.id}
+              listing={l}
+              on:checkedChange={(e) => {
+                checkBoxArr = e.detail.arr;
+              }}
+            />
+          {/if}
+        {:else if !(showPublic && showCompleted) && !(showPublic && showPending) && ((showPending && l.isPending) || (showPublic && l.isPublic) || (showCompleted && l.isCompleted) || (!showPublic && !showCompleted && !showPending))}
+          {#if showApartments && l.propertyType == "1"}
+            <ListingLI
+              id={user.id}
+              listing={l}
+              on:checkedChange={(e) => {
+                checkBoxArr = e.detail.arr;
+              }}
+            />
+          {:else if showLanded && l.propertyType == "0"}
+            <ListingLI
+              id={user.id}
+              listing={l}
+              on:checkedChange={(e) => {
+                checkBoxArr = e.detail.arr;
+              }}
+            />
+          {/if}
 
-        {#if !showApartments && !showLanded}
-          <ListingLI
-            id={user.id}
-            listing={l}
-            on:checkedChange={(e) => {
-              checkBoxArr = e.detail.arr;
-            }}
-          />
+          {#if !showApartments && !showLanded}
+            <ListingLI
+              id={user.id}
+              listing={l}
+              on:checkedChange={(e) => {
+                checkBoxArr = e.detail.arr;
+              }}
+            />
+          {/if}
         {/if}
       {/if}
     {/each}
@@ -300,9 +328,20 @@
     padding: 0.5rem 1rem 1rem 1rem;
   }
 
-  .searchBar {
+  .block {
+    display: block;
+    width: 80%;
+  }
+
+  .filterInput {
     border: $blood 1px dashed;
     border-radius: 5px;
+  }
+
+  #priceFilterInputs {
+    li {
+      display: inline-block;
+    }
   }
 
   h4 {
