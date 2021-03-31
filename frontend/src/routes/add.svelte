@@ -36,9 +36,7 @@
   let isPending = false;
   let ownerInfo = {
     name: "",
-    email: "",
     phone: "",
-    type: "Owner",
   };
 
   onMount(() => {
@@ -99,7 +97,9 @@
           //Don't change any of these properties
           let data = {
             user: user.id, //get user.id from store.js
+            ownerName: ownerInfo.name,
             owner: owner,
+            ownerPhone: ownerInfo.phone,
             name: name, //name of listings are immutable
             address: address,
             postcode: postcode,
@@ -113,20 +113,6 @@
             isPending: isPending.toString(),
             imgs: filesStr,
           };
-          ownerInfo.email = owner;
-          axios
-            .post("https://relm-api.myika.co/user", ownerInfo, {
-              headers: hds,
-            })
-            .then((res) => {
-              ownerInfo = {
-                name: "",
-                email: "",
-                phone: "",
-              };
-            })
-            .catch((error) => console.log(error.response));
-
           axios
             .post("https://relm-api.myika.co/listing", data, {
               headers: hds,
@@ -181,12 +167,18 @@
               isPublic = false;
               isCompleted = false;
               isPending = false;
+              ownerInfo.name = ""
+              ownerInfo.phone = ""
 
               setTimeout(() => {
                 showAlert = "display: none;";
               }, 7000);
+              console.log("working")
             })
-            .catch((error) => console.log(error.response));
+            .catch((error) => {
+
+              console.log(error.response)
+            });
         }
       }, 1000);
   }
