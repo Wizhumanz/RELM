@@ -72,9 +72,6 @@
     listingSubstitute.isPending = listing.isPending.toString();
     listingSubstitute.isCompleted = listing.isCompleted.toString();
     const hds = {
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
       auth: "agent",
     };
     axios
@@ -137,9 +134,6 @@
 
   async function checkAvailability() {
     const hds = {
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
       auth: "agent",
     };
     getOwnerInfo(user.id);
@@ -165,9 +159,6 @@
 
   function getOwnerInfo(ownerEmail) {
     const hds = {
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
       auth: "agent",
     };
     axios
@@ -200,7 +191,9 @@
     <div class="col-4">
       <h4>{listing.name} {active ? "<UNSAVED>" : ""}</h4>
       {#if !showEdit}
-        <p>Address: {listing.address}</p>
+        {#if route && route !== ""}
+          <p>Address: {listing.address}</p>
+        {/if}
         <p>Postcode: {listing.postcode}</p>
         <p>Area: {listing.area}</p>
         <p>
@@ -208,8 +201,12 @@
             ? listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             : ""}
         </p>
-        <p>Property Type: {(listing.propertyType === "1") ? "Apartment" : "Landed"}</p>
-        <p>Listing Type: {(listing.listingType === "1") ? "For Sale" : "For Rent"}</p>
+        <p>
+          Property Type: {listing.propertyType === "1" ? "Apartment" : "Landed"}
+        </p>
+        <p>
+          Listing Type: {listing.listingType === "1" ? "For Sale" : "For Rent"}
+        </p>
         {#if id && id !== ""}
           <p>
             Owner:
@@ -237,7 +234,9 @@
             <p>{owner.phone}</p>
           </div>
         {/if}
-        <p>Available on: {listing.availableDate}</p>
+        {#if route && route !== ""}
+          <p>Available on: {listing.availableDate}</p>
+        {/if}
         <!-- svelte-ignore a11y-missing-attribute -->
         {#if id && id !== ""}
           <a

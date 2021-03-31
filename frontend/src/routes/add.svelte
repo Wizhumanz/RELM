@@ -92,9 +92,6 @@
       setTimeout(function () {
         if (loading) {
           const hds = {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-            Expires: "0",
             auth: user.password,
           };
           //Don't change any of these properties

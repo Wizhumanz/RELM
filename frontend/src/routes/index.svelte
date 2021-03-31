@@ -76,16 +76,10 @@
       const hds = onlyPublic
         ? {
             // "Content-Type": "application/json",
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-            Expires: "0",
           }
         : {
             // "Content-Type": "application/json",
             auth: user.password,
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-            Expires: "0",
           };
 
       //MUST replace all '+' with '%2B'
@@ -114,11 +108,7 @@
   function signIn(e) {
     loading = true;
 
-    const hds = {
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
-    };
+    const hds = {};
 
     axios
       .post("https://relm-api.myika.co/login", {
@@ -159,11 +149,7 @@
   }
 
   function register(e) {
-    const hds = {
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
-    };
+    const hds = {};
     axios
       .post("https://relm-api.myika.co/user", {
         headers: hds,
@@ -192,7 +178,7 @@
   <div class="container">
     <div class="row">
       <div class="col-sm col-md-7" id="info-col">
-        <h1 class="brand section-head">RELM</h1>
+        <h1 class="brand section-head">R E L M</h1>
         <p>
           <strong>R</strong>eal <strong>E</strong>state
           <strong>L</strong>isting <strong>M</strong>anager.
@@ -337,6 +323,10 @@
 
 <style type="text/scss">
   @import "../../static/styles/_all";
+
+  .brand {
+    font-family: $body-font;
+  }
 
   #info-col {
     text-align: center;

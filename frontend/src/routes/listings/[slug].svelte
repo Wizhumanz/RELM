@@ -38,9 +38,6 @@
 
     loading = true;
     const hds = {
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
       auth: "agent",
     };
 
