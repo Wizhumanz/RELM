@@ -13,9 +13,10 @@
   });
 
   let loading = false;
-  let showAlert = "display: none;";
+  let addedAlert = "display: none;";
   let fileSizeAlert = "display: none;";
-
+  let ownerExistsAlert = "display: none;";
+  let emailPhoneAlert = "display: none;";
   let now = new Date(),
     month,
     day,
@@ -114,12 +115,12 @@
             imgs: filesStr,
           };
           axios
-            .post("https://relm-api.myika.co/listing", data, {
+            .post("http://localhost:8000/listing", data, {
               headers: hds,
             })
             .then((res) => {
               loading = false;
-              showAlert = "display: block;";
+              addedAlert = "display: block;";
 
               //save new listing to local state
               let localImgs = [];
@@ -171,13 +172,24 @@
               ownerInfo.phone = ""
 
               setTimeout(() => {
-                showAlert = "display: none;";
+                addedAlert = "display: none;";
               }, 7000);
-              console.log("working")
+              console.log(JSON.stringify(data))
             })
             .catch((error) => {
-
+              if (error.response.data.body == "Input new owner") {
+                ownerExistsAlert = "display: block;"
+                setTimeout(() => {
+                  ownerExistsAlert = "display: none;"
+                }, 7000);
+              } else if (error.response.data.body == "Email or phone number already in use") {
+                emailPhoneAlert = "display: block;"
+                setTimeout(() => {
+                  emailPhoneAlert = "display: none;"
+                }, 7000);
+              }
               console.log(error.response)
+              loading = false
             });
         }
       }, 1000);
@@ -371,11 +383,17 @@
               <div>
                 <button type="submit">Add</button>
               </div>
-              <div style={showAlert}>
+              <div style={addedAlert}>
                 <p>Listing added!</p>
               </div>
               <div style={fileSizeAlert}>
                 <p>Image size too large. Each image must be under 200KB.</p>
+              </div>
+              <div style={ownerExistsAlert}>
+                <p>Owner already exists. Please enter a new owner.</p>
+              </div>
+              <div style={emailPhoneAlert}>
+                <p>The email or phone number you typed in is already in use. Please enter a new one.</p>
               </div>
             </div>
           </div>

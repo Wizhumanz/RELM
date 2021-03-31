@@ -655,9 +655,7 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var userWithEmail User
-	query := datastore.NewQuery("User").
-		Filter("Email =", myListing.OwnerID)
-	fmt.Println(myListing.OwnerID)
+	query := datastore.NewQuery("User")
 
 	t := client.Run(ctx, query)
 	_, error := t.Next(&userWithEmail)
@@ -666,33 +664,37 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error")
 	}
 
-	if !(userWithEmail.Email == myListing.OwnerID && userWithEmail.Name == myListing.OwnerName && userWithEmail.PhoneNumber == myListing.OwnerPhone) {
-		// add owner information
-		var newUser User
-		newUser.Name = myListing.OwnerName
-		newUser.Email = myListing.OwnerID
-		newUser.PhoneNumber = myListing.OwnerPhone
-		newUser.AccountType = "owner"
-
-		// set password hash
-		newUser.Password, _ = HashPassword(newUser.Password)
-
-		// create new user in DB
-		kind := "User"
-		name := time.Now().Format("2006-01-02_15:04:05_-0700")
-		newUserKey := datastore.NameKey(kind, name, nil)
-
-		if _, err := client.Put(ctx, newUserKey, &newUser); err != nil {
-			log.Fatalf("Failed to save User: %v", err)
-		}
-	} else {
+	if userWithEmail.Email == myListing.OwnerID && userWithEmail.Name == myListing.OwnerName && userWithEmail.PhoneNumber == myListing.OwnerPhone {
 		data := jsonResponse{Msg: "Owner already exists", Body: "Input new owner"}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(data)
+		return
+	} else if userWithEmail.Email == myListing.OwnerID || userWithEmail.PhoneNumber == myListing.OwnerPhone {
+		data := jsonResponse{Msg: "Owner already exists", Body: "Email or phone number already in use"}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(data)
 		return
 	}
 
-	//addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
+	// add owner information
+	var newUser User
+	newUser.Name = myListing.OwnerName
+	newUser.Email = myListing.OwnerID
+	newUser.PhoneNumber = myListing.OwnerPhone
+	newUser.AccountType = "owner"
+	// set password hash
+	newUser.Password, _ = HashPassword(newUser.Password)
+
+	// create new user in DB
+	kind := "User"
+	name := time.Now().Format("2006-01-02_15:04:05_-0700")
+	newUserKey := datastore.NameKey(kind, name, nil)
+
+	if _, err := client.Put(ctx, newUserKey, &newUser); err != nil {
+		log.Fatalf("Failed to save User: %v", err)
+	}
+
+	addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
 
 	// return
 	data := jsonResponse{
