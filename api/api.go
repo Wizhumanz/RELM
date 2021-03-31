@@ -66,8 +66,10 @@ func (l User) String() string {
 
 type Listing struct {
 	KEY           string   `json:"KEY,omitempty"`
-	UserID        string   `json:"user"`
+	UserID        string   `json:"userEmail"`
+	OwnerName     string   `json:"ownerName"`
 	OwnerID       string   `json:"owner"`
+	OwnerPhone    string   `json:"ownerPhone"`
 	Name          string   `json:"name"` // immutable once created, used for queries
 	Address       string   `json:"address"`
 	Postcode      string   `json:"postcode"`
@@ -110,7 +112,7 @@ func CheckPasswordHash(password, hash string) bool {
 }
 
 func authenticateUser(req loginReq) bool {
-	// get user with email
+	// get userEmail with email
 	var userWithEmail User
 	query := datastore.NewQuery("User").
 		Filter("Email =", req.Email)
@@ -159,14 +161,14 @@ func getUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.URL.Query().Get("owner")
-	if user == "" {
+	userEmail := r.URL.Query().Get("owner")
+	if userEmail == "" {
 		//Handle error.
 	}
 
 	var userWithEmail User
 	query := datastore.NewQuery("User").
-		Filter("Email =", user)
+		Filter("Email =", userEmail)
 	t := client.Run(ctx, query)
 	_, error := t.Next(&userWithEmail)
 	if error != nil {
@@ -281,7 +283,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	listingsResp := make([]Listing, 0)
 
 	authReq := loginReq{
-		Email:    r.URL.Query()["user"][0],
+		Email:    r.URL.Query()["userEmail"][0],
 		Password: r.Header.Get("auth"),
 	}
 
@@ -294,7 +296,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var query *datastore.Query
-	userIDParam := r.URL.Query()["user"][0]
+	userIDParam := r.URL.Query()["userEmail"][0]
 	var isPublicParam = true //default
 	if len(r.URL.Query()["isPublic"]) > 0 {
 		//extract correct isPublic param
@@ -487,7 +489,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 		Email:    newListing.UserID,
 		Password: r.Header.Get("auth"),
 	}
-	// for PUT req, user already authenticated outside this function
+	// for PUT req, userEmail already authenticated outside this function
 	if !isPutReq && !authenticateUser(authReq) {
 		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
@@ -596,7 +598,7 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 
 	//auth
 	authReq := loginReq{
-		Email:    r.URL.Query()["user"][0],
+		Email:    r.URL.Query()["userEmail"][0],
 		Password: r.Header.Get("auth"),
 	}
 	if !authenticateUser(authReq) {
@@ -644,7 +646,62 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
+	var myListing Listing
+	// decode data
+	err := json.NewDecoder(r.Body).Decode(&myListing)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var userWithEmail User
+	query := datastore.NewQuery("User").
+		Filter("Email =", myListing.OwnerID)
+	fmt.Println(myListing.OwnerID)
+
+	t := client.Run(ctx, query)
+	_, error := t.Next(&userWithEmail)
+	if error != nil {
+		// Handle error.
+		fmt.Println("Error")
+	}
+
+	if !(userWithEmail.Email == myListing.OwnerID && userWithEmail.Name == myListing.OwnerName && userWithEmail.PhoneNumber == myListing.OwnerPhone) {
+		// add owner information
+		var newUser User
+		newUser.Name = myListing.OwnerName
+		newUser.Email = myListing.OwnerID
+		newUser.PhoneNumber = myListing.OwnerPhone
+		newUser.AccountType = "owner"
+
+		// set password hash
+		newUser.Password, _ = HashPassword(newUser.Password)
+
+		// create new user in DB
+		kind := "User"
+		name := time.Now().Format("2006-01-02_15:04:05_-0700")
+		newUserKey := datastore.NameKey(kind, name, nil)
+
+		if _, err := client.Put(ctx, newUserKey, &newUser); err != nil {
+			log.Fatalf("Failed to save User: %v", err)
+		}
+	} else {
+		data := jsonResponse{Msg: "Owner already exists", Body: "Input new owner"}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
+	//addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
+
+	// return
+	data := jsonResponse{
+		Msg:  "Set " + myListing.Name,
+		Body: myListing.String(),
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(data)
 }
 
 func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
@@ -693,7 +750,7 @@ func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET", "OPTIONS").Path("/").HandlerFunc(indexHandler)
 	router.Methods("POST", "OPTIONS").Path("/login").HandlerFunc(loginHandler)
-	router.Methods("POST", "OPTIONS").Path("/user").HandlerFunc(createNewUserHandler)
+	router.Methods("POST", "OPTIONS").Path("/userEmail").HandlerFunc(createNewUserHandler)
 	router.Methods("GET", "OPTIONS").Path("/owner").HandlerFunc(getUserHandler)
 	router.Methods("GET", "OPTIONS").Path("/listings").HandlerFunc(getAllListingsHandler)
 	router.Methods("POST", "OPTIONS").Path("/listing").HandlerFunc(createNewListingHandler)
