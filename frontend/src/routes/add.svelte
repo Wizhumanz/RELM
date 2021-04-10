@@ -93,13 +93,13 @@
       setTimeout(function () {
         if (loading) {
           const hds = {
-            auth: user.password,
+            auth: "agent",
           };
           //Don't change any of these properties
           let data = {
-            user: user.id, //get user.id from store.js
+            userID: user.id, //get user.id from store.js
             ownerName: ownerInfo.name,
-            owner: owner,
+            ownerID: owner,
             ownerPhone: ownerInfo.phone,
             name: name, //name of listings are immutable
             address: address,
@@ -114,8 +114,11 @@
             isPending: isPending.toString(),
             imgs: filesStr,
           };
+          console.log(JSON.stringify(hds))
+          console.log(JSON.stringify(data))
+
           axios
-            .post("https://relm-api.myika.co/listing", data, {
+            .post("http://localhost:8000/listing", JSON.stringify(data), {
               headers: hds,
             })
             .then((res) => {
