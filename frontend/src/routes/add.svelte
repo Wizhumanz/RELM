@@ -1,6 +1,5 @@
 <script>
   import { onMount } from "svelte";
-  import { goto } from "@sapper/app";
   import axios from "axios";
   import { storeUser } from "../../store.js";
   import LoadingIndicator from "../components/LoadingIndicator.svelte";
@@ -168,28 +167,31 @@
               isPublic = false;
               isCompleted = false;
               isPending = false;
-              ownerInfo.name = ""
-              ownerInfo.phone = ""
+              ownerInfo.name = "";
+              ownerInfo.phone = "";
 
               setTimeout(() => {
                 addedAlert = "display: none;";
               }, 7000);
-              console.log(JSON.stringify(data))
+              console.log(JSON.stringify(data));
             })
             .catch((error) => {
               if (error.response.data.body == "Input new owner") {
-                ownerExistsAlert = "display: block;"
+                ownerExistsAlert = "display: block;";
                 setTimeout(() => {
-                  ownerExistsAlert = "display: none;"
+                  ownerExistsAlert = "display: none;";
                 }, 7000);
-              } else if (error.response.data.body == "Email or phone number already in use") {
-                emailPhoneAlert = "display: block;"
+              } else if (
+                error.response.data.body ==
+                "Email or phone number already in use"
+              ) {
+                emailPhoneAlert = "display: block;";
                 setTimeout(() => {
-                  emailPhoneAlert = "display: none;"
+                  emailPhoneAlert = "display: none;";
                 }, 7000);
               }
-              console.log(error.response)
-              loading = false
+              console.log(error.response);
+              loading = false;
             });
         }
       }, 1000);
@@ -393,7 +395,10 @@
                 <p>Owner already exists. Please enter a new owner.</p>
               </div>
               <div style={emailPhoneAlert}>
-                <p>The email or phone number you typed in is already in use. Please enter a new one.</p>
+                <p>
+                  The email or phone number you typed in is already in use.
+                  Please enter a new one.
+                </p>
               </div>
             </div>
           </div>
