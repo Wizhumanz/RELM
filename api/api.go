@@ -285,7 +285,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	listingsResp := make([]Listing, 0)
 
 	authReq := loginReq{
-		Email:    r.URL.Query()["userEmail"][0],
+		Email:    r.URL.Query()["user"][0],
 		Password: r.Header.Get("auth"),
 	}
 
@@ -298,7 +298,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var query *datastore.Query
-	userIDParam := r.URL.Query()["userEmail"][0]
+	userIDParam := r.URL.Query()["user"][0]
 	var isPublicParam = true //default
 	if len(r.URL.Query()["isPublic"]) > 0 {
 		//extract correct isPublic param
@@ -484,10 +484,13 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 	// decode data
 	err := json.NewDecoder(r.Body).Decode(&newListing)
 	if err != nil {
+		fmt.Println(newListing)
+		fmt.Println(err)
+		fmt.Println(err.Error())
 		fmt.Println("HERE CHECK")
 
-		// http.Error(w, err.Error(), http.StatusBadRequest)
-		// return
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	authReq := loginReq{
@@ -626,7 +629,7 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 
 	//auth
 	authReq := loginReq{
-		Email:    r.URL.Query()["userEmail"][0],
+		Email:    r.URL.Query()["user"][0],
 		Password: r.Header.Get("auth"),
 	}
 	if !authenticateUser(authReq) {

@@ -27,8 +27,8 @@
   let showPending = false;
   let showApartments = false;
   let showLanded = false;
-  let minPrice
-  let maxPrice
+  let minPrice;
+  let maxPrice;
 
   function handleUpdateBtnClick() {
     //user.IsPublic = user.isPublic.toString()
@@ -58,7 +58,7 @@
         setTimeout(function () {
           axios
             .put(
-              "https://relm-api.myika.co/listing/" +
+              "http://localhost:8000/listing/" +
                 found.name.replaceAll(" ", "+") +
                 "?user=agent%40agent.com",
               JSON.stringify(listingSubstitute),
@@ -91,7 +91,7 @@
     showApartments = false;
   }
 
-  $: console.log(minPrice)
+  $: console.log(minPrice);
 </script>
 
 <!--Loading Sign-->

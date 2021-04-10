@@ -87,10 +87,10 @@
       //let changedEndpoint = user.id.replaceAll("@","%40")
       let changedEndpoint = "agent%40agent.com"; //TODO: change to dynamic
       let url = onlyPublic
-        ? "https://relm-api.myika.co/listings?user=" +
+        ? "http://localhost:8000/listings?user=" +
           changedEndpoint +
           "&isPublic=true"
-        : "https://relm-api.myika.co/listings?user=" + changedEndpoint;
+        : "http://localhost:8000/listings?user=" + changedEndpoint;
       url = startID && startID != "" ? url + "&startID=" + startID : url;
       axios
         .get(url, {
@@ -111,7 +111,7 @@
     const hds = {};
 
     axios
-      .post("https://relm-api.myika.co/login", {
+      .post("http://localhost:8000/login", {
         headers: hds,
         email: userLogin.email,
         password: userLogin.password,
@@ -151,7 +151,7 @@
   function register(e) {
     const hds = {};
     axios
-      .post("https://relm-api.myika.co/user", {
+      .post("http://localhost:8000/user", {
         headers: hds,
         name: userRegister.name,
         email: userRegister.email,
