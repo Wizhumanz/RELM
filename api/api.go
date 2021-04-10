@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
 
@@ -122,8 +121,7 @@ func authenticateUser(req loginReq) (bool, User) {
 		query = datastore.NewQuery("User").
 			Filter("Email =", req.Email)
 	} else if req.ID != "" {
-		i, _ := strconv.Atoi(req.ID)
-		key := datastore.IDKey("User", int64(i), nil)
+		key := datastore.NameKey("User", req.ID, nil)
 		query = datastore.NewQuery("User").
 			Filter("__key__ =", key)
 	} else {
@@ -510,7 +508,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 	}
 
 	authReq := loginReq{
-		ID:       uID,
+		Email:    uID,
 		Password: r.Header.Get("auth"),
 	}
 	// for PUT req, userEmail already authenticated outside this function
