@@ -37,6 +37,7 @@ func (bit *JSONBool) UnmarshalJSON(b []byte) error {
 }
 
 type loginReq struct {
+	ID       string `json:"id"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -67,9 +68,9 @@ func (l User) String() string {
 type Listing struct {
 	KEY           string   `json:"KEY,omitempty"`
 	AggregateID   int      `json:"AggregateID,string"`
-	UserID        string   `json:"userID"`
+	User          string   `json:"user"`
 	OwnerName     string   `json:"ownerName"`
-	OwnerID       string   `json:"ownerID"`
+	Owner         string   `json:"owner"`
 	OwnerPhone    string   `json:"ownerPhone"`
 	Name          string   `json:"name"` // immutable once created, used for queries
 	Address       string   `json:"address"`
@@ -113,19 +114,29 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func authenticateUser(req loginReq) bool {
-	// get userEmail with email
+func authenticateUser(req loginReq) (bool, User) {
+	fmt.Println(req)
+	// get user with id/email
 	var userWithEmail User
-	query := datastore.NewQuery("User").
-		Filter("Email =", req.Email)
+	var query *datastore.Query
+	if req.Email != "" {
+		query = datastore.NewQuery("User").
+			Filter("Email =", req.Email)
+	} else if req.ID != "" {
+		key := datastore.NameKey("User", req.ID, nil)
+		query = datastore.NewQuery("User").
+			Filter("__key__ =", key)
+	} else {
+		return false, User{}
+	}
+
 	t := client.Run(ctx, query)
 	_, error := t.Next(&userWithEmail)
 	if error != nil {
-		// Handle error.
+		fmt.Println(error.Error())
 	}
-
 	// check password hash and return
-	return CheckPasswordHash(req.Password, userWithEmail.Password)
+	return CheckPasswordHash(req.Password, userWithEmail.Password), userWithEmail
 }
 
 func deleteElement(sli []Listing, del Listing) []Listing {
@@ -217,7 +228,8 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data jsonResponse
-	if authenticateUser(newLoginReq) {
+	loginSuccess, _ := authenticateUser(newLoginReq)
+	if loginSuccess {
 		data = jsonResponse{
 			Msg:  "Successfully logged in!",
 			Body: newLoginReq.Email,
@@ -290,7 +302,8 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//only need to authenticate if not fetching public listings
-	if len(r.URL.Query()["isPublic"]) == 0 && !authenticateUser(authReq) {
+	loginSuccess, _ := authenticateUser(authReq)
+	if len(r.URL.Query()["isPublic"]) == 0 && !loginSuccess {
 		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
@@ -477,28 +490,27 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // almost identical logic with create and update (event sourcing)
-func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingToUpdate Listing) {
-	var newListing Listing
+func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingToUpdate Listing, doNotDecode bool) {
+	var listingToUse Listing
 
-	fmt.Println(r.Body)
 	// decode data
-	err := json.NewDecoder(r.Body).Decode(&newListing)
-	if err != nil {
-		fmt.Println(newListing)
-		fmt.Println(err)
-		fmt.Println(err.Error())
-		fmt.Println("HERE CHECK")
-
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	if !doNotDecode {
+		err := json.NewDecoder(r.Body).Decode(&listingToUse)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	} else {
+		listingToUse = listingToUpdate
 	}
 
 	authReq := loginReq{
-		Email:    newListing.UserID,
+		Email:    listingToUse.User,
 		Password: r.Header.Get("auth"),
 	}
 	// for PUT req, userEmail already authenticated outside this function
-	if !isPutReq && !authenticateUser(authReq) {
+	loginSuccess, _ := authenticateUser(authReq)
+	if !isPutReq && !loginSuccess {
 		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
@@ -517,7 +529,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 	// if updating, name field not passed in JSON body, so must fill
 	if isPutReq {
 		fmt.Println("HERE Man")
-		newListing.AggregateID = listingToUpdate.AggregateID
+		listingToUse.AggregateID = listingToUpdate.AggregateID
 	} else {
 		fmt.Println("HERE This")
 		// else increment aggregate ID
@@ -534,16 +546,17 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 		}
 		fmt.Println(x)
 		fmt.Println(x.AggregateID)
-		newListing.AggregateID = 0 + 1
+		listingToUse.AggregateID = 0 + 1
 	}
 
+	listingToUse.Name = listingToUpdate.Name
 	//set timestamp
-	newListing.Timestamp = time.Now().Format("2006-01-02_15:04:05_-0700")
+	listingToUse.Timestamp = time.Now().Format("2006-01-02_15:04:05_-0700")
 
 	// TODO: fill empty PUT listing fields
 
 	//must have images to POST new listing
-	if !isPutReq && len(newListing.Imgs) <= 0 {
+	if !isPutReq && len(listingToUse.Imgs) <= 0 {
 		data := jsonResponse{Msg: "No images found in body.", Body: "At least one image must be included to create a new listing."}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(data)
@@ -569,7 +582,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 			log.Fatalf("Failed to create bucket: %v", err)
 		}
 
-		for j, strImg := range newListing.Imgs {
+		for j, strImg := range listingToUse.Imgs {
 			fmt.Println(strImg)
 			//convert image from base64 string to JPEG
 			i := strings.Index(strImg, ",")
@@ -588,23 +601,23 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 				fmt.Printf("Writer.Close: %v", err)
 			}
 		}
-		newListing.Imgs = []string{bucketName} //just store bucket name, objects retrieved on getListing
+		listingToUse.Imgs = []string{bucketName} //just store bucket name, objects retrieved on getListing
 	} else {
-		newListing.Imgs = listingToUpdate.Imgs
+		listingToUse.Imgs = listingToUpdate.Imgs
 	}
 
 	// create new listing in DB
 	kind := "Listing"
 	newListingKey := datastore.NameKey(kind, newListingName, nil)
 
-	if _, err := client.Put(ctx, newListingKey, &newListing); err != nil {
+	if _, err := client.Put(ctx, newListingKey, &listingToUse); err != nil {
 		log.Fatalf("Failed to save Listing: %v", err)
 	}
 
 	// return
 	data := jsonResponse{
 		Msg:  "Added " + newListingKey.String(),
-		Body: newListing.String(),
+		Body: listingToUse.String(),
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -632,7 +645,8 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 		Email:    r.URL.Query()["user"][0],
 		Password: r.Header.Get("auth"),
 	}
-	if !authenticateUser(authReq) {
+	loginSuccess, _ := authenticateUser(authReq)
+	if !loginSuccess {
 		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
@@ -697,7 +711,7 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	addListing(w, r, true, listingsResp[len(listingsResp)-1])
+	addListing(w, r, true, listingsResp[len(listingsResp)-1], false)
 }
 
 func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
@@ -714,6 +728,8 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(myListing.String())
+
 	var userWithEmail User
 	query := datastore.NewQuery("User")
 
@@ -724,12 +740,12 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error")
 	}
 
-	if userWithEmail.Email == myListing.OwnerID && userWithEmail.Name == myListing.OwnerName && userWithEmail.PhoneNumber == myListing.OwnerPhone {
+	if userWithEmail.Email == myListing.Owner && userWithEmail.Name == myListing.OwnerName && userWithEmail.PhoneNumber == myListing.OwnerPhone {
 		data := jsonResponse{Msg: "Owner already exists", Body: "Input new owner"}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(data)
 		return
-	} else if userWithEmail.Email == myListing.OwnerID || userWithEmail.PhoneNumber == myListing.OwnerPhone {
+	} else if userWithEmail.Email == myListing.Owner || userWithEmail.PhoneNumber == myListing.OwnerPhone {
 		data := jsonResponse{Msg: "Owner already exists", Body: "Email or phone number already in use"}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(data)
@@ -739,7 +755,7 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 	// add owner information
 	var newUser User
 	newUser.Name = myListing.OwnerName
-	newUser.Email = myListing.OwnerID
+	newUser.Email = myListing.Owner
 	newUser.PhoneNumber = myListing.OwnerPhone
 	newUser.AccountType = "owner"
 	// set password hash
@@ -753,7 +769,8 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := client.Put(ctx, newUserKey, &newUser); err != nil {
 		log.Fatalf("Failed to save User: %v", err)
 	}
-	addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
+
+	addListing(w, r, false, myListing, true) //empty Listing struct passed just for compiler
 
 	// return
 	data := jsonResponse{
