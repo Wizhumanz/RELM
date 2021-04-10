@@ -76,7 +76,7 @@
     };
     axios
       .put(
-        "https://relm-api.myika.co/listing/" +
+        "http://localhost:8000/listing/" +
           listing.name.replaceAll(" ", "+") +
           "?user=agent%40agent.com",
         JSON.stringify(listingSubstitute),
@@ -148,7 +148,7 @@
       };
     }, 500);
     axios
-      .post("https://relm-api.myika.co/twilio", data, {
+      .post("http://localhost:8000/twilio", data, {
         headers: hds,
       })
       .then((res) => {
@@ -163,7 +163,7 @@
     };
     axios
       .get(
-        "https://relm-api.myika.co/owner?owner=" +
+        "http://localhost:8000/owner?owner=" +
           ownerEmail.replaceAll("@", "%40"),
         {
           headers: hds,

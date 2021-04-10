@@ -113,13 +113,16 @@
             isPending: isPending.toString(),
             imgs: filesStr,
           };
+          console.log(hds);
+          console.log(data);
           axios
-            .post("https://relm-api.myika.co/listing", data, {
+            .post("http://localhost:8000/listing", data, {
               headers: hds,
             })
             .then((res) => {
               loading = false;
               addedAlert = "display: block;";
+              console.log(res.status);
 
               //save new listing to local state
               let localImgs = [];
@@ -173,7 +176,6 @@
               setTimeout(() => {
                 addedAlert = "display: none;";
               }, 7000);
-              console.log(JSON.stringify(data));
             })
             .catch((error) => {
               if (error.response.data.body == "Input new owner") {
