@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -67,6 +68,7 @@ func (l User) String() string {
 
 type Listing struct {
 	KEY           string   `json:"KEY,omitempty"`
+	AggregateID   int      `json:"AggregateID,string"`
 	User          string   `json:"user"`
 	OwnerName     string   `json:"ownerName"`
 	Owner         string   `json:"owner"`
@@ -83,6 +85,7 @@ type Listing struct {
 	IsCompleted   bool     `json:"isCompleted,string"`
 	IsPending     bool     `json:"isPending,string"`
 	Imgs          []string `json:"imgs"`
+	Timestamp     string   `json:"Timestamp,omitempty"`
 }
 
 func (l Listing) String() string {
@@ -282,11 +285,6 @@ func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
-	setupCORS(&w, r)
-	if (*r).Method == "OPTIONS" {
-		return
-	}
-
 	setupCORS(&w, r)
 	if (*r).Method == "OPTIONS" {
 		return
@@ -516,16 +514,36 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 	}
 
 	// if updating listing, don't allow Name change
-	if isPutReq && (listingToUse.Name != "") {
-		data := jsonResponse{Msg: "Name property of Listing is immutable.", Body: "Do not pass Name property in request body."}
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(data)
-		return
-	}
+	// if isPutReq && (listingToUse.Name != "") {
+	// 	data := jsonResponse{Msg: "Name property of Listing is immutable.", Body: "Do not pass Name property in request body."}
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	json.NewEncoder(w).Encode(data)
+	// 	return
+	// }
 	// if updating, name field not passed in JSON body, so must fill
 	if isPutReq {
-		listingToUse.Name = listingToUpdate.Name
+		fmt.Println("HERE Man")
+		listingToUse.AggregateID = listingToUpdate.AggregateID
+	} else {
+		fmt.Println("HERE This")
+		// else increment aggregate ID
+		var x Listing
+		//get highest aggregate ID
+		query := datastore.NewQuery("Listing").
+			Project("AggregateID").
+			Order("-AggregateID")
+		t := client.Run(ctx, query)
+		_, error := t.Next(&x)
+		if error != nil {
+			// Handle error.
+			fmt.Println("Error")
+		}
+		fmt.Println(x.AggregateID)
+		listingToUse.AggregateID = x.AggregateID + 1
 	}
+
+	//set timestamp
+	listingToUse.Timestamp = time.Now().Format("2006-01-02_15:04:05_-0700")
 
 	// TODO: fill empty PUT listing fields
 
@@ -557,7 +575,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 		}
 
 		for j, strImg := range listingToUse.Imgs {
-			fmt.Println(strImg)
+			//fmt.Println(strImg)
 			//convert image from base64 string to JPEG
 			i := strings.Index(strImg, ",")
 			if i < 0 {
@@ -603,10 +621,13 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 	if (*r).Method == "OPTIONS" {
 		return
 	}
+	fmt.Println("update")
 
 	//check if listing already exists to update
 	putID, unescapeErr := url.QueryUnescape(mux.Vars(r)["id"]) //is actually Listing.Name, not __key__ in Datastore
 	if unescapeErr != nil {
+		fmt.Println("errorrrrr")
+
 		data := jsonResponse{Msg: "Listing ID Parse Error", Body: unescapeErr.Error()}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(data)
@@ -626,25 +647,70 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(data)
 		return
 	}
+	fmt.Println("putid  " + putID)
+	int, _ := strconv.Atoi(putID)
 
 	//get listing with ID
 	query := datastore.NewQuery("Listing").
-		Filter("Name =", putID)
+		Filter("AggregateID =", int)
+
 	t := client.Run(ctx, query)
 	for {
 		var x Listing
 		key, err := t.Next(&x)
+		fmt.Println(x)
+
 		if err == iterator.Done {
+			fmt.Println("WTF")
 			break
 		}
 		if err != nil {
 			// Handle error.
 		}
-
 		if key != nil {
 			x.KEY = key.Name
 		}
-		listingsResp = append(listingsResp, x)
+		fmt.Println(x)
+
+		//event sourcing (pick latest snapshot)
+		if len(listingsResp) == 0 {
+			listingsResp = append(listingsResp, x)
+			fmt.Println("this")
+
+		} else {
+			//find bot in existing array
+			var exListing Listing
+			for _, b := range listingsResp {
+				if b.AggregateID == x.AggregateID {
+					exListing = b
+				}
+			}
+			fmt.Println("update")
+
+			//if bot exists, append row/entry with the latest timestamp
+			if exListing.AggregateID != 0 || exListing.Timestamp != "" {
+				fmt.Println("first")
+
+				//compare timestamps
+				layout := "2006-01-02_15:04:05_-0700"
+				existingBotTime, _ := time.Parse(layout, exListing.Timestamp)
+				newBotTime, _ := time.Parse(layout, x.Timestamp)
+				//if existing is older, remove it and add newer current listing; otherwise, do nothing
+				if existingBotTime.Before(newBotTime) {
+					fmt.Println("second")
+
+					//rm existing listing
+					listingsResp = deleteElement(listingsResp, exListing)
+					//append current listing
+					listingsResp = append(listingsResp, x)
+				}
+			} else {
+				//otherwise, just append newly decoded (so far unique) bot
+				listingsResp = append(listingsResp, x)
+				fmt.Println("third")
+
+			}
+		}
 	}
 
 	//return if listing to update doesn't exist
@@ -673,7 +739,7 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(myListing.String())
+	//fmt.Println(myListing.String())
 
 	var userWithEmail User
 	query := datastore.NewQuery("User")
