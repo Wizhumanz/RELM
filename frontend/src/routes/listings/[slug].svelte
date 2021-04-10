@@ -230,13 +230,13 @@
   {#if user.listings && user.listings.length > 0}
     {#each user.listings as l}
       {#if (l.price <= maxPrice && l.price >= minPrice) || (minPrice == null && maxPrice == null)}
-        {#if l.area
+        {#if l && l.area && l.area
           .toLowerCase()
           .includes(
             searchInput.toLowerCase()
-          ) || l.address
+          ) || (l.address && l.address
             .toLowerCase()
-            .includes(searchInput.toLowerCase()) || searchInput == ""}
+            .includes(searchInput.toLowerCase())) || searchInput == ""}
           {#if (showPublic && l.isPublic && showCompleted && l.isCompleted) || (showPending && l.isPending && showPublic && l.isPublic)}
             {#if showApartments && l.propertyType == "1"}
               <ListingLI

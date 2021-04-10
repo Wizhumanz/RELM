@@ -49,6 +49,7 @@ type User struct {
 	AccountType string `json:"type"`
 	Password    string `json:"password"`
 	PhoneNumber string `json:"phone"`
+	AgencyID    string `json:"agencyID"`
 }
 
 type TwilioReq struct {
@@ -64,6 +65,13 @@ func (l User) String() string {
 		r = r + fmt.Sprintf("%s: %v, ", typeOfL.Field(i).Name, v.Field(i).Interface())
 	}
 	return r
+}
+
+type Agency struct {
+	KEY  string         `json:"KEY,omitempty"`
+	K    *datastore.Key `datastore:"__key__"`
+	Name string         `json:"name"`
+	URL  string         `json:"URL"`
 }
 
 type Listing struct {
@@ -282,6 +290,36 @@ func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(data)
+}
+
+func getAllAgency(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
+	agencyResp := make([]Agency, 0)
+
+	query := datastore.NewQuery("Agency")
+	t := client.Run(ctx, query)
+
+	for {
+		var x Agency
+		key, err := t.Next(&x)
+		if key != nil {
+			x.KEY = fmt.Sprint(key.ID)
+		}
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			// Handle error.
+		}
+		agencyResp = append(agencyResp, x)
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(agencyResp)
 }
 
 func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
@@ -839,9 +877,10 @@ func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET", "OPTIONS").Path("/").HandlerFunc(indexHandler)
 	router.Methods("POST", "OPTIONS").Path("/login").HandlerFunc(loginHandler)
-	router.Methods("POST", "OPTIONS").Path("/userEmail").HandlerFunc(createNewUserHandler)
+	router.Methods("POST", "OPTIONS").Path("/user").HandlerFunc(createNewUserHandler)
 	router.Methods("GET", "OPTIONS").Path("/owner").HandlerFunc(getUserHandler)
 	router.Methods("GET", "OPTIONS").Path("/listings").HandlerFunc(getAllListingsHandler)
+	router.Methods("GET", "OPTIONS").Path("/agency").HandlerFunc(getAllAgency)
 	router.Methods("POST", "OPTIONS").Path("/listing").HandlerFunc(createNewListingHandler)
 	router.Methods("PUT", "OPTIONS").Path("/listing/{id}").HandlerFunc(updateListingHandler)
 	router.Methods("POST", "OPTIONS").Path("/twilio").HandlerFunc(getOwnerNumberHandler)

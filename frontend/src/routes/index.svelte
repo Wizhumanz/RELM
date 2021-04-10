@@ -8,8 +8,9 @@
 
   //For loading sign
   let loading = false;
-
+  let showRegister = "display: none;";
   let showAlert = "display: none;";
+  let agencyList = []
 
   //state of user across whole app
   let user = {
@@ -28,7 +29,7 @@
     } else {
       getListings(true, null).then((res) => {
         user.listings = res;
-        user.listings.reverse();
+        Array.from(user.listings).reverse();
         // NOTE: only save public listings to store.js to trigger update in other components
         storeUser.set(JSON.stringify(user));
         // res.forEach((r) => {
@@ -38,6 +39,7 @@
         // });
       });
     }
+
   });
 
   //only for user login
@@ -53,6 +55,7 @@
     name: "",
     type: "Owner",
     password: "",
+    agencyID: ""
   };
 
   function saveUser(data) {
@@ -70,6 +73,27 @@
     }
   }
 
+  function getAllAgency() {
+    const hds = {
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+        Expires: "0",
+      };
+      axios
+        .get("http://localhost:8000/agency", {
+          headers: hds,
+          mode: "cors",
+        })
+        .then((res) => {
+          agencyList = res.data;
+          console.log(res.data)
+        })
+        .catch((error) => {
+          console.log(error.response);
+        });
+  }
+  getAllAgency()
+$: console.log(userRegister.agencyID)
   function getListings(onlyPublic, startID) {
     return new Promise((resolve, reject) => {
       //auth header
@@ -147,27 +171,36 @@
         loading = false;
       });
   }
-
-  function register(e) {
-    const hds = {};
-    axios
-      .post("http://localhost:8000/user", {
-        headers: hds,
-        name: userRegister.name,
-        email: userRegister.email,
-        type: userRegister.type,
-        password: userRegister.password,
-        phone: userRegister.phone,
-      })
-      .then((res) => {
-        user.id = userRegister.email;
-        user.password = userRegister.password;
-        storeUser.set(JSON.stringify(user));
-        console.log(res.status + " -- " + res.data);
-        goto("/listings/all");
-      })
-      .catch((error) => console.log(error));
+  $: if (userRegister.agencyID === "None" || userRegister.agencyID === "") {
+    console.log(true)
   }
+  function register(e) {
+    if (userRegister.agencyID === "None" || userRegister.agencyID === "") {
+      showRegister = "display: block;";
+      setTimeout(() => {showRegister = "display: none"}, 7000)
+    } else {
+      const hds = {};
+      axios
+        .post("http://localhost:8000/user", {
+          headers: hds,
+          name: userRegister.name,
+          email: userRegister.email,
+          type: userRegister.type,
+          password: userRegister.password,
+          phone: userRegister.phone,
+          agencyID: userRegister.agencyID
+        })
+        .then((res) => {
+          user.id = userRegister.email;
+          user.password = userRegister.password;
+          storeUser.set(JSON.stringify(user));
+          console.log(res.status + " -- " + res.data);
+          goto("/listings/all");
+        })
+        .catch((error) => console.log(error));
+    }
+  }
+
 </script>
 
 {#if loading}
@@ -256,6 +289,9 @@
             aria-labelledby="profile-tab"
           >
             <!-- Register tab -->
+            <div style={showRegister}>
+              <p style="color: RED;">All fields are required!</p>
+            </div>
             <form class="form" on:submit|preventDefault={register}>
               <div class="mb-3">
                 <label for="accountType" class="form-label"> Type</label>
@@ -263,6 +299,17 @@
                   <option value="Agent">Agent</option>
                   <option value="Owner">Owner</option>
                   <!-- <option value="Tenant">Tenant</option> -->
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="agencyID" class="form-label">Agency</label>
+                <select id="agencyID" bind:value={userRegister.agencyID}>
+                  <option value="None">Choose an agency</option>
+                  {#if agencyList}
+                    {#each agencyList as a}
+                      <option value={a.KEY}>{a.name}</option>
+                    {/each}
+                  {/if}
                 </select>
               </div>
               <div class="mb-3">
