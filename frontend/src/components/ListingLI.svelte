@@ -64,7 +64,7 @@
     }
   });
 
-  const addListing = () => {
+  const updateListing = () => {
     showEdit = false;
     let listingSubstitute = { ...listing };
     listingSubstitute.name = null;
@@ -246,7 +246,7 @@
           >
         {/if}
       {:else}
-        <form class="form" on:submit|preventDefault={addListing}>
+        <form class="form" on:submit|preventDefault={updateListing}>
           <label for="address">Address:</label>
           <input type="text" id="address" bind:value={listing.address} /><br />
           <label for="postcode">Postcode: </label>
