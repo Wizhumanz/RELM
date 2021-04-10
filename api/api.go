@@ -475,14 +475,16 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // almost identical logic with create and update (event sourcing)
-func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingToUpdate Listing) {
+func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingToUpdate Listing, doNotDecode bool) {
 	var newListing Listing
 
 	// decode data
-	err := json.NewDecoder(r.Body).Decode(&newListing)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	if !doNotDecode {
+		err := json.NewDecoder(r.Body).Decode(&newListing)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	authReq := loginReq{
@@ -637,7 +639,7 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	addListing(w, r, true, listingsResp[len(listingsResp)-1])
+	addListing(w, r, true, listingsResp[len(listingsResp)-1], false)
 }
 
 func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
@@ -694,7 +696,7 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Failed to save User: %v", err)
 	}
 
-	addListing(w, r, false, Listing{}) //empty Listing struct passed just for compiler
+	addListing(w, r, false, myListing, true) //empty Listing struct passed just for compiler
 
 	// return
 	data := jsonResponse{
