@@ -489,26 +489,21 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 
 // almost identical logic with create and update (event sourcing)
 func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingToUpdate Listing, doNotDecode bool) {
-	var newListing Listing
+	var listingToUse Listing
 
 	// decode data
 	if !doNotDecode {
-		err := json.NewDecoder(r.Body).Decode(&newListing)
+		err := json.NewDecoder(r.Body).Decode(&listingToUse)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-	}
-
-	var uID string
-	if doNotDecode {
-		uID = listingToUpdate.User
 	} else {
-		uID = newListing.User
+		listingToUse = listingToUpdate
 	}
 
 	authReq := loginReq{
-		Email:    uID,
+		Email:    listingToUse.User,
 		Password: r.Header.Get("auth"),
 	}
 	// for PUT req, userEmail already authenticated outside this function
@@ -521,7 +516,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 	}
 
 	// if updating listing, don't allow Name change
-	if isPutReq && (newListing.Name != "") {
+	if isPutReq && (listingToUse.Name != "") {
 		data := jsonResponse{Msg: "Name property of Listing is immutable.", Body: "Do not pass Name property in request body."}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(data)
@@ -529,13 +524,13 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 	}
 	// if updating, name field not passed in JSON body, so must fill
 	if isPutReq {
-		newListing.Name = listingToUpdate.Name
+		listingToUse.Name = listingToUpdate.Name
 	}
 
 	// TODO: fill empty PUT listing fields
 
 	//must have images to POST new listing
-	if !isPutReq && len(newListing.Imgs) <= 0 {
+	if !isPutReq && len(listingToUse.Imgs) <= 0 {
 		data := jsonResponse{Msg: "No images found in body.", Body: "At least one image must be included to create a new listing."}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(data)
@@ -561,7 +556,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 			log.Fatalf("Failed to create bucket: %v", err)
 		}
 
-		for j, strImg := range newListing.Imgs {
+		for j, strImg := range listingToUse.Imgs {
 			fmt.Println(strImg)
 			//convert image from base64 string to JPEG
 			i := strings.Index(strImg, ",")
@@ -580,23 +575,23 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 				fmt.Printf("Writer.Close: %v", err)
 			}
 		}
-		newListing.Imgs = []string{bucketName} //just store bucket name, objects retrieved on getListing
+		listingToUse.Imgs = []string{bucketName} //just store bucket name, objects retrieved on getListing
 	} else {
-		newListing.Imgs = listingToUpdate.Imgs
+		listingToUse.Imgs = listingToUpdate.Imgs
 	}
 
 	// create new listing in DB
 	kind := "Listing"
 	newListingKey := datastore.NameKey(kind, newListingName, nil)
 
-	if _, err := client.Put(ctx, newListingKey, &newListing); err != nil {
+	if _, err := client.Put(ctx, newListingKey, &listingToUse); err != nil {
 		log.Fatalf("Failed to save Listing: %v", err)
 	}
 
 	// return
 	data := jsonResponse{
 		Msg:  "Added " + newListingKey.String(),
-		Body: newListing.String(),
+		Body: listingToUse.String(),
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
