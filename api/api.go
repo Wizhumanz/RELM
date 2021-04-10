@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -37,6 +38,7 @@ func (bit *JSONBool) UnmarshalJSON(b []byte) error {
 }
 
 type loginReq struct {
+	ID       string `json:"id"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -66,9 +68,9 @@ func (l User) String() string {
 
 type Listing struct {
 	KEY           string   `json:"KEY,omitempty"`
-	UserID        string   `json:"userEmail"`
+	User          string   `json:"user"`
 	OwnerName     string   `json:"ownerName"`
-	OwnerID       string   `json:"owner"`
+	Owner         string   `json:"owner"`
 	OwnerPhone    string   `json:"ownerPhone"`
 	Name          string   `json:"name"` // immutable once created, used for queries
 	Address       string   `json:"address"`
@@ -111,19 +113,30 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func authenticateUser(req loginReq) bool {
-	// get userEmail with email
+func authenticateUser(req loginReq) (bool, User) {
+	fmt.Println(req)
+	// get user with id/email
 	var userWithEmail User
-	query := datastore.NewQuery("User").
-		Filter("Email =", req.Email)
+	var query *datastore.Query
+	if req.Email != "" {
+		query = datastore.NewQuery("User").
+			Filter("Email =", req.Email)
+	} else if req.ID != "" {
+		i, _ := strconv.Atoi(req.ID)
+		key := datastore.IDKey("User", int64(i), nil)
+		query = datastore.NewQuery("User").
+			Filter("__key__ =", key)
+	} else {
+		return false, User{}
+	}
+
 	t := client.Run(ctx, query)
 	_, error := t.Next(&userWithEmail)
 	if error != nil {
-		// Handle error.
+		fmt.Println(error.Error())
 	}
-
 	// check password hash and return
-	return CheckPasswordHash(req.Password, userWithEmail.Password)
+	return CheckPasswordHash(req.Password, userWithEmail.Password), userWithEmail
 }
 
 func deleteElement(sli []Listing, del Listing) []Listing {
@@ -215,7 +228,8 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data jsonResponse
-	if authenticateUser(newLoginReq) {
+	loginSuccess, _ := authenticateUser(newLoginReq)
+	if loginSuccess {
 		data = jsonResponse{
 			Msg:  "Successfully logged in!",
 			Body: newLoginReq.Email,
@@ -283,12 +297,13 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	listingsResp := make([]Listing, 0)
 
 	authReq := loginReq{
-		Email:    r.URL.Query()["userEmail"][0],
+		Email:    r.URL.Query()["user"][0],
 		Password: r.Header.Get("auth"),
 	}
 
 	//only need to authenticate if not fetching public listings
-	if len(r.URL.Query()["isPublic"]) == 0 && !authenticateUser(authReq) {
+	loginSuccess, _ := authenticateUser(authReq)
+	if len(r.URL.Query()["isPublic"]) == 0 && !loginSuccess {
 		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
@@ -296,7 +311,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var query *datastore.Query
-	userIDParam := r.URL.Query()["userEmail"][0]
+	userIDParam := r.URL.Query()["user"][0]
 	var isPublicParam = true //default
 	if len(r.URL.Query()["isPublic"]) > 0 {
 		//extract correct isPublic param
@@ -487,12 +502,20 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 		}
 	}
 
+	var uID string
+	if doNotDecode {
+		uID = listingToUpdate.User
+	} else {
+		uID = newListing.User
+	}
+
 	authReq := loginReq{
-		Email:    newListing.UserID,
+		ID:       uID,
 		Password: r.Header.Get("auth"),
 	}
 	// for PUT req, userEmail already authenticated outside this function
-	if !isPutReq && !authenticateUser(authReq) {
+	loginSuccess, _ := authenticateUser(authReq)
+	if !isPutReq && !loginSuccess {
 		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
@@ -600,10 +623,11 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 
 	//auth
 	authReq := loginReq{
-		Email:    r.URL.Query()["userEmail"][0],
+		Email:    r.URL.Query()["user"][0],
 		Password: r.Header.Get("auth"),
 	}
-	if !authenticateUser(authReq) {
+	loginSuccess, _ := authenticateUser(authReq)
+	if !loginSuccess {
 		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(data)
@@ -656,6 +680,8 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(myListing.String())
+
 	var userWithEmail User
 	query := datastore.NewQuery("User")
 
@@ -666,12 +692,12 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error")
 	}
 
-	if userWithEmail.Email == myListing.OwnerID && userWithEmail.Name == myListing.OwnerName && userWithEmail.PhoneNumber == myListing.OwnerPhone {
+	if userWithEmail.Email == myListing.Owner && userWithEmail.Name == myListing.OwnerName && userWithEmail.PhoneNumber == myListing.OwnerPhone {
 		data := jsonResponse{Msg: "Owner already exists", Body: "Input new owner"}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(data)
 		return
-	} else if userWithEmail.Email == myListing.OwnerID || userWithEmail.PhoneNumber == myListing.OwnerPhone {
+	} else if userWithEmail.Email == myListing.Owner || userWithEmail.PhoneNumber == myListing.OwnerPhone {
 		data := jsonResponse{Msg: "Owner already exists", Body: "Email or phone number already in use"}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(data)
@@ -681,7 +707,7 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 	// add owner information
 	var newUser User
 	newUser.Name = myListing.OwnerName
-	newUser.Email = myListing.OwnerID
+	newUser.Email = myListing.Owner
 	newUser.PhoneNumber = myListing.OwnerPhone
 	newUser.AccountType = "owner"
 	// set password hash
