@@ -17,6 +17,7 @@
     id: "",
     password: "",
     listings: [],
+    agencyID: ""
   };
 
   onMount(() => {
@@ -141,6 +142,8 @@
       .then((res) => {
         user.id = userLogin.email;
         user.password = userLogin.password;
+        user.agencyID = res.data.message
+        console.log(user.agencyID)
         getListings(false, null).then((fetchedListings) => {
           //save GET to local state + storage
           saveUser(fetchedListings);
@@ -155,7 +158,7 @@
           if (imgFetchKey != "") {
             getListings(false, imgFetchKey).then((all) => {
               saveUser(all);
-              document.location.reload();
+              //document.location.reload();
             });
           }
           loading = false;

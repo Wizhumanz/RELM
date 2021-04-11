@@ -34,6 +34,7 @@ func main() {
 	router.Methods("POST", "OPTIONS").Path("/listing").HandlerFunc(createNewListingHandler)
 	router.Methods("PUT", "OPTIONS").Path("/listing/{id}").HandlerFunc(updateListingHandler)
 	router.Methods("POST", "OPTIONS").Path("/twilio").HandlerFunc(getOwnerNumberHandler)
+	router.Methods("POST", "OPTIONS").Path("/upload").HandlerFunc(createNewListingsExcel)
 
 	port := os.Getenv("PORT")
 	fmt.Println("relm-api listening on port " + port)

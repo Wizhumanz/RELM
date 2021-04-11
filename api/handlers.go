@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -83,9 +84,25 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	var data jsonResponse
 	loginSuccess, _ := authenticateUser(newLoginReq)
+
+	query := datastore.NewQuery("User").Filter("Email =", newLoginReq.Email)
+	t := client.Run(ctx, query)
+
+	var x User
+	_, error := t.Next(&x)
+	if error != nil {
+		// Handle error.
+		fmt.Println("Error")
+	}
+
+	if err != nil {
+		// Handle error.
+	}
+	agencyResp := x.AgencyID
+
 	if loginSuccess {
 		data = jsonResponse{
-			Msg:  "Successfully logged in!",
+			Msg:  agencyResp,
 			Body: newLoginReq.Email,
 		}
 		w.WriteHeader(http.StatusCreated)
@@ -369,12 +386,11 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // almost identical logic with create and update (event sourcing)
-func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingToUpdate Listing, doNotDecode bool) {
+func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingToUpdate Listing, doNotDecode bool, isExcel bool) {
 	setupCORS(&w, r)
 	if (*r).Method == "OPTIONS" {
 		return
 	}
-
 	var listingToUse Listing
 
 	// decode data
@@ -388,19 +404,20 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 		listingToUse = listingToUpdate
 	}
 
-	authReq := loginReq{
-		Email:    listingToUse.User,
-		Password: r.Header.Get("auth"),
+	if !isExcel {
+		authReq := loginReq{
+			Email:    listingToUse.User,
+			Password: r.Header.Get("auth"),
+		}
+		// for PUT req, userEmail already authenticated outside this function
+		loginSuccess, _ := authenticateUser(authReq)
+		if !isPutReq && !loginSuccess {
+			data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(data)
+			return
+		}
 	}
-	// for PUT req, userEmail already authenticated outside this function
-	loginSuccess, _ := authenticateUser(authReq)
-	if !isPutReq && !loginSuccess {
-		data := jsonResponse{Msg: "Authorization Invalid", Body: "Go away."}
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(data)
-		return
-	}
-
 	// if updating listing, don't allow Name change
 	// if isPutReq && (listingToUse.Name != "") {
 	// 	data := jsonResponse{Msg: "Name property of Listing is immutable.", Body: "Do not pass Name property in request body."}
@@ -410,10 +427,8 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 	// }
 	// if updating, name field not passed in JSON body, so must fill
 	if isPutReq {
-		fmt.Println("HERE Man")
 		listingToUse.AggregateID = listingToUpdate.AggregateID
 	} else {
-		fmt.Println("HERE This")
 		// else increment aggregate ID
 		var x Listing
 		//get highest aggregate ID
@@ -426,70 +441,74 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 			// Handle error.
 			fmt.Println("Error")
 		}
-		fmt.Println(x.AggregateID)
 		listingToUse.AggregateID = x.AggregateID + 1
 	}
 
 	//set timestamp
 	listingToUse.Timestamp = time.Now().Format("2006-01-02_15:04:05_-0700")
 
+	var newListingName string
 	// TODO: fill empty PUT listing fields
-
-	//must have images to POST new listing
-	if !isPutReq && len(listingToUse.Imgs) <= 0 {
-		data := jsonResponse{Msg: "No images found in body.", Body: "At least one image must be included to create a new listing."}
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(data)
-		return
-	}
-	//save images in new bucket on POST only
-	ctx := context.Background()
-	//use listing ID as bucket name
-	newListingName := time.Now().Format("2006-01-02_15:04:05_-0700")
-	if !isPutReq {
-		clientStorage, err := storage.NewClient(ctx)
-		if err != nil {
-			log.Fatalf("Failed to create client: %v", err)
+	if !isExcel {
+		//must have images to POST new listing
+		if !isPutReq && len(listingToUse.Imgs) <= 0 {
+			data := jsonResponse{Msg: "No images found in body.", Body: "At least one image must be included to create a new listing."}
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(data)
+			return
 		}
-
-		//format for proper bucket name
-		bucketName := strings.ReplaceAll(newListingName, ":", "-") //url.QueryEscape(newListing.UserID + "." + newListing.Name)
-		bucketName = strings.ReplaceAll(bucketName, "+", "plus")
-		bucket := clientStorage.Bucket(bucketName)
-		ctx, cancel := context.WithTimeout(ctx, time.Second*10)
-		defer cancel()
-		if err := bucket.Create(ctx, googleProjectID, nil); err != nil {
-			log.Fatalf("Failed to create bucket: %v", err)
-		}
-
-		for j, strImg := range listingToUse.Imgs {
-			//fmt.Println(strImg)
-			//convert image from base64 string to JPEG
-			i := strings.Index(strImg, ",")
-			if i < 0 {
-				fmt.Println("img in body no comma")
+		//save images in new bucket on POST only
+		ctx := context.Background()
+		//use listing ID as bucket name
+		newListingName = time.Now().Format("2006-01-02_15:04:05_-0700")
+		if !isPutReq {
+			clientStorage, err := storage.NewClient(ctx)
+			if err != nil {
+				log.Fatalf("Failed to create client: %v", err)
 			}
 
-			//store img in new bucket
-			dec := base64.NewDecoder(base64.StdEncoding, strings.NewReader(strImg[i+1:])) // pass reader to NewDecoder
-			// Upload an object with storage.Writer.
-			wc := clientStorage.Bucket(bucketName).Object(fmt.Sprintf("%d", j)).NewWriter(ctx)
-			if _, err = io.Copy(wc, dec); err != nil {
-				fmt.Printf("io.Copy: %v", err)
+			//format for proper bucket name
+			bucketName := strings.ReplaceAll(newListingName, ":", "-") //url.QueryEscape(newListing.UserID + "." + newListing.Name)
+			bucketName = strings.ReplaceAll(bucketName, "+", "plus")
+			bucket := clientStorage.Bucket(bucketName)
+			ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+			defer cancel()
+			if err := bucket.Create(ctx, googleProjectID, nil); err != nil {
+				log.Fatalf("Failed to create bucket: %v", err)
 			}
-			if err := wc.Close(); err != nil {
-				fmt.Printf("Writer.Close: %v", err)
+
+			for j, strImg := range listingToUse.Imgs {
+				//fmt.Println(strImg)
+				//convert image from base64 string to JPEG
+				i := strings.Index(strImg, ",")
+				if i < 0 {
+					fmt.Println("img in body no comma")
+				}
+
+				//store img in new bucket
+				dec := base64.NewDecoder(base64.StdEncoding, strings.NewReader(strImg[i+1:])) // pass reader to NewDecoder
+				// Upload an object with storage.Writer.
+				wc := clientStorage.Bucket(bucketName).Object(fmt.Sprintf("%d", j)).NewWriter(ctx)
+				if _, err = io.Copy(wc, dec); err != nil {
+					fmt.Printf("io.Copy: %v", err)
+				}
+				if err := wc.Close(); err != nil {
+					fmt.Printf("Writer.Close: %v", err)
+				}
 			}
+			listingToUse.Imgs = []string{bucketName} //just store bucket name, objects retrieved on getListing
+		} else {
+			listingToUse.Imgs = listingToUpdate.Imgs
 		}
-		listingToUse.Imgs = []string{bucketName} //just store bucket name, objects retrieved on getListing
 	} else {
-		listingToUse.Imgs = listingToUpdate.Imgs
+		newListingName = time.Now().Format("2006-01-02_15:04:05_-0700")
 	}
 
 	// create new listing in DB
 	kind := "Listing"
 	newListingKey := datastore.NameKey(kind, newListingName, nil)
 
+	fmt.Println("addlisting + " + listingToUse.Name)
 	if _, err := client.Put(ctx, newListingKey, &listingToUse); err != nil {
 		log.Fatalf("Failed to save Listing: %v", err)
 	}
@@ -597,7 +616,7 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	addListing(w, r, true, listingsResp[len(listingsResp)-1], false)
+	addListing(w, r, true, listingsResp[len(listingsResp)-1], false, false)
 }
 
 func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
@@ -656,7 +675,7 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Failed to save User: %v", err)
 	}
 
-	addListing(w, r, false, myListing, true) //empty Listing struct passed just for compiler
+	addListing(w, r, false, myListing, true, false) //empty Listing struct passed just for compiler
 
 	// return
 	data := jsonResponse{
@@ -700,4 +719,97 @@ func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp, _ := client.Do(req)
 	fmt.Println(resp.Status)
+}
+
+func createNewListingsExcel(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
+	agencyID := r.URL.Query().Get("agencyID")
+	user := r.URL.Query().Get("user")
+	// Parse our multipart form, 10 << 20 specifies a maximum
+	// upload of 10 MB files.
+	r.ParseMultipartForm(10 << 20)
+	// FormFile returns the first file for the given key `myFile`
+	// it also returns the FileHeader so we can get the Filename,
+	// the Header and the size of the file
+	file, _, err := r.FormFile("myFile")
+	if err != nil {
+		fmt.Println("Error Retrieving the File")
+		fmt.Println(err)
+		return
+	}
+	defer file.Close()
+
+	// Create a temporary file within our temp-images directory that follows
+	// a particular naming pattern
+	tempFile, err := ioutil.TempFile(os.TempDir(), "upload-*.csv")
+	if err != nil {
+		fmt.Println("nope")
+		fmt.Println(err)
+	}
+	defer tempFile.Close()
+
+	// read all of the contents of our uploaded file into a
+	// byte array
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		fmt.Println("again nope")
+		fmt.Println(err)
+	}
+	// write this byte array to our temporary file
+	tempFile.Write(fileBytes)
+
+	//Read csv file from the given file path
+	records := readCsvFile(tempFile.Name())
+
+	var excelListing Listing
+
+	for i := 1; i < len(records); i++ {
+		excelListing.Name = records[i][0]
+		excelListing.Address = records[i][0] + " " + records[i][1]
+		excelListing.Postcode = records[i][2]
+		excelListing.Area = records[i][3]
+		excelListing.OwnerName = records[i][4]
+		excelListing.OwnerPhone = records[i][5]
+		excelListing.Owner = records[i][6]
+		s, _ := strconv.Atoi(records[i][7])
+		excelListing.Price = s
+		if strings.Contains(strings.ToLower(records[i][8]), "apartment") {
+			excelListing.PropertyType = 1
+		} else if strings.Contains(strings.ToLower(records[i][8]), "landed") {
+			excelListing.PropertyType = 0
+		} else {
+			excelListing.PropertyType = 2
+		}
+
+		if strings.Contains(strings.ToLower(records[i][9]), "rent") {
+			excelListing.ListingType = 0
+		} else if strings.Contains(strings.ToLower(records[i][9]), "sale") {
+			excelListing.ListingType = 1
+		} else {
+			excelListing.ListingType = 2
+		}
+
+		excelListing.AvailableDate = time.Now().Format("2006-01-02")
+		excelListing.Timestamp = time.Now().Format("2006-01-02_15:04:05_-0700")
+		excelListing.AgencyID = agencyID
+		excelListing.User = user
+
+		excelListing.IsPublic = false
+		excelListing.IsCompleted = false
+		excelListing.IsPending = false
+
+		createNewListingExcel(w, r, excelListing)
+
+	}
+	data := jsonResponse{
+		Msg:  "Working",
+		Body: agencyID,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(data)
 }

@@ -64,6 +64,7 @@ type Listing struct {
 	KEY           string   `json:"KEY,omitempty"`
 	AggregateID   int      `json:"AggregateID,string"`
 	User          string   `json:"user"`
+	AgencyID      string   `json:"agencyID"`
 	OwnerName     string   `json:"ownerName"`
 	Owner         string   `json:"owner"`
 	OwnerPhone    string   `json:"ownerPhone"`
