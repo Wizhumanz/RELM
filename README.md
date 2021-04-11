@@ -36,7 +36,20 @@ Using LTS Node Alpine image for final stage of build.
 
 ## Local Dev
 
-Serve command: `PORT=8000 go run api.go`
+```
+chmod +x run.sh
+./run.sh
+```
+
+Inside `run.sh`:
+```
+export PORT=8000
+
+# build/ directory ignored by git
+go build -o build/api .
+
+build/api
+```
 
 `PORT` env var must be passed for local dev. This env var is passed by default when deployed to Cloud Run.
 

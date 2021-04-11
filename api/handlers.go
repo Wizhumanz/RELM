@@ -10,8 +10,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -19,161 +17,8 @@ import (
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
-	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/api/iterator"
 )
-
-type jsonResponse struct {
-	Msg  string `json:"message"`
-	Body string `json:"body"`
-}
-
-//for unmarshalling JSON to bools
-type JSONBool bool
-
-func (bit *JSONBool) UnmarshalJSON(b []byte) error {
-	txt := string(b)
-	*bit = JSONBool(txt == "1" || txt == "true")
-	return nil
-}
-
-type loginReq struct {
-	ID       string `json:"id"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type User struct {
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	AccountType string `json:"type"`
-	Password    string `json:"password"`
-	PhoneNumber string `json:"phone"`
-	AgencyID    string `json:"agencyID"`
-}
-
-type TwilioReq struct {
-	OwnerNumber string `json:"owner"`
-}
-
-func (l User) String() string {
-	r := ""
-	v := reflect.ValueOf(l)
-	typeOfL := v.Type()
-
-	for i := 0; i < v.NumField(); i++ {
-		r = r + fmt.Sprintf("%s: %v, ", typeOfL.Field(i).Name, v.Field(i).Interface())
-	}
-	return r
-}
-
-type Agency struct {
-	KEY  string         `json:"KEY,omitempty"`
-	K    *datastore.Key `datastore:"__key__"`
-	Name string         `json:"name"`
-	URL  string         `json:"URL"`
-}
-
-type Listing struct {
-	KEY           string   `json:"KEY,omitempty"`
-	AggregateID   int      `json:"AggregateID,string"`
-	User          string   `json:"user"`
-	OwnerName     string   `json:"ownerName"`
-	Owner         string   `json:"owner"`
-	OwnerPhone    string   `json:"ownerPhone"`
-	Name          string   `json:"name"` // immutable once created, used for queries
-	Address       string   `json:"address"`
-	Postcode      string   `json:"postcode"`
-	Area          string   `json:"area"`
-	Price         int      `json:"price,string"`
-	PropertyType  int      `json:"propertyType,string"` // 0 = landed, 1 = apartment
-	ListingType   int      `json:"listingType,string"`  // 0 = for rent, 1 = for sale
-	AvailableDate string   `json:"availableDate"`
-	IsPublic      bool     `json:"isPublic,string"`
-	IsCompleted   bool     `json:"isCompleted,string"`
-	IsPending     bool     `json:"isPending,string"`
-	Imgs          []string `json:"imgs"`
-	Timestamp     string   `json:"Timestamp,omitempty"`
-}
-
-func (l Listing) String() string {
-	r := ""
-	v := reflect.ValueOf(l)
-	typeOfL := v.Type()
-
-	for i := 0; i < v.NumField(); i++ {
-		r = r + fmt.Sprintf("%s: %v, ", typeOfL.Field(i).Name, v.Field(i).Interface())
-	}
-	return r
-}
-
-var googleProjectID = "myika-relm"
-var client *datastore.Client
-var ctx context.Context
-
-// helper funcs
-
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 2)
-	return string(bytes), err
-}
-
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
-
-func authenticateUser(req loginReq) (bool, User) {
-	fmt.Println(req)
-	// get user with id/email
-	var userWithEmail User
-	var query *datastore.Query
-	if req.Email != "" {
-		query = datastore.NewQuery("User").
-			Filter("Email =", req.Email)
-	} else if req.ID != "" {
-		key := datastore.NameKey("User", req.ID, nil)
-		query = datastore.NewQuery("User").
-			Filter("__key__ =", key)
-	} else {
-		return false, User{}
-	}
-
-	t := client.Run(ctx, query)
-	_, error := t.Next(&userWithEmail)
-	if error != nil {
-		fmt.Println(error.Error())
-	}
-	// check password hash and return
-	return CheckPasswordHash(req.Password, userWithEmail.Password), userWithEmail
-}
-
-func deleteElement(sli []Listing, del Listing) []Listing {
-	var rSli []Listing
-	for _, e := range sli {
-		if e.KEY != del.KEY {
-			rSli = append(rSli, e)
-		}
-	}
-	return rSli
-}
-
-type checkerFunc func(Listing) bool
-
-func GetIndex(s []Listing, chk checkerFunc) int {
-	for i, li := range s {
-		if chk(li) {
-			return i
-		}
-	}
-	return 0
-}
-
-func setupCORS(w *http.ResponseWriter, req *http.Request) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "https://relm.myika.co")
-	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, auth")
-}
 
 // route handlers
 
@@ -525,6 +370,11 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 
 // almost identical logic with create and update (event sourcing)
 func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingToUpdate Listing, doNotDecode bool) {
+	setupCORS(&w, r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+
 	var listingToUse Listing
 
 	// decode data
@@ -659,13 +509,10 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 	if (*r).Method == "OPTIONS" {
 		return
 	}
-	fmt.Println("update")
 
 	//check if listing already exists to update
 	putID, unescapeErr := url.QueryUnescape(mux.Vars(r)["id"]) //is actually Listing.Name, not __key__ in Datastore
 	if unescapeErr != nil {
-		fmt.Println("errorrrrr")
-
 		data := jsonResponse{Msg: "Listing ID Parse Error", Body: unescapeErr.Error()}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(data)
@@ -685,7 +532,6 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(data)
 		return
 	}
-	fmt.Println("putid  " + putID)
 	int, _ := strconv.Atoi(putID)
 
 	//get listing with ID
@@ -699,7 +545,6 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(x)
 
 		if err == iterator.Done {
-			fmt.Println("WTF")
 			break
 		}
 		if err != nil {
@@ -708,13 +553,10 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 		if key != nil {
 			x.KEY = key.Name
 		}
-		fmt.Println(x)
 
 		//event sourcing (pick latest snapshot)
 		if len(listingsResp) == 0 {
 			listingsResp = append(listingsResp, x)
-			fmt.Println("this")
-
 		} else {
 			//find bot in existing array
 			var exListing Listing
@@ -723,11 +565,9 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 					exListing = b
 				}
 			}
-			fmt.Println("update")
 
 			//if bot exists, append row/entry with the latest timestamp
 			if exListing.AggregateID != 0 || exListing.Timestamp != "" {
-				fmt.Println("first")
 
 				//compare timestamps
 				layout := "2006-01-02_15:04:05_-0700"
@@ -735,7 +575,6 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 				newBotTime, _ := time.Parse(layout, x.Timestamp)
 				//if existing is older, remove it and add newer current listing; otherwise, do nothing
 				if existingBotTime.Before(newBotTime) {
-					fmt.Println("second")
 
 					//rm existing listing
 					listingsResp = deleteElement(listingsResp, exListing)
@@ -745,8 +584,6 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				//otherwise, just append newly decoded (so far unique) bot
 				listingsResp = append(listingsResp, x)
-				fmt.Println("third")
-
 			}
 		}
 	}
@@ -863,29 +700,4 @@ func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp, _ := client.Do(req)
 	fmt.Println(resp.Status)
-}
-
-func main() {
-	//init
-	ctx = context.Background()
-	var err error
-	client, err = datastore.NewClient(ctx, googleProjectID)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
-	router := mux.NewRouter().StrictSlash(true)
-	router.Methods("GET", "OPTIONS").Path("/").HandlerFunc(indexHandler)
-	router.Methods("POST", "OPTIONS").Path("/login").HandlerFunc(loginHandler)
-	router.Methods("POST", "OPTIONS").Path("/user").HandlerFunc(createNewUserHandler)
-	router.Methods("GET", "OPTIONS").Path("/owner").HandlerFunc(getUserHandler)
-	router.Methods("GET", "OPTIONS").Path("/listings").HandlerFunc(getAllListingsHandler)
-	router.Methods("GET", "OPTIONS").Path("/agency").HandlerFunc(getAllAgency)
-	router.Methods("POST", "OPTIONS").Path("/listing").HandlerFunc(createNewListingHandler)
-	router.Methods("PUT", "OPTIONS").Path("/listing/{id}").HandlerFunc(updateListingHandler)
-	router.Methods("POST", "OPTIONS").Path("/twilio").HandlerFunc(getOwnerNumberHandler)
-
-	port := os.Getenv("PORT")
-	fmt.Println("relm-api listening on port " + port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
 }
