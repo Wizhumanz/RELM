@@ -82,6 +82,7 @@
         JSON.stringify(listingSubstitute),
         {
           headers: hds,
+          mode: "cors",
         }
       )
       .then((res) => {
@@ -150,6 +151,7 @@
     axios
       .post("http://localhost:8000/twilio", data, {
         headers: hds,
+        mode: "cors",
       })
       .then((res) => {
         console.log(res.status + " -- " + JSON.stringify(res.data));
@@ -167,6 +169,7 @@
           ownerEmail.replaceAll("@", "%40"),
         {
           headers: hds,
+          mode: "cors",
         }
       )
       .then((res) => {

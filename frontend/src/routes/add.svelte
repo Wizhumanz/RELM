@@ -118,6 +118,7 @@
           axios
             .post("http://localhost:8000/listing", data, {
               headers: hds,
+              mode: "cors",
             })
             .then((res) => {
               loading = false;

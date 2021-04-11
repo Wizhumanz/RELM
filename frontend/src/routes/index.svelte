@@ -39,7 +39,6 @@
         // });
       });
     }
-
   });
 
   //only for user login
@@ -60,7 +59,7 @@
 
   function saveUser(data) {
     user.listings = data;
-    user.listings.reverse();
+    Array.from(user.listings).reverse();
     if (user.listings.length > 0) {
       Array.from(user.listings).forEach((l) => {
         if (l.KEY) {
@@ -93,7 +92,6 @@
         });
   }
   getAllAgency()
-$: console.log(userRegister.agencyID)
   function getListings(onlyPublic, startID) {
     return new Promise((resolve, reject) => {
       //auth header
@@ -119,6 +117,7 @@ $: console.log(userRegister.agencyID)
       axios
         .get(url, {
           headers: hds,
+          mode: "cors",
         })
         .then((res) => {
           if (res.data) {
@@ -131,14 +130,13 @@ $: console.log(userRegister.agencyID)
 
   function signIn(e) {
     loading = true;
-
     const hds = {};
-
     axios
       .post("http://localhost:8000/login", {
         headers: hds,
         email: userLogin.email,
         password: userLogin.password,
+        mode: "cors",
       })
       .then((res) => {
         user.id = userLogin.email;
@@ -150,7 +148,7 @@ $: console.log(userRegister.agencyID)
           //lazy load rest of images in background
           let imgFetchKey = "";
           Array.from(fetchedListings).forEach((l) => {
-            if (l.imgs[0].length < 40 && imgFetchKey === "") {
+            if (l || l.imgs[0].length < 40 && imgFetchKey === "") {
               imgFetchKey = l.KEY;
             }
           });
@@ -160,7 +158,6 @@ $: console.log(userRegister.agencyID)
               document.location.reload();
             });
           }
-
           loading = false;
           goto("/listings/all");
         });
@@ -188,7 +185,8 @@ $: console.log(userRegister.agencyID)
           type: userRegister.type,
           password: userRegister.password,
           phone: userRegister.phone,
-          agencyID: userRegister.agencyID
+          agencyID: userRegister.agencyID,
+          mode: "cors",
         })
         .then((res) => {
           user.id = userRegister.email;

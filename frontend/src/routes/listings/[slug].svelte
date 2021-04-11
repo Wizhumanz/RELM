@@ -64,6 +64,7 @@
               JSON.stringify(listingSubstitute),
               {
                 headers: hds,
+                mode: "cors",
               }
             )
             .then((res) => {
