@@ -85,7 +85,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	loginSuccess, theUser := authenticateUser(newLoginReq)
 	if loginSuccess {
 		data = jsonResponse{
-			Msg:  "Successfully logged in! Agency ID of user in body.",
+			Msg:  fmt.Sprint(theUser.K.ID),
 			Body: theUser.AgencyID,
 		}
 		w.WriteHeader(http.StatusCreated)
