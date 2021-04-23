@@ -804,8 +804,10 @@ func createNewListingsExcel(w http.ResponseWriter, r *http.Request) {
 		excelListing.IsCompleted = false
 		excelListing.IsPending = false
 
-		createNewListingExcel(w, r, excelListing)
+		excelListing.Sqft = records[i][14]
+		excelListing.Remarks = records[i][15]
 
+		createNewListingExcel(w, r, excelListing)
 	}
 	data := jsonResponse{
 		Msg:  "Working",
