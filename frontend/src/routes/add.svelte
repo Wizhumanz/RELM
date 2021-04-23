@@ -11,6 +11,7 @@
     }
   });
 
+  console.log(user.id)
   let loading = false;
   let addedAlert = "display: none;";
   let fileSizeAlert = "display: none;";
@@ -97,6 +98,7 @@
           //Don't change any of these properties
           let data = {
             user: user.id, //get user.id from store.js
+            agency: user.agencyID,
             ownerName: ownerInfo.name,
             owner: owner,
             ownerPhone: ownerInfo.phone,

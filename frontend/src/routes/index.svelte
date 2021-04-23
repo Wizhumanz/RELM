@@ -107,12 +107,12 @@
       //MUST replace all '+' with '%2B'
       // let GETUrl = basicURL.split("+").join("%2B");
       //let changedEndpoint = user.id.replaceAll("@","%40")
-      let changedEndpoint = "agent%40agent.com"; //TODO: change to dynamic
+      let changedEndpoint = "5632499082330112"; //TODO: change to dynamic
       let url = onlyPublic
-        ? "http://localhost:8000/listings?user=" +
+        ? "http://localhost:8000/listings?agency=5644004762845184&user=" +
           changedEndpoint +
           "&isPublic=true"
-        : "http://localhost:8000/listings?user=" + changedEndpoint;
+        : "http://localhost:8000/listings?agency=5644004762845184&user=" + changedEndpoint;
       url = startID && startID != "" ? url + "&startID=" + startID : url;
       axios
         .get(url, {
@@ -139,9 +139,9 @@
         mode: "cors",
       })
       .then((res) => {
-        user.id = userLogin.email;
+        user.id = res.data.msg;
         user.password = userLogin.password;
-        user.agencyID = res.data.message
+        user.agencyID = res.data.body
         console.log(user.agencyID)
         getListings(false, null).then((fetchedListings) => {
           //save GET to local state + storage
