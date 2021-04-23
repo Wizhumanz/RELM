@@ -11,7 +11,6 @@
     }
   });
 
-  console.log(user.id)
   let loading = false;
   let addedAlert = "display: none;";
   let fileSizeAlert = "display: none;";
@@ -371,9 +370,7 @@
                   value=""
                   bind:checked={isCompleted}
                 />
-                <label class="form-check-label" for="completedCheck">
-                  Completed
-                </label>
+                <label class="form-check-label" for="completedCheck">Completed</label>
               </div>
               <div class="form-check form-check-inline">
                 <input
@@ -383,9 +380,7 @@
                   value=""
                   bind:checked={isPending}
                 />
-                <label class="form-check-label" for="pendingCheck"
-                  >Pending</label
-                >
+                <label class="form-check-label" for="pendingCheck">Pending</label>
               </div>
               <div>
                 <button type="submit">Add</button>

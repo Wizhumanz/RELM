@@ -67,7 +67,7 @@
   const updateListing = () => {
     showEdit = false;
     let listingSubstitute = { ...listing };
-    listingSubstitute.name = null;
+    listingSubstitute.name = listing.name;
     listingSubstitute.isPublic = listing.isPublic.toString();
     listingSubstitute.isPending = listing.isPending.toString();
     listingSubstitute.isCompleted = listing.isCompleted.toString();
@@ -77,8 +77,8 @@
     axios
       .put(
         "http://localhost:8000/listing/" +
-          listing.name.replaceAll(" ", "+") +
-          "?user=agent%40agent.com",
+          listing.AggregateID +
+          "?user=5632499082330112",
         JSON.stringify(listingSubstitute),
         {
           headers: hds,

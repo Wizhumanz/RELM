@@ -139,7 +139,7 @@
         mode: "cors",
       })
       .then((res) => {
-        user.id = res.data.msg;
+        user.id = res.data.message;
         user.password = userLogin.password;
         user.agencyID = res.data.body
         console.log(user.agencyID)

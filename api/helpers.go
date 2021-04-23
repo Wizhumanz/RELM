@@ -50,7 +50,6 @@ func authenticateUser(req loginReq) (bool, User) {
 	if error != nil {
 		fmt.Println(error.Error())
 	}
-	fmt.Println(userWithEmail)
 	// check password hash and return
 	return CheckPasswordHash(req.Password, userWithEmail.Password), userWithEmail
 }

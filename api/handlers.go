@@ -225,7 +225,8 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		listingsResp = append(listingsResp, x)
 	}
-	//fmt.Println(listingsResp)
+	// fmt.Println(listingsResp)
+	// fmt.Println(" ")
 
 	//if no listings, return empty array
 	if len(listingsResp) == 0 {
@@ -262,6 +263,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	listingsResp = existingListingsArr
+	fmt.Println(listingsResp)
 
 	//only get images for some listings
 	var imgFetchListings []Listing

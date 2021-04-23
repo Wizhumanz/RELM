@@ -36,7 +36,7 @@
     //user.IsCompleted = user.isCompleted.toString()
     //user.IsPending = user.isPending.toString()
     resetState.set(true);
-
+    console.log("THis is working")
     loading = true;
     const hds = {
       auth: "agent",
@@ -60,8 +60,8 @@
           axios
             .put(
               "http://localhost:8000/listing/" +
-                found.name.replaceAll(" ", "+") +
-                "?user=agent%40agent.com",
+                found.AggregateID +
+                "?user=5632499082330112",
               JSON.stringify(listingSubstitute),
               {
                 headers: hds,
