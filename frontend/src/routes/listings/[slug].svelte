@@ -20,7 +20,8 @@
       user = JSON.parse(newValue);
     }
   });
-
+  
+  console.log(user.listings)
   let loading = false;
   let showPublic = false;
   let showCompleted = false;
@@ -91,8 +92,6 @@
   function uncheckApartmentHandler() {
     showApartments = false;
   }
-
-  $: console.log(minPrice);
 </script>
 
 <!--Loading Sign-->
@@ -228,7 +227,7 @@
     <hr />
   </div>
 
-  {#if user.listings && user.listings.length > 0}
+  {#if user.listings && user.listings.length > 0 && user.listings[0].name !== undefined}
     {#each user.listings as l}
       {#if (l.price <= maxPrice && l.price >= minPrice) || (minPrice == null && maxPrice == null)}
         {#if l && l.area && l.area
@@ -299,7 +298,7 @@
       {/if}
     {/each}
   {:else}
-    <p>Loading...</p>
+    <p>No Listings Available.</p>
   {/if}
 
   {#if user.id && user.id !== "" && checkBoxArr.length > 0}

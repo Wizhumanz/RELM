@@ -202,11 +202,11 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		query = datastore.NewQuery("Listing").
-			Filter("UserID =", userIDParam).
+			Filter("User =", userIDParam).
 			Filter("IsPublic =", isPublicParam)
 	} else {
 		query = datastore.NewQuery("Listing").
-			Filter("UserID =", userIDParam)
+			Filter("User =", userIDParam)
 	}
 
 	//run query, decode listings to obj and store in slice
@@ -214,6 +214,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 		var x Listing
 		key, err := t.Next(&x)
+
 		if key != nil {
 			x.KEY = key.Name
 		}
@@ -225,6 +226,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		listingsResp = append(listingsResp, x)
 	}
+	//fmt.Println(listingsResp)
 
 	//if no listings, return empty array
 	if len(listingsResp) == 0 {
@@ -261,6 +263,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	listingsResp = existingListingsArr
+	fmt.Println(listingsResp)
 
 	//only get images for some listings
 	var imgFetchListings []Listing
@@ -410,10 +413,8 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 	// }
 	// if updating, name field not passed in JSON body, so must fill
 	if isPutReq {
-		fmt.Println("HERE Man")
 		listingToUse.AggregateID = listingToUpdate.AggregateID
 	} else {
-		fmt.Println("HERE This")
 		// else increment aggregate ID
 		var x Listing
 		//get highest aggregate ID
@@ -426,7 +427,6 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 			// Handle error.
 			fmt.Println("Error")
 		}
-		fmt.Println(x.AggregateID)
 		listingToUse.AggregateID = x.AggregateID + 1
 	}
 
@@ -542,7 +542,6 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 		var x Listing
 		key, err := t.Next(&x)
-		fmt.Println(x)
 
 		if err == iterator.Done {
 			break

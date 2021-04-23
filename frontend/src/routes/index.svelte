@@ -17,6 +17,7 @@
     id: "",
     password: "",
     listings: [],
+    agencyID: ""
   };
 
   onMount(() => {
@@ -85,7 +86,6 @@
         })
         .then((res) => {
           agencyList = res.data;
-          console.log(res.data)
         })
         .catch((error) => {
           console.log(error.response);
@@ -141,22 +141,30 @@
       .then((res) => {
         user.id = userLogin.email;
         user.password = userLogin.password;
+        user.agencyID = res.data.message
+        console.log(user.agencyID)
         getListings(false, null).then((fetchedListings) => {
           //save GET to local state + storage
           saveUser(fetchedListings);
+          console.log(fetchedListings)
+          if (fetchedListings == undefined) {
+            console.log("hello")
+          }
 
-          //lazy load rest of images in background
-          let imgFetchKey = "";
-          Array.from(fetchedListings).forEach((l) => {
-            if (l || l.imgs[0].length < 40 && imgFetchKey === "") {
-              imgFetchKey = l.KEY;
-            }
-          });
-          if (imgFetchKey != "") {
-            getListings(false, imgFetchKey).then((all) => {
-              saveUser(all);
-              document.location.reload();
+          if (fetchedListings != null) {
+            //lazy load rest of images in background
+            let imgFetchKey = "";
+            Array.from(fetchedListings).forEach((l) => {
+              if (l || l.imgs[0].length < 40 && imgFetchKey === "") {
+                imgFetchKey = l.KEY;
+              }
             });
+            if (imgFetchKey != "") {
+              getListings(false, imgFetchKey).then((all) => {
+                saveUser(all);
+                //document.location.reload();
+              });
+            }
           }
           loading = false;
           goto("/listings/all");
