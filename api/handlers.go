@@ -390,7 +390,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 	}
 
 	authReq := loginReq{
-		Email:    listingToUse.User,
+		ID:       listingToUse.User,
 		Password: r.Header.Get("auth"),
 	}
 	// for PUT req, userEmail already authenticated outside this function
@@ -494,7 +494,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 
 	// return
 	data := jsonResponse{
-		Msg:  "Added " + newListingKey.String(),
+		Msg:  "Added listing",
 		Body: listingToUse.String(),
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -653,15 +653,6 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	addListing(w, r, false, myListing, true) //empty Listing struct passed just for compiler
-
-	// return
-	data := jsonResponse{
-		Msg:  "Set " + myListing.KEY + " with name " + myListing.Name,
-		Body: myListing.String(),
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(data)
 }
 
 func getOwnerNumberHandler(w http.ResponseWriter, r *http.Request) {

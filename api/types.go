@@ -64,6 +64,7 @@ type Listing struct {
 	K             *datastore.Key `datastore:"__key__"`
 	KEY           string         `json:"KEY,omitempty"`
 	AggregateID   int            `json:"AggregateID,string"`
+	Agency        string         `json:"agency"`
 	User          string         `json:"user"`
 	OwnerName     string         `json:"ownerName"`
 	Owner         string         `json:"owner"`

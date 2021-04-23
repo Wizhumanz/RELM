@@ -38,6 +38,7 @@ func authenticateUser(req loginReq) (bool, User) {
 		query = datastore.NewQuery("User").
 			Filter("Email =", req.Email)
 	} else if req.ID != "" {
+		fmt.Println("IN HERE")
 		i, _ := strconv.Atoi(req.ID)
 		key := datastore.IDKey("User", int64(i), nil)
 		query = datastore.NewQuery("User").
@@ -51,6 +52,7 @@ func authenticateUser(req loginReq) (bool, User) {
 	if error != nil {
 		fmt.Println(error.Error())
 	}
+	fmt.Println(userWithEmail)
 	// check password hash and return
 	return CheckPasswordHash(req.Password, userWithEmail.Password), userWithEmail
 }
