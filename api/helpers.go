@@ -4,6 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
+
+	"encoding/csv"
+	"log"
+	"os"
 
 	"cloud.google.com/go/datastore"
 	"golang.org/x/crypto/bcrypt"
@@ -73,4 +78,44 @@ func GetIndex(s []Listing, chk checkerFunc) int {
 		}
 	}
 	return 0
+}
+
+func readCsvFile(filePath string) [][]string {
+	f, err := os.Open(filePath)
+	if err != nil {
+		log.Fatal("Unable to read input file "+filePath, err)
+	}
+	defer f.Close()
+
+	csvReader := csv.NewReader(f)
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		log.Fatal("Unable to parse file as CSV for "+filePath, err)
+	}
+
+	return records
+}
+
+func createNewListingExcel(w http.ResponseWriter, r *http.Request, myListing Listing) {
+	// add owner information
+	var newUser User
+	newUser.Name = myListing.OwnerName
+	newUser.Email = myListing.Owner
+	newUser.PhoneNumber = myListing.OwnerPhone
+	newUser.AccountType = "owner"
+	// set password hash
+	newUser.Password, _ = HashPassword(newUser.Password)
+	newUser.AgencyID = myListing.Agency
+
+	// create new user in DB
+	kind := "User"
+	name := time.Now().Format("2006-01-02_15:04:05_-0700")
+	newUserKey := datastore.NameKey(kind, name, nil)
+
+	if _, err := client.Put(ctx, newUserKey, &newUser); err != nil {
+		log.Fatalf("Failed to save User: %v", err)
+	}
+	fmt.Println("createNewListingExcel + " + myListing.Name)
+
+	addListing(w, r, false, myListing, true, true) //empty Listing struct passed just for compiler
 }

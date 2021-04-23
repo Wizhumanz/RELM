@@ -51,7 +51,7 @@
   });
 
   function uploadImgs() {
-    files = document.querySelector("[type=file]").files;
+    files = document.querySelector("#fileUpload").files;
     for (let i = 0; i < files.length; i++) {
       let file = files[i];
 
@@ -136,7 +136,7 @@
               });
 
               let newListing = {
-                user: user.id, //get user.id from store.js
+                agencyID: user.agencyID, //get user.id from store.js
                 owner: owner,
                 name: name, //name of listings are immutable
                 address: address,
@@ -200,6 +200,28 @@
         }
       }, 1000);
   }
+  console.log(user.id)
+
+  function uploadExcel() {
+    loading = true;
+
+
+    files = document.querySelector("#excelForm");
+    let formData = new FormData(files)
+    axios
+      .post("http://localhost:8000/upload?agencyID=" + user.agencyID + "&user=" + user.id, formData, {
+        headers:{"Content-Type": 'multipart/form-data' },
+        mode: "cors"
+      })
+      .then((res) => {
+        loading = false;
+        console.log(res)
+      })
+      .catch((error) => {
+        loading = false;
+        console.log(error.response);
+      })
+  }
 </script>
 
 <!--Loading Sign-->
@@ -215,7 +237,10 @@
 
   <div class="row">
     <div class="col-sm col-md-3">
-      <button id="excel-upload">Upload Excel</button>
+      <form enctype="multipart/form-data" method="post" id="excelForm">
+      <input type="file" name="myFile" id="excelUpload"/>
+      <button type="submit" value="upload" id="excel-upload" on:click|preventDefault={uploadExcel}>Upload Excel</button>
+    </form>
     </div>
     <div class="col-sm col-md-9">
       <div id="manual-add-box">
