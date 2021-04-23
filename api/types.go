@@ -30,12 +30,14 @@ type loginReq struct {
 }
 
 type User struct {
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	AccountType string `json:"type"`
-	Password    string `json:"password"`
-	PhoneNumber string `json:"phone"`
-	AgencyID    string `json:"agencyID"`
+	K           *datastore.Key `datastore:"__key__"`
+	KEY         string         `json:"KEY,omitempty"`
+	Name        string         `json:"name"`
+	Email       string         `json:"email"`
+	AccountType string         `json:"type"`
+	Password    string         `json:"password"`
+	PhoneNumber string         `json:"phone"`
+	AgencyID    string         `json:"agencyID"`
 }
 
 type TwilioReq struct {
