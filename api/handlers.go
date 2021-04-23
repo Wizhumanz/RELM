@@ -175,7 +175,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	listingsResp := make([]Listing, 0)
 
 	authReq := loginReq{
-		Email:    r.URL.Query()["user"][0],
+		ID:       r.URL.Query()["user"][0],
 		Password: r.Header.Get("auth"),
 	}
 
@@ -189,7 +189,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var query *datastore.Query
-	userIDParam := r.URL.Query()["user"][0]
+	agencyIDParam := r.URL.Query()["agency"][0]
 	var isPublicParam = true //default
 	if len(r.URL.Query()["isPublic"]) > 0 {
 		//extract correct isPublic param
@@ -201,11 +201,11 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		query = datastore.NewQuery("Listing").
-			Filter("User =", userIDParam).
+			Filter("Agency =", agencyIDParam).
 			Filter("IsPublic =", isPublicParam)
 	} else {
 		query = datastore.NewQuery("Listing").
-			Filter("User =", userIDParam)
+			Filter("Agency =", agencyIDParam)
 	}
 
 	//run query, decode listings to obj and store in slice
