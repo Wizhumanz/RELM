@@ -82,11 +82,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data jsonResponse
-	loginSuccess, _ := authenticateUser(newLoginReq)
+	loginSuccess, theUser := authenticateUser(newLoginReq)
 	if loginSuccess {
 		data = jsonResponse{
-			Msg:  "Successfully logged in!",
-			Body: newLoginReq.Email,
+			Msg:  "Successfully logged in! Agency ID of user in body.",
+			Body: theUser.AgencyID,
 		}
 		w.WriteHeader(http.StatusCreated)
 	} else {
