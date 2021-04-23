@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"cloud.google.com/go/datastore"
 	"golang.org/x/crypto/bcrypt"
@@ -37,7 +38,8 @@ func authenticateUser(req loginReq) (bool, User) {
 		query = datastore.NewQuery("User").
 			Filter("Email =", req.Email)
 	} else if req.ID != "" {
-		key := datastore.NameKey("User", req.ID, nil)
+		i, _ := strconv.Atoi(req.ID)
+		key := datastore.IDKey("User", int64(i), nil)
 		query = datastore.NewQuery("User").
 			Filter("__key__ =", key)
 	} else {

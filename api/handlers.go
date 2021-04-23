@@ -120,8 +120,7 @@ func createNewUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	// create new listing in DB
 	kind := "User"
-	name := time.Now().Format("2006-01-02_15:04:05_-0700")
-	newUserKey := datastore.NameKey(kind, name, nil)
+	newUserKey := datastore.IncompleteKey(kind, nil)
 
 	if _, err := client.Put(ctx, newUserKey, &newUser); err != nil {
 		log.Fatalf("Failed to save User: %v", err)
@@ -263,7 +262,6 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	listingsResp = existingListingsArr
-	fmt.Println(listingsResp)
 
 	//only get images for some listings
 	var imgFetchListings []Listing
@@ -488,7 +486,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 
 	// create new listing in DB
 	kind := "Listing"
-	newListingKey := datastore.NameKey(kind, newListingName, nil)
+	newListingKey := datastore.IncompleteKey(kind, nil)
 
 	if _, err := client.Put(ctx, newListingKey, &listingToUse); err != nil {
 		log.Fatalf("Failed to save Listing: %v", err)
@@ -648,8 +646,7 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 
 	// create new user in DB
 	kind := "User"
-	name := time.Now().Format("2006-01-02_15:04:05_-0700")
-	newUserKey := datastore.NameKey(kind, name, nil)
+	newUserKey := datastore.IncompleteKey(kind, nil)
 
 	if _, err := client.Put(ctx, newUserKey, &newUser); err != nil {
 		log.Fatalf("Failed to save User: %v", err)
