@@ -212,10 +212,10 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 	t := client.Run(ctx, query)
 	for {
 		var x Listing
-		key, err := t.Next(&x)
+		_, err := t.Next(&x)
 
-		if key != nil {
-			x.KEY = key.Name
+		if x.K != nil {
+			x.KEY = fmt.Sprint(x.K.ID)
 		}
 		if err == iterator.Done {
 			break
@@ -240,7 +240,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		//find listing in existing listings array
 		var exListing Listing
 		for i := range existingListingsArr {
-			if existingListingsArr[i].Name == li.Name {
+			if existingListingsArr[i].KEY == li.KEY {
 				exListing = existingListingsArr[i]
 			}
 		}
@@ -248,8 +248,8 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		if exListing.Name != "" {
 			//compare date keys
 			layout := "2006-01-02_15:04:05_-0700"
-			existingTime, _ := time.Parse(layout, exListing.KEY)
-			currentLITime, _ := time.Parse(layout, li.KEY)
+			existingTime, _ := time.Parse(layout, exListing.Timestamp)
+			currentLITime, _ := time.Parse(layout, li.Timestamp)
 			//if existing is older, remove and add newer current listing; otherwise, do nothing
 			if existingTime.Before(currentLITime) {
 				//rm existing listing
@@ -539,7 +539,7 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 	t := client.Run(ctx, query)
 	for {
 		var x Listing
-		key, err := t.Next(&x)
+		_, err := t.Next(&x)
 
 		if err == iterator.Done {
 			break
@@ -547,8 +547,8 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			// Handle error.
 		}
-		if key != nil {
-			x.KEY = key.Name
+		if x.K != nil {
+			x.KEY = fmt.Sprint(x.K.ID)
 		}
 
 		//event sourcing (pick latest snapshot)
@@ -656,7 +656,7 @@ func createNewListingHandler(w http.ResponseWriter, r *http.Request) {
 
 	// return
 	data := jsonResponse{
-		Msg:  "Set " + myListing.Name,
+		Msg:  "Set " + myListing.KEY + " with name " + myListing.Name,
 		Body: myListing.String(),
 	}
 	w.Header().Set("Content-Type", "application/json")

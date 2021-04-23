@@ -61,25 +61,26 @@ type Agency struct {
 }
 
 type Listing struct {
-	KEY           string   `json:"KEY,omitempty"`
-	AggregateID   int      `json:"AggregateID,string"`
-	User          string   `json:"user"`
-	OwnerName     string   `json:"ownerName"`
-	Owner         string   `json:"owner"`
-	OwnerPhone    string   `json:"ownerPhone"`
-	Name          string   `json:"name"` // immutable once created, used for queries
-	Address       string   `json:"address"`
-	Postcode      string   `json:"postcode"`
-	Area          string   `json:"area"`
-	Price         int      `json:"price,string"`
-	PropertyType  int      `json:"propertyType,string"` // 0 = landed, 1 = apartment
-	ListingType   int      `json:"listingType,string"`  // 0 = for rent, 1 = for sale
-	AvailableDate string   `json:"availableDate"`
-	IsPublic      bool     `json:"isPublic,string"`
-	IsCompleted   bool     `json:"isCompleted,string"`
-	IsPending     bool     `json:"isPending,string"`
-	Imgs          []string `json:"imgs"`
-	Timestamp     string   `json:"Timestamp,omitempty"`
+	K             *datastore.Key `datastore:"__key__"`
+	KEY           string         `json:"KEY,omitempty"`
+	AggregateID   int            `json:"AggregateID,string"`
+	User          string         `json:"user"`
+	OwnerName     string         `json:"ownerName"`
+	Owner         string         `json:"owner"`
+	OwnerPhone    string         `json:"ownerPhone"`
+	Name          string         `json:"name"` // immutable once created, used for queries
+	Address       string         `json:"address"`
+	Postcode      string         `json:"postcode"`
+	Area          string         `json:"area"`
+	Price         int            `json:"price,string"`
+	PropertyType  int            `json:"propertyType,string"` // 0 = landed, 1 = apartment
+	ListingType   int            `json:"listingType,string"`  // 0 = for rent, 1 = for sale
+	AvailableDate string         `json:"availableDate"`
+	IsPublic      bool           `json:"isPublic,string"`
+	IsCompleted   bool           `json:"isCompleted,string"`
+	IsPending     bool           `json:"isPending,string"`
+	Imgs          []string       `json:"imgs"`
+	Timestamp     string         `json:"Timestamp,omitempty"`
 }
 
 func (l Listing) String() string {
