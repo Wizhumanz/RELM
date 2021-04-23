@@ -520,7 +520,7 @@ func updateListingHandler(w http.ResponseWriter, r *http.Request) {
 
 	//auth
 	authReq := loginReq{
-		Email:    r.URL.Query()["user"][0],
+		ID:       r.URL.Query()["user"][0],
 		Password: r.Header.Get("auth"),
 	}
 	loginSuccess, _ := authenticateUser(authReq)
