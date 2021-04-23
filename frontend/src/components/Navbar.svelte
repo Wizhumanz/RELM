@@ -6,7 +6,7 @@
   // console.log(storeUser)
   storeUser.subscribe((newValue) => {
     if (newValue) {
-      id = JSON.parse(newValue) ? JSON.parse(newValue).id : null;
+      id = JSON.parse(newValue) ? JSON.parse(newValue).email : null;
     }
   });
 

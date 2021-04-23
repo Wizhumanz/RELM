@@ -14,6 +14,7 @@
 
   //state of user across whole app
   let user = {
+    email: "",
     id: "",
     password: "",
     listings: [],
@@ -139,6 +140,7 @@
         mode: "cors",
       })
       .then((res) => {
+        user.email = userLogin.email;
         user.id = res.data.message;
         user.password = userLogin.password;
         user.agencyID = res.data.body

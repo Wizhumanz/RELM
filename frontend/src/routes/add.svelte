@@ -354,7 +354,7 @@
               </div>
               <div class="form-check form-check-inline">
                 <input
-                  class="form-check-input addCheckbox"
+                  class="addCheckbox"
                   id="publicCheck"
                   type="checkbox"
                   value=""
@@ -364,7 +364,7 @@
               </div>
               <div class="form-check form-check-inline">
                 <input
-                  class="form-check-input addCheckbox"
+                  class="addCheckbox"
                   id="completedCheck"
                   type="checkbox"
                   value=""
@@ -374,7 +374,7 @@
               </div>
               <div class="form-check form-check-inline">
                 <input
-                  class="form-check-input addCheckbox"
+                  class="addCheckbox"
                   id="pendingCheck"
                   type="checkbox"
                   value=""
