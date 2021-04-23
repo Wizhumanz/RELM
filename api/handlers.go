@@ -241,7 +241,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		//find listing in existing listings array
 		var exListing Listing
 		for i := range existingListingsArr {
-			if existingListingsArr[i].KEY == li.KEY {
+			if existingListingsArr[i].AggregateID == li.AggregateID {
 				exListing = existingListingsArr[i]
 			}
 		}
