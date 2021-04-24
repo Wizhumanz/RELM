@@ -194,8 +194,8 @@
       </div>
     </div>
     <div class="col-4">
-      <h4>{listing.name} {active ? "<UNSAVED>" : ""}</h4>
       {#if !showEdit}
+        <h4>{listing.name} {active ? "<UNSAVED>" : ""}</h4>
         {#if route && route !== ""}
           <p>Address: {listing.address}</p>
         {/if}
@@ -252,7 +252,9 @@
         {/if}
       {:else}
         <form class="form" on:submit|preventDefault={updateListing}>
-          <label for="address">Address:</label>
+          <label for="address">Name: </label>
+          <input type="text" id="address" bind:value={listing.name} /><br />
+          <label for="address">Address: </label>
           <input type="text" id="address" bind:value={listing.address} /><br />
           <label for="postcode">Postcode: </label>
           <input type="text" id="postcode" bind:value={listing.postcode} /><br

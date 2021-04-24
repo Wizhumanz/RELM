@@ -156,6 +156,14 @@
                 remarks: remarks
               };
               user.listings = [...user.listings, newListing];
+              console.log(user.listings)
+              user.listings.forEach((l) => {
+                l.isPublic = l.isPublic === "true" ? true : false;
+                l.isPending = l.isPending === "true" ? true : false;
+                l.isCompleted = l.isCompleted === "true" ? true : false;
+              });
+              console.log(user.listings)
+
               storeUser.set(JSON.stringify(user));
 
               //reset inputs
