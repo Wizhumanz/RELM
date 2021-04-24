@@ -34,6 +34,8 @@
   let isPublic = false;
   let isCompleted = false;
   let isPending = false;
+  let sqft = 0;
+  let remarks = ""
   let ownerInfo = {
     name: "",
     phone: "",
@@ -113,9 +115,9 @@
             isCompleted: isCompleted.toString(),
             isPending: isPending.toString(),
             imgs: filesStr,
+            sqft: sqft.toString(),
+            remarks: remarks
           };
-          console.log(hds);
-          console.log(data);
           axios
             .post("http://localhost:8000/listing", data, {
               headers: hds,
@@ -150,6 +152,8 @@
                 isCompleted: isCompleted.toString(),
                 isPending: isPending.toString(),
                 imgs: localImgs,
+                sqft: sqft.toString(),
+                remarks: remarks
               };
               user.listings = [...user.listings, newListing];
               storeUser.set(JSON.stringify(user));
@@ -174,6 +178,8 @@
               isPending = false;
               ownerInfo.name = "";
               ownerInfo.phone = "";
+              sqft = 0
+              remarks = ""
 
               setTimeout(() => {
                 addedAlert = "display: none;";
@@ -204,13 +210,11 @@
 
   function uploadExcel() {
     loading = true;
-
-
     files = document.querySelector("#excelForm");
     let formData = new FormData(files)
     axios
       .post("http://localhost:8000/upload?agencyID=" + user.agencyID + "&user=" + user.id, formData, {
-        headers:{"Content-Type": 'multipart/form-data' },
+        headers:{"Content-Type": 'multipart/form-data'},
         mode: "cors"
       })
       .then((res) => {
@@ -377,6 +381,27 @@
                   <option value="1">Apartment</option>
                 </select>
               </div>
+              <div class="mb-3">
+                <label for="sqft" class="form-label">Square Feet</label>
+                <input
+                  required="required"
+                  type="number"
+                  class="form-control"
+                  id="sqft"
+                  bind:value={sqft}
+                />
+              </div>
+              <div class="mb-3">
+                <label for="remarks" class="form-label">Remarks</label>
+                <input
+                  required="required"
+                  type="text"
+                  class="form-control"
+                  id="remarks"
+                  placeholder="Remarks"
+                  bind:value={remarks}
+                />
+              </div>
               <div class="form-check form-check-inline">
                 <input
                   class="addCheckbox"
@@ -407,6 +432,7 @@
                 />
                 <label class="form-check-label" for="pendingCheck">Pending</label>
               </div>
+              
               <div>
                 <button type="submit">Add</button>
               </div>

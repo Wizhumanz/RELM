@@ -84,7 +84,7 @@ type Listing struct {
 	IsPending     bool           `json:"isPending,string"`
 	Imgs          []string       `json:"imgs"`
 	Timestamp     string         `json:"Timestamp,omitempty"`
-	Sqft          string         `json:"sqft"`
+	Sqft          int            `json:"sqft,string"`
 	Remarks       string         `json:"remarks"`
 }
 

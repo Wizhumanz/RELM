@@ -804,7 +804,8 @@ func createNewListingsExcel(w http.ResponseWriter, r *http.Request) {
 		excelListing.IsCompleted = false
 		excelListing.IsPending = false
 
-		excelListing.Sqft = records[i][14]
+		f, _ := strconv.Atoi(records[i][14])
+		excelListing.Sqft = f
 		excelListing.Remarks = records[i][15]
 
 		createNewListingExcel(w, r, excelListing)
