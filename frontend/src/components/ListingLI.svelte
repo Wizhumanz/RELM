@@ -220,7 +220,7 @@
             <a
               data-bs-toggle="collapse"
               href={listing.name
-                ? "#ownerInfo" + listing.name.split(" ").join("")
+                ? "#ownerInfo" + listing.KEY
                 : ""}
               role="button"
               aria-expanded="false"
@@ -233,7 +233,7 @@
           <div
             class="collapse indent"
             id={listing.name
-              ? "ownerInfo" + listing.name.split(" ").join("")
+              ? "ownerInfo" + listing.KEY
               : ""}
           >
             <p>{owner.name}</p>
