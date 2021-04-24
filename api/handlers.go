@@ -339,8 +339,16 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 
 		//download first img, set as new img property for listing (decoded on client side)
 		var imgStrs []string
-		if len(objNames) > 0 {
-			obj := objNames[0]
+		// if len(objNames) > 0 {
+		// 	obj := objNames[0]
+		// 	rc, _ := storageClient.Bucket(bkt).Object(obj).NewReader(ctx)
+		// 	defer rc.Close()
+
+		// 	imgByteArr, _ := ioutil.ReadAll(rc)
+		// 	imgStrs = append(imgStrs, base64.StdEncoding.EncodeToString(imgByteArr))
+		// }
+		for _, s := range objNames {
+			obj := s
 			rc, _ := storageClient.Bucket(bkt).Object(obj).NewReader(ctx)
 			defer rc.Close()
 
@@ -454,7 +462,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 	//set timestamp
 	listingToUse.Timestamp = time.Now().Format("2006-01-02_15:04:05_-0700")
 
-	var newListingName string
+	//var newListingName string
 	// TODO: fill empty PUT listing fields
 	if !isExcel {
 		//must have images to POST new listing
@@ -467,7 +475,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 		//save images in new bucket on POST only
 		ctx := context.Background()
 		//use listing ID as bucket name
-		newListingName = time.Now().Format("2006-01-02_15:04:05_-0700")
+		//newListingName = time.Now().Format("2006-01-02_15:04:05_-0700")
 		if !isPutReq {
 			clientStorage, err := storage.NewClient(ctx)
 			if err != nil {
@@ -475,8 +483,10 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 			}
 
 			//format for proper bucket name
-			bucketName := strings.ReplaceAll(newListingName, ":", "-") //url.QueryEscape(newListing.UserID + "." + newListing.Name)
-			bucketName = strings.ReplaceAll(bucketName, "+", "plus")
+			//bucketName := strings.ReplaceAll(newListingName, ":", "-") //url.QueryEscape(newListing.UserID + "." + newListing.Name)
+			//bucketName = strings.ReplaceAll(bucketName, "+", "plus")
+			//bucketName := listingToUse.AggregateID
+			bucketName := "agg_" + strconv.Itoa(listingToUse.AggregateID)
 			bucket := clientStorage.Bucket(bucketName)
 			ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 			defer cancel()
@@ -508,7 +518,7 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 			listingToUse.Imgs = listingToUpdate.Imgs
 		}
 	} else {
-		newListingName = time.Now().Format("2006-01-02_15:04:05_-0700")
+		//newListingName = time.Now().Format("2006-01-02_15:04:05_-0700")
 	}
 
 	// create new listing in DB

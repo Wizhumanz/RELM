@@ -51,16 +51,19 @@
   onMount(async () => {
     if (listing.imgs && listing.imgs.length > 0) {
       //only set image src if it's the actual img base64 string
-      if (listing.imgs[0].length > 35) {
+      let listOfImgs = []
+      listing.imgs.forEach((i) => {
+        if (i.length > 35) {
         let newImage = document.createElement("img");
-        newImage.src = "data:image/jpeg;base64," + listing.imgs[0];
+        newImage.src = "data:image/jpeg;base64," + i;
         newImage.style.maxWidth = "100%";
         newImage.style.maxHeight = "auto";
-        document.getElementById(listing.name.split(" ").join("")).innerHTML =
-          newImage.outerHTML;
-      } else {
-        showDownloadingIcon = true;
-      }
+        listOfImgs.push(newImage.outerHTML);
+        } else {
+          showDownloadingIcon = true;
+        }
+      })
+      document.getElementById(listing.name.split(" ").join("")).innerHTML = listOfImgs;
     }
   });
 
@@ -181,7 +184,6 @@
       .catch((error) => console.log(error.response));
   }
 
-  console.log(listing)
 </script>
 
 <div class="container" class:active>
@@ -330,13 +332,9 @@
             <button on:click={checkAvailability}>Check Availability</button>
           </div>
           <!-- svelte-ignore a11y-missing-attribute -->
-          <a class="smallLink" on:click={() => console.log("iProperty")}
-            >Publish on iProperty</a
-          >
+          <a class="smallLink" on:click={() => console.log("iProperty")}>Publish on iProperty</a>
           <!-- svelte-ignore a11y-missing-attribute -->
-          <a class="smallLink" on:click={() => console.log("PropertyGuru")}
-            >Publish on PropertyGuru</a
-          >
+          <a class="smallLink" on:click={() => console.log("PropertyGuru")}>Publish on PropertyGuru</a>
         {:else}
           <div class="form-check form-check-inline">
             <input
