@@ -243,8 +243,6 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		listingsResp = append(listingsResp, x)
 	}
-	// fmt.Println(listingsResp)
-	// fmt.Println(" ")
 
 	//if no listings, return empty array
 	if len(listingsResp) == 0 {
@@ -264,7 +262,7 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		//if listings already exists, remove one
-		if exListing.Name != "" {
+		if exListing.AggregateID != 0 {
 			//compare date keys
 			layout := "2006-01-02_15:04:05_-0700"
 			existingTime, _ := time.Parse(layout, exListing.Timestamp)
