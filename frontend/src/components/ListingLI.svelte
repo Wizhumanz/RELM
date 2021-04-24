@@ -180,6 +180,8 @@
       })
       .catch((error) => console.log(error.response));
   }
+
+  console.log(listing)
 </script>
 
 <div class="container" class:active>
