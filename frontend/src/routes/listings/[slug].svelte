@@ -44,13 +44,12 @@
 
     let checkBoxSet = new Set(checkBoxArr);
     checkBoxArr = checkBoxSet;
-
+    console.log(checkBoxSet)
     checkBoxSet.forEach((n) => {
       let found = user.listings.find((e) => e.name === n);
       if (found && found != "" && found != null) {
         //update listing in DB
         let listingSubstitute = { ...found };
-        listingSubstitute.name = null;
         listingSubstitute.isPublic = found.isPublic.toString();
         listingSubstitute.isPending = found.isPending.toString();
         listingSubstitute.isCompleted = found.isCompleted.toString();

@@ -62,7 +62,7 @@
   function saveUser(data) {
     user.listings = data;
     Array.from(user.listings).reverse();
-    if (user.listings.length > 0) {
+    if (user.listings) {
       Array.from(user.listings).forEach((l) => {
         if (l.KEY) {
           l.isPublic = l.isPublic === "true" ? true : false;
@@ -144,7 +144,6 @@
         user.id = res.data.message;
         user.password = userLogin.password;
         user.agencyID = res.data.body
-        console.log(user.agencyID)
         getListings(false, null).then((fetchedListings) => {
           //save GET to local state + storage
           saveUser(fetchedListings);

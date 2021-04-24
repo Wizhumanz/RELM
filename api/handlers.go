@@ -244,11 +244,16 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		listingsResp = append(listingsResp, x)
 	}
 
+	fmt.Println("line 247")
+	fmt.Println(listingsResp)
+
 	//if no listings, return empty array
 	if len(listingsResp) == 0 {
+		fmt.Println("enter")
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(listingsResp)
+		return
 	}
 
 	//sum up event sourcing for listings
@@ -279,7 +284,6 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	listingsResp = existingListingsArr
-	fmt.Println(listingsResp)
 
 	//only get images for some listings
 	var imgFetchListings []Listing
@@ -379,7 +383,8 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 			finalResp = append(finalResp, li)
 		}
 	}
-
+	fmt.Println("line 382")
+	fmt.Println(finalResp)
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
