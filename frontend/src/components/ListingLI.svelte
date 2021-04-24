@@ -53,6 +53,7 @@
       //only set image src if it's the actual img base64 string
       let listOfImgs = []
       listing.imgs.forEach((i) => {
+        console.log(i.length)
         if (i.length > 35) {
         let newImage = document.createElement("img");
         newImage.src = "data:image/jpeg;base64," + i;
@@ -182,7 +183,7 @@
       })
       .catch((error) => console.log(error.response));
   }
-  $: console.log(user.listings)
+  $: console.log(showDownloadingIcon)
 
 </script>
 

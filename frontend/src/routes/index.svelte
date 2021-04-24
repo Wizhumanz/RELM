@@ -62,7 +62,7 @@
   function saveUser(data) {
     user.listings = data;
     if (user.listings) {
-      user.listings.reverse();
+      //user.listings.reverse();
       user.listings.forEach((l) => {
         if (l.KEY) {
           l.isPublic = l.isPublic === "true" ? true : false;

@@ -36,7 +36,6 @@
     //user.IsCompleted = user.isCompleted.toString()
     //user.IsPending = user.isPending.toString()
     resetState.set(true);
-    console.log("THis is working")
     loading = true;
     const hds = {
       auth: "agent",
