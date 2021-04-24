@@ -70,7 +70,6 @@
   const updateListing = () => {
     showEdit = false;
     let listingSubstitute = { ...listing };
-    listingSubstitute.name = listing.name;
     listingSubstitute.isPublic = listing.isPublic.toString();
     listingSubstitute.isPending = listing.isPending.toString();
     listingSubstitute.isCompleted = listing.isCompleted.toString();
@@ -81,8 +80,7 @@
       .put(
         "http://localhost:8000/listing/" +
           listing.AggregateID +
-          "?user=5632499082330112",
-        JSON.stringify(listingSubstitute),
+          "?user=5632499082330112", listingSubstitute,
         {
           headers: hds,
           mode: "cors",
@@ -95,7 +93,7 @@
         let storeListings = [];
         if (user.listings.length > 0) {
           Array.from(user.listings).forEach((l) => {
-            if (l.name == listing.name) {
+            if (l.AggregateID == listing.AggregateID) {
               storeListings.push(listing);
             } else {
               storeListings.push(l);
@@ -104,6 +102,7 @@
         }
         user.listings = storeListings;
         storeUser.set(JSON.stringify(user));
+        console.log(user.listings)
       })
       .catch((error) => console.log(error.response));
   };
@@ -183,6 +182,7 @@
       })
       .catch((error) => console.log(error.response));
   }
+  $: console.log(user.listings)
 
 </script>
 
