@@ -11,6 +11,7 @@
   let showRegister = "display: none;";
   let showAlert = "display: none;";
   let agencyList = []
+  let mainURL = "https://relm-api.myika.co"
 
   //state of user across whole app
   let user = {
@@ -81,7 +82,7 @@
         Expires: "0",
       };
       axios
-        .get("http://localhost:8000/agency", {
+        .get(mainURL+"/agency", {
           headers: hds,
           mode: "cors",
         })
@@ -110,10 +111,10 @@
       //let changedEndpoint = user.id.replaceAll("@","%40")
       let changedEndpoint = "5632499082330112"; //TODO: change to dynamic
       let url = onlyPublic
-        ? "http://localhost:8000/listings?agency=5644004762845184&user=" +
+        ? mainURL + "/listings?agency=5644004762845184&user=" +
           changedEndpoint +
           "&isPublic=true"
-        : "http://localhost:8000/listings?agency=5644004762845184&user=" + changedEndpoint;
+        : mainURL + "/listings?agency=5644004762845184&user=" + changedEndpoint;
       url = startID && startID != "" ? url + "&startID=" + startID : url;
       axios
         .get(url, {
@@ -133,7 +134,7 @@
     loading = true;
     const hds = {};
     axios
-      .post("http://localhost:8000/login", {
+      .post(mainURL + "/login", {
         headers: hds,
         email: userLogin.email,
         password: userLogin.password,
@@ -187,7 +188,7 @@
     } else {
       const hds = {};
       axios
-        .post("http://localhost:8000/user", {
+        .post(mainURL + "/user", {
           headers: hds,
           name: userRegister.name,
           email: userRegister.email,

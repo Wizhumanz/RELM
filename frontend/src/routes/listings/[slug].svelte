@@ -30,6 +30,7 @@
   let showLanded = false;
   let minPrice;
   let maxPrice;
+  let mainURL = "https://relm-api.myika.co"
 
   function handleUpdateBtnClick() {
     //user.IsPublic = user.isPublic.toString()
@@ -57,7 +58,7 @@
         setTimeout(function () {
           axios
             .put(
-              "http://localhost:8000/listing/" +
+              mainURL + "/listing/" +
                 found.AggregateID +
                 "?user=5632499082330112",
               JSON.stringify(listingSubstitute),

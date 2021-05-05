@@ -244,12 +244,8 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 		listingsResp = append(listingsResp, x)
 	}
 
-	fmt.Println("line 247")
-	fmt.Println(listingsResp)
-
 	//if no listings, return empty array
 	if len(listingsResp) == 0 {
-		fmt.Println("enter")
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(listingsResp)
@@ -391,8 +387,6 @@ func getAllListingsHandler(w http.ResponseWriter, r *http.Request) {
 			finalResp = append(finalResp, li)
 		}
 	}
-	fmt.Println("line 382")
-	fmt.Println(finalResp)
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
@@ -495,7 +489,6 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 			}
 
 			for j, strImg := range listingToUse.Imgs {
-				//fmt.Println(strImg)
 				//convert image from base64 string to JPEG
 				i := strings.Index(strImg, ",")
 				if i < 0 {
@@ -525,7 +518,6 @@ func addListing(w http.ResponseWriter, r *http.Request, isPutReq bool, listingTo
 	kind := "Listing"
 	newListingKey := datastore.IncompleteKey(kind, nil)
 
-	fmt.Println("addlisting + " + listingToUse.Name)
 	if _, err := client.Put(ctx, newListingKey, &listingToUse); err != nil {
 		log.Fatalf("Failed to save Listing: %v", err)
 	}
@@ -762,7 +754,6 @@ func createNewListingsExcel(w http.ResponseWriter, r *http.Request) {
 	// a particular naming pattern
 	tempFile, err := ioutil.TempFile(os.TempDir(), "upload-*.csv")
 	if err != nil {
-		fmt.Println("nope")
 		fmt.Println(err)
 	}
 	defer tempFile.Close()
@@ -771,7 +762,6 @@ func createNewListingsExcel(w http.ResponseWriter, r *http.Request) {
 	// byte array
 	fileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
-		fmt.Println("again nope")
 		fmt.Println(err)
 	}
 	// write this byte array to our temporary file
