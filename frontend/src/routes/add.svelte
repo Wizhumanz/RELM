@@ -16,6 +16,8 @@
   let fileSizeAlert = "display: none;";
   let ownerExistsAlert = "display: none;";
   let emailPhoneAlert = "display: none;";
+  let noImageAlert = "display: none;";
+
   let now = new Date(),
     month,
     day,
@@ -61,12 +63,15 @@
         fileSizeAlert = "display: block;";
         setTimeout(() => {
           fileSizeAlert = "display: none;";
+
         }, 7000);
         loading = false;
+      } else {
+        //convert to base64 encoded string (pushed to filesStr)
+        encodeImageFileAsURL(file);
       }
 
-      //convert to base64 encoded string (pushed to filesStr)
-      encodeImageFileAsURL(file);
+  
     }
   }
 
@@ -126,7 +131,6 @@
             .then((res) => {
               loading = false;
               addedAlert = "display: block;";
-              console.log(res.status);
 
               //save new listing to local state
               let localImgs = [];
@@ -136,6 +140,7 @@
                   localImgs.push(imgStr.substring(imgStr.indexOf(",") + 1));
                 }
               });
+              console.log(res.data)
 
               let newListing = {
                 agencyID: user.agencyID, //get user.id from store.js
@@ -148,20 +153,21 @@
                 propertyType: propertyType.toString(),
                 listingType: listingType.toString(),
                 availableDate: dateString.toString(),
-                isPublic: isPublic.toString(),
-                isCompleted: isCompleted.toString(),
-                isPending: isPending.toString(),
+                isPublic: isPublic,
+                isCompleted: isCompleted,
+                isPending: isPending,
                 imgs: localImgs,
                 sqft: sqft.toString(),
                 remarks: remarks
               };
+              console.log(newListing)
+
               user.listings = [...user.listings, newListing];
-              console.log(user.listings)
-              user.listings.forEach((l) => {
-                l.isPublic = l.isPublic === "true" ? true : false;
-                l.isPending = l.isPending === "true" ? true : false;
-                l.isCompleted = l.isCompleted === "true" ? true : false;
-              });
+              // user.listings.forEach((l) => {
+              //   l.isPublic = l.isPublic === "true" ? true : false;
+              //   l.isPending = l.isPending === "true" ? true : false;
+              //   l.isCompleted = l.isCompleted === "true" ? true : false;
+              // });
               console.log(user.listings)
 
               storeUser.set(JSON.stringify(user));
@@ -207,14 +213,18 @@
                 setTimeout(() => {
                   emailPhoneAlert = "display: none;";
                 }, 7000);
+              } else if (error.response.data.includes("No images")) {
+                noImageAlert = "display: block;";
+                setTimeout(() => {
+                  noImageAlert = "display: none;";
+                }, 7000);
               }
-              console.log(error.response);
+
               loading = false;
             });
         }
       }, 1000);
   }
-  console.log(user.id)
 
   function uploadExcel() {
     loading = true;
@@ -227,7 +237,6 @@
       })
       .then((res) => {
         loading = false;
-        console.log(res)
       })
       .catch((error) => {
         loading = false;
@@ -458,6 +467,9 @@
                   The email or phone number you typed in is already in use.
                   Please enter a new one.
                 </p>
+              </div>
+              <div style={noImageAlert}>
+                <p>Image not attached. Please attach an image.</p>
               </div>
             </div>
           </div>
