@@ -112,14 +112,12 @@
         ? "http://localhost:8000/listings?agency=5644004762845184&user=5632499082330112&isPublic=true"
         : "http://localhost:8000/listings?agency=" + user.agencyID + "&user=" + user.id;
       url = startID && startID != "" ? url + "&startID=" + startID : url;
-      console.log(url)
       axios
         .get(url, {
           headers: hds,
           mode: "cors",
         })
         .then((res) => {
-          console.log(res.data)
           if (res.data) {
             resolve(res.data);
           }

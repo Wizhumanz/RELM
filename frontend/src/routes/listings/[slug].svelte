@@ -5,7 +5,7 @@
   import LoadingIndicator from "../../components/LoadingIndicator.svelte";
   const { page } = stores();
   import axios from "axios";
-  import Add from "../add.svelte";
+
   var route;
   var checkBoxArr = [];
   page.subscribe(({ path, params, query }) => {
@@ -21,7 +21,6 @@
     }
   });
   
-  console.log(user.listings)
   let loading = false;
   let showPublic = false;
   let showCompleted = false;
@@ -43,15 +42,27 @@
 
     let checkBoxSet = new Set(checkBoxArr);
     checkBoxArr = checkBoxSet;
-    console.log(checkBoxSet)
     checkBoxSet.forEach((n) => {
       let found = user.listings.find((e) => e.name === n);
       if (found && found != "" && found != null) {
         //update listing in DB
         let listingSubstitute = { ...found };
+        listingSubstitute.isPublic = listingSubstitute.isPublic === "true" ? true : false;
+        listingSubstitute.isPending = listingSubstitute.isPending === "true" ? true : false;
+        listingSubstitute.isCompleted = listingSubstitute.isCompleted === "true" ? true : false;
+        user.listings = user.listings.map(e => {
+          if (e.AggregateID == listingSubstitute.AggregateID) {
+            return listingSubstitute
+          } else {
+            return e
+          }
+        })
+        console.log(listingSubstitute)
+
         listingSubstitute.isPublic = found.isPublic.toString();
         listingSubstitute.isPending = found.isPending.toString();
         listingSubstitute.isCompleted = found.isCompleted.toString();
+        console.log(user.listings)
 
         //trying hacky way
         setTimeout(function () {
@@ -59,7 +70,7 @@
             .put(
               "http://localhost:8000/listing/" +
                 found.AggregateID +
-                "?user=5632499082330112",
+                "?user=" + user.id,
               JSON.stringify(listingSubstitute),
               {
                 headers: hds,
@@ -68,6 +79,14 @@
             )
             .then((res) => {
               loading = false;
+              // console.log(res.data.body)
+              // user.listings = user.listings.map(e => {
+              //   if (e.AggregateID == res.data.body.AggregateID) {
+              //     res.data.body
+              //   }
+              // })
+              console.log(user.listings)
+              // storeUser.set(JSON.stringify(user));
               console.log(res.status + " -- " + JSON.stringify(res.data));
             })
             .catch((error) => console.log(error.response));
