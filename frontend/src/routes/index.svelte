@@ -11,6 +11,7 @@
   let showRegister = "display: none;";
   let showAlert = "display: none;";
   let agencyList = []
+  let mainURL = "https://relm-api.myika.co"
 
   //state of user across whole app
   let user = {
@@ -81,7 +82,7 @@
         Expires: "0",
       };
       axios
-        .get("http://localhost:8000/agency", {
+        .get(mainURL + "/agency", {
           headers: hds,
           mode: "cors",
         })
