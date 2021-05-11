@@ -29,6 +29,7 @@
   let showLanded = false;
   let minPrice;
   let maxPrice;
+  $: console.log(user.listings)
 
   function handleUpdateBtnClick() {
     //user.IsPublic = user.isPublic.toString()
@@ -47,22 +48,25 @@
       if (found && found != "" && found != null) {
         //update listing in DB
         let listingSubstitute = { ...found };
-        listingSubstitute.isPublic = listingSubstitute.isPublic === "true" ? true : false;
-        listingSubstitute.isPending = listingSubstitute.isPending === "true" ? true : false;
-        listingSubstitute.isCompleted = listingSubstitute.isCompleted === "true" ? true : false;
+        console.log(listingSubstitute)
+
+        // listingSubstitute.isPublic = listingSubstitute.isPublic === "true" ? true : false;
+        // listingSubstitute.isPending = listingSubstitute.isPending === "true" ? true : false;
+        // listingSubstitute.isCompleted = listingSubstitute.isCompleted === "true" ? true : false;
+        console.log(found)
+        console.log(listingSubstitute)
+
         user.listings = user.listings.map(e => {
           if (e.AggregateID == listingSubstitute.AggregateID) {
-            return listingSubstitute
+            return found
           } else {
             return e
           }
         })
-        console.log(listingSubstitute)
 
         listingSubstitute.isPublic = found.isPublic.toString();
         listingSubstitute.isPending = found.isPending.toString();
         listingSubstitute.isCompleted = found.isCompleted.toString();
-        console.log(user.listings)
 
         //trying hacky way
         setTimeout(function () {
@@ -85,8 +89,8 @@
               //     res.data.body
               //   }
               // })
-              console.log(user.listings)
-              // storeUser.set(JSON.stringify(user));
+              console.log(res.data)
+              storeUser.set(JSON.stringify(user));
               console.log(res.status + " -- " + JSON.stringify(res.data));
             })
             .catch((error) => console.log(error.response));
