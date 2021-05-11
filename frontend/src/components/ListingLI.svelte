@@ -52,9 +52,9 @@
   onMount(async () => {
     if (listing.imgs && listing.imgs.length > 0) {
       //only set image src if it's the actual img base64 string
+      console.log(listing.imgs)
       let listOfImgs = []
       listing.imgs.forEach((i) => {
-        console.log(i.length)
         if (i.length > 35) {
         let newImage = document.createElement("img");
         newImage.src = "data:image/jpeg;base64," + i;
@@ -104,7 +104,6 @@
         }
         user.listings = storeListings;
         storeUser.set(JSON.stringify(user));
-        console.log(user.listings)
       })
       .catch((error) => console.log(error.response));
   };
@@ -184,7 +183,6 @@
       })
       .catch((error) => console.log(error.response));
   }
-  $: console.log(showDownloadingIcon)
 
 </script>
 

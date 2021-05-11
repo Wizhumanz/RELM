@@ -82,7 +82,7 @@
         Expires: "0",
       };
       axios
-        .get(mainURL+"/agency", {
+        .get(mainURL + "/agency", {
           headers: hds,
           mode: "cors",
         })
@@ -105,16 +105,13 @@
             // "Content-Type": "application/json",
             auth: user.password,
           };
-
       //MUST replace all '+' with '%2B'
       // let GETUrl = basicURL.split("+").join("%2B");
       //let changedEndpoint = user.id.replaceAll("@","%40")
       let changedEndpoint = "5632499082330112"; //TODO: change to dynamic
       let url = onlyPublic
-        ? mainURL + "/listings?agency=5644004762845184&user=" +
-          changedEndpoint +
-          "&isPublic=true"
-        : mainURL + "/listings?agency=5644004762845184&user=" + changedEndpoint;
+        ? "http://localhost:8000/listings?agency=5644004762845184&user=5632499082330112&isPublic=true"
+        : "http://localhost:8000/listings?agency=" + user.agencyID + "&user=" + user.id;
       url = startID && startID != "" ? url + "&startID=" + startID : url;
       axios
         .get(url, {
@@ -148,10 +145,6 @@
         getListings(false, null).then((fetchedListings) => {
           //save GET to local state + storage
           saveUser(fetchedListings);
-          console.log(fetchedListings)
-          if (fetchedListings == undefined) {
-            console.log("hello")
-          }
 
           if (fetchedListings != null) {
             //lazy load rest of images in background
@@ -178,9 +171,7 @@
         loading = false;
       });
   }
-  $: if (userRegister.agencyID === "None" || userRegister.agencyID === "") {
-    console.log(true)
-  }
+
   function register(e) {
     if (userRegister.agencyID === "None" || userRegister.agencyID === "") {
       showRegister = "display: block;";
