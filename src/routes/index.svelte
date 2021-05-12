@@ -82,7 +82,7 @@
         Expires: "0",
       };
       axios
-        .get(mainURL + "/agency", {
+        .get("http://localhost:8000/agency", {
           headers: hds,
           mode: "cors",
         })
