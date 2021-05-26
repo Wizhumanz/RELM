@@ -51,7 +51,6 @@
   onMount(async () => {
     if (listing.imgs && listing.imgs.length > 0) {
       //only set image src if it's the actual img base64 string
-      console.log(listing.imgs)
       let listOfImgs = []
       listing.imgs.forEach((i) => {
         if (i.length > 35) {

@@ -12,6 +12,7 @@
   let showAlert = "display: none;";
   let agencyList = []
   let mainURL = "https://relm-api.myika.co"
+  // let mainURL = "http://localhost:8000"
 
   //state of user across whole app
   let user = {
@@ -82,7 +83,7 @@
         Expires: "0",
       };
       axios
-        .get("http://localhost:8000/agency", {
+        .get(mainURL + "/agency", {
           headers: hds,
           mode: "cors",
         })
@@ -110,8 +111,8 @@
       //let changedEndpoint = user.id.replaceAll("@","%40")
       let changedEndpoint = "5632499082330112"; //TODO: change to dynamic
       let url = onlyPublic
-        ? "http://localhost:8000/listings?agency=5644004762845184&user=5632499082330112&isPublic=true"
-        : "http://localhost:8000/listings?agency=" + user.agencyID + "&user=" + user.id;
+        ? mainURL + "/listings?agency=5644004762845184&user=5632499082330112&isPublic=true"
+        : mainURL + "/listings?agency=" + user.agencyID + "&user=" + user.id;
       url = startID && startID != "" ? url + "&startID=" + startID : url;
       axios
         .get(url, {
@@ -131,7 +132,7 @@
     loading = true;
     const hds = {};
     axios
-      .post("http://localhost:8000/login", {
+      .post(mainURL + "/login", {
         headers: hds,
         email: userLogin.email,
         password: userLogin.password,
@@ -145,21 +146,30 @@
         getListings(false, null).then((fetchedListings) => {
           //save GET to local state + storage
           saveUser(fetchedListings);
-
           if (fetchedListings != null) {
             //lazy load rest of images in background
             let imgFetchKey = "";
-            Array.from(fetchedListings).forEach((l) => {
-              if (l || l.imgs[0].length < 40 && imgFetchKey === "") {
-                imgFetchKey = l.KEY;
+
+            let fourthListings = fetchedListings.filter((l,i) => {
+              if (i%4 == 0 && i != 0) {
+                return l
               }
-            });
-            if (imgFetchKey != "") {
-              getListings(false, imgFetchKey).then((all) => {
-                saveUser(all);
-                //document.location.reload();
+            })
+
+            Array.from(fourthListings).forEach((l) => {
+              getListings(false, l.KEY).then((all) => {
+                all.forEach((a) => {
+                  if (a.imgs[0].length > 10) {
+                    console.log(a.imgs)
+                    user.listings.find((l) => l.KEY === a.KEY).imgs = a.imgs
+                  }
+                })
+                storeUser.set(JSON.stringify(user));
+
+                // saveUser(all);
               });
-            }
+            });
+            // document.location.reload();
           }
           loading = false;
           goto("/listings/all");
@@ -179,7 +189,7 @@
     } else {
       const hds = {};
       axios
-        .post("http://localhost:8000/user", {
+        .post(mainURL + "/user", {
           headers: hds,
           name: userRegister.name,
           email: userRegister.email,

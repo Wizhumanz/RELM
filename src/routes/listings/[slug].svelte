@@ -29,7 +29,7 @@
   let showLanded = false;
   let minPrice;
   let maxPrice;
-  $: console.log(user.listings)
+  // $: console.log(user.listings)
 
   function handleUpdateBtnClick() {
     //user.IsPublic = user.isPublic.toString()
