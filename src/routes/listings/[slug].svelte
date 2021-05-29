@@ -5,7 +5,10 @@
   import LoadingIndicator from "../../components/LoadingIndicator.svelte";
   const { page } = stores();
   import axios from "axios";
-  import Add from "../add.svelte";
+
+  let mainURL = "https://relm-api.myika.co"
+  // let mainURL = "http://localhost:8000"
+
   var route;
   var checkBoxArr = [];
   page.subscribe(({ path, params, query }) => {
@@ -21,7 +24,6 @@
     }
   });
   
-  console.log(user.listings)
   let loading = false;
   let showPublic = false;
   let showCompleted = false;
@@ -30,7 +32,7 @@
   let showLanded = false;
   let minPrice;
   let maxPrice;
-  let mainURL = "https://relm-api.myika.co"
+  // $: console.log(user.listings)
 
   function handleUpdateBtnClick() {
     //user.IsPublic = user.isPublic.toString()
@@ -44,12 +46,27 @@
 
     let checkBoxSet = new Set(checkBoxArr);
     checkBoxArr = checkBoxSet;
-    console.log(checkBoxSet)
     checkBoxSet.forEach((n) => {
       let found = user.listings.find((e) => e.name === n);
       if (found && found != "" && found != null) {
         //update listing in DB
         let listingSubstitute = { ...found };
+        console.log(listingSubstitute)
+
+        // listingSubstitute.isPublic = listingSubstitute.isPublic === "true" ? true : false;
+        // listingSubstitute.isPending = listingSubstitute.isPending === "true" ? true : false;
+        // listingSubstitute.isCompleted = listingSubstitute.isCompleted === "true" ? true : false;
+        console.log(found)
+        console.log(listingSubstitute)
+
+        user.listings = user.listings.map(e => {
+          if (e.AggregateID == listingSubstitute.AggregateID) {
+            return found
+          } else {
+            return e
+          }
+        })
+
         listingSubstitute.isPublic = found.isPublic.toString();
         listingSubstitute.isPending = found.isPending.toString();
         listingSubstitute.isCompleted = found.isCompleted.toString();
@@ -60,7 +77,7 @@
             .put(
               mainURL + "/listing/" +
                 found.AggregateID +
-                "?user=5632499082330112",
+                "?user=" + user.id,
               JSON.stringify(listingSubstitute),
               {
                 headers: hds,
@@ -69,6 +86,14 @@
             )
             .then((res) => {
               loading = false;
+              // console.log(res.data.body)
+              // user.listings = user.listings.map(e => {
+              //   if (e.AggregateID == res.data.body.AggregateID) {
+              //     res.data.body
+              //   }
+              // })
+              console.log(res.data)
+              storeUser.set(JSON.stringify(user));
               console.log(res.status + " -- " + JSON.stringify(res.data));
             })
             .catch((error) => console.log(error.response));
