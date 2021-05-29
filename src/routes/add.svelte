@@ -4,6 +4,9 @@
   import { storeUser } from "../../store.js";
   import LoadingIndicator from "../components/LoadingIndicator.svelte";
 
+  let mainURL = "https://relm-api.myika.co"
+  // let mainURL = "http://localhost:8000"
+
   let user = {};
   storeUser.subscribe((newValue) => {
     if (newValue) {
@@ -42,7 +45,6 @@
     name: "",
     phone: "",
   };
-  let mainURL = "https://relm-api.myika.co"
 
   onMount(() => {
     (month = "" + (now.getMonth() + 1)),

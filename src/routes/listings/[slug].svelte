@@ -6,6 +6,9 @@
   const { page } = stores();
   import axios from "axios";
 
+  let mainURL = "https://relm-api.myika.co"
+  // let mainURL = "http://localhost:8000"
+
   var route;
   var checkBoxArr = [];
   page.subscribe(({ path, params, query }) => {
@@ -29,7 +32,7 @@
   let showLanded = false;
   let minPrice;
   let maxPrice;
-  $: console.log(user.listings)
+  // $: console.log(user.listings)
 
   function handleUpdateBtnClick() {
     //user.IsPublic = user.isPublic.toString()

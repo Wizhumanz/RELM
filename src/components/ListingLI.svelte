@@ -4,6 +4,8 @@
   import axios from "axios";
 
   const dispatch = createEventDispatcher();
+  let mainURL = "https://relm-api.myika.co"
+  // let mainURL = "http://localhost:8000"
 
   let route;
   currentPage.subscribe((newValue) => {
@@ -34,7 +36,6 @@
   let currentStateComplete;
   let currentStatePending;
   let active = false;
-  let mainURL = "https://relm-api.myika.co"
 
   resetState.subscribe((newValue) => {
     if (newValue !== false) {
@@ -52,7 +53,6 @@
   onMount(async () => {
     if (listing.imgs && listing.imgs.length > 0) {
       //only set image src if it's the actual img base64 string
-      console.log(listing.imgs)
       let listOfImgs = []
       listing.imgs.forEach((i) => {
         if (i.length > 35) {
