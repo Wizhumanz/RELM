@@ -45,7 +45,6 @@
     name: "",
     phone: "",
   };
-  let mainURL = "https://relm-api.myika.co"
 
   onMount(() => {
     (month = "" + (now.getMonth() + 1)),

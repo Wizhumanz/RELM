@@ -36,7 +36,6 @@
   let currentStateComplete;
   let currentStatePending;
   let active = false;
-  let mainURL = "https://relm-api.myika.co"
 
   resetState.subscribe((newValue) => {
     if (newValue !== false) {
