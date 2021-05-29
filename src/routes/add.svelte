@@ -4,6 +4,9 @@
   import { storeUser } from "../../store.js";
   import LoadingIndicator from "../components/LoadingIndicator.svelte";
 
+  let mainURL = "https://relm-api.myika.co"
+  // let mainURL = "http://localhost:8000"
+
   let user = {};
   storeUser.subscribe((newValue) => {
     if (newValue) {
@@ -124,7 +127,7 @@
             remarks: remarks
           };
           axios
-            .post("http://localhost:8000/listing", data, {
+            .post(mainURL + "/listing", data, {
               headers: hds,
               mode: "cors",
             })
@@ -231,7 +234,7 @@
     files = document.querySelector("#excelForm");
     let formData = new FormData(files)
     axios
-      .post("http://localhost:8000/upload?agencyID=" + user.agencyID + "&user=" + user.id, formData, {
+      .post(mainURL + "/upload?agencyID=" + user.agencyID + "&user=" + user.id, formData, {
         headers:{"Content-Type": 'multipart/form-data'},
         mode: "cors"
       })

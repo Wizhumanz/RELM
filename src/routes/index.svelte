@@ -111,7 +111,7 @@
       //let changedEndpoint = user.id.replaceAll("@","%40")
       let changedEndpoint = "5632499082330112"; //TODO: change to dynamic
       let url = onlyPublic
-        ? mainURL + "/listings?agency=5644004762845184&user=5632499082330112&isPublic=true"
+        ? mainURL + "/listings?agency=5713686849126400&user=6236916944994304&isPublic=true"
         : mainURL + "/listings?agency=" + user.agencyID + "&user=" + user.id;
       url = startID && startID != "" ? url + "&startID=" + startID : url;
       axios
@@ -204,7 +204,8 @@
           user.password = userRegister.password;
           storeUser.set(JSON.stringify(user));
           console.log(res.status + " -- " + res.data);
-          goto("/listings/all");
+          // goto("/");
+          document.location.reload();
         })
         .catch((error) => console.log(error));
     }

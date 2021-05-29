@@ -4,6 +4,8 @@
   import axios from "axios";
 
   const dispatch = createEventDispatcher();
+  let mainURL = "https://relm-api.myika.co"
+  // let mainURL = "http://localhost:8000"
 
   let route;
   currentPage.subscribe((newValue) => {
@@ -78,7 +80,7 @@
     };
     axios
       .put(
-        "http://localhost:8000/listing/" +
+        mainURL + "/listing/" +
           listing.AggregateID +
           "?user=" + user.id, listingSubstitute,
         {
@@ -150,7 +152,7 @@
       };
     }, 500);
     axios
-      .post("http://localhost:8000/twilio", data, {
+      .post(mainURL + "/twilio", data, {
         headers: hds,
         mode: "cors",
       })
@@ -166,7 +168,7 @@
     };
     axios
       .get(
-        "http://localhost:8000/owner?owner=" +
+        mainURL + "/owner?owner=" +
           ownerEmail.replaceAll("@", "%40"),
         {
           headers: hds,
